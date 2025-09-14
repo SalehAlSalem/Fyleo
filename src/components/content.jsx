@@ -1,7 +1,7 @@
 import CardData from '../config/CardData.mjs';
 import { CategoryCards } from '../components';
 import classNames from 'classnames';
-import underline from '/underline .svg';
+import underline from '/underline.svg';
 
 const Content = () => {
   return (
