@@ -19,11 +19,24 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// Initialize Analytics only in browser and when measurement id is provided
+let analytics;
+if (typeof window !== 'undefined' && import.meta.env.VITE_FIREBASE_MEASUREMENT_ID) {
+    try {
+        analytics = getAnalytics(app);
+    } catch (e) {
+        // Analytics can fail if disabled in the environment; log and continue
+        // eslint-disable-next-line no-console
+        console.warn('Firebase analytics initialization failed:', e);
+    }
+}
+
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 export {
+    app,
     auth,
     db,
     firebaseConfig

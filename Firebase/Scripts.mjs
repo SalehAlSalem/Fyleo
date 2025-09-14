@@ -1,16 +1,11 @@
-import { auth, db,firebaseConfig } from './ClientApp.mjs';
+import { app, auth, db } from './ClientApp.mjs';
 import React, { useState ,useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { getFirestore, collection, doc, setDoc,getDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc } from 'firebase/firestore';
 
-// Firebase configuration
-
-
-// Initialize Firebase
-const firebaseApp = initializeApp(firebaseConfig);
-const storage = getStorage(firebaseApp);
-const firestore = getFirestore(firebaseApp);
+// Reuse initialized app and db from ClientApp
+const storage = getStorage(app);
+const firestore = db;
 
 //uploading pdfs
 const UploadDataPdf = () => {
