@@ -1,0 +1,64 @@
+@import url('./fonts.css');
+@import url('./navbar.css');
+@import url('./scrollbar.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+:root {
+  --primary-color: #1a1a1c;
+  --page-color: rgb(249 250 251);
+  --back-shadow: #3a3e6f;
+  --front-edge: #24263e;
+  --yellow: #ffd45c;
+  --pink: #fb5784;
+  --blue: #5F4DFF;
+  --text-dull: #DED3B6;
+  --box-shadow: #c5c5c5;
+  --text-shadow: #e8e8e8;
+}
+
+[data-theme="dark"] {
+  --primary-color: rgb(249 250 251);
+  --page-color: #1a1a1c;
+  --box-shadow: #272727;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  font-family: 'Comfortaa', cursive;
+  background-color: var(--page-color);
+  width: 100vw;
+  height: 100vh;
+  overflow-x: hidden;
+  cursor: default;
+  color: var(--primary-color) !important;
+}
+
+li {
+  list-style: none;
+}
+
+.theme-btn-shadow {
+  box-shadow: 1px 2px 6px var(--box-shadow), inset 0px 6.66667px 22.6667px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease-in-out;
+}
+
+.theme-btn-shadow:hover {
+  box-shadow: 0 0 0.5rem var(--box-shadow), inset 0px -10px 34px rgba(0, 0, 0, 0.25);
+}
+
+.text-shadow {
+  text-shadow: 3.33333px 2.66667px 2.66667px rgba(0, 0, 0, 0.25);
+}
