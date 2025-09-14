@@ -4,7 +4,8 @@ import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import NavBar from "../NavBar";
-import pdfFile from "../../../public/2.2_Scales.pdf";
+// Public assets are served from the root path in production, import from public by URL
+const pdfFile = '/2.2_Scales.pdf';
 import classNames from "classnames";
 
 export default function PDFViewer(){
@@ -45,7 +46,7 @@ export default function PDFViewer(){
                             plugins={[
                                 defaultLayoutPluginInstance,
                             ]}
-                            viewMode={window.innerWidth < 768 ? ViewMode.Single : ViewMode.DualPage}
+                            viewMode={(typeof window !== 'undefined' && window.innerWidth < 768) ? ViewMode.Single : ViewMode.DualPage}
                             onOpenError={(e) => console.log('error', e)}
                             renderLoader={(percentages) => (
                                 <div style={{ width: '240px' }}>
