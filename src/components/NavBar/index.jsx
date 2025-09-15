@@ -30,7 +30,11 @@ const NavBar = () => {
           'dark:text-white': true,
           'mobile:text-lg': true,
         })}>
-          <Link to='/'>Fyleo</Link>
+          <Link to='/' className="flex items-center">
+            {/* Logo image - place the provided PNG at /public/fyleo-logo.png */}
+            <img src="/fyleo-logo.png" alt="Fyleo" className="h-10 w-auto mr-3 object-contain" onError={(e)=>{e.currentTarget.style.display='none'}} />
+            <span className="hidden mobile:inline">Fyleo</span>
+          </Link>
         </div>
 
         {/* NavItems... */}
