@@ -44,12 +44,13 @@ function SignForm() {
   const [confirmpassword, setConfirmPassword] = useState('');
   const [errorr, setErrorr] = useState(null);
   const [errorcause, setErrorcause] = useState('');
-  const validEmail = /^\d{2}[A-Za-z]{3}\d{3}$/;
+  const validEmail = /^\d{2}[A-Za-z]{3}\d{3}$/; // legacy pattern (kept if needed)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const validPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=]).{6,}$/;
   const signupuser = (emailid, password, confirmpassword) => {
-    const emailexp = emailid.split('@');
-    if (!(emailexp.length == 2 && emailexp[1] == 'iiitdmj.ac.in' && validEmail.test(emailexp[0]))) {
-      setErrorr('Enter valid institute email id.');
+    // Accept any standard email address for signup (MVP).
+    if (!emailRegex.test(emailid)) {
+      setErrorr('Enter a valid email address.');
       setErrorcause('email');
     }
     else if (password != confirmpassword) {
