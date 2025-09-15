@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
-import { useAuthState, useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { useAuthState, useCreateUserWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { auth } from '../../../Firebase/ClientApp.mjs';
 import { Navigate } from 'react-router-dom';
 
@@ -38,6 +38,7 @@ const PasswordValidationModal = () => {
 
 function SignForm() {
   const [createUserWithEmailAndPassword, user, loading, error] = useCreateUserWithEmailAndPassword(auth);
+  const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
   const [userr, loadingg, errorrr] = useAuthState(auth);
   const [emailid, setEmailid] = useState('');
   const [password, setPassword] = useState('');
@@ -98,6 +99,21 @@ function SignForm() {
         </div>
         <hr className=' ' />
         <form className="px-6 py-4">
+          {/* Google signup */}
+          <div className="mb-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                setErrorr(null);
+                setErrorcause('');
+                signInWithGoogle();
+              }}
+              className="w-full bg-white border border-gray-300 text-gray-800 font-semibold py-2 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
+            >
+              <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+              Continue with Google
+            </button>
+          </div>
           <div className={`my-3 text-center text-base bg-red-500 text-white rounded-lg p-1 ${(errorr) ? 'visible' : 'hidden'}`}>
             {(errorr) ? errorr : null}
           </div>
@@ -118,6 +134,14 @@ function SignForm() {
               <PasswordValidationModal />
             </div>
             <input type="password" className={`w-full border-b-2 border-gray-300 focus:border-blue-500 outline-none dark:text-[#1A1A1C] ${(errorcause == 'password') ? 'border-red-500' : null}`} required onChange={(e) => setPassword(e.target.value)} />
+            {/* Visible password requirements for clarity */}
+            <ul className="text-xs text-gray-500 mt-2 ml-2 list-disc">
+              <li>At least 6 characters</li>
+              <li>At least one uppercase letter (A-Z)</li>
+              <li>At least one lowercase letter (a-z)</li>
+              <li>At least one number (0-9)</li>
+              <li>At least one special character (e.g. @ # $ % ^ & + =)</li>
+            </ul>
           </div>
           <div className="mb-6">
             <label className="text-gray-500">Confirm Password</label>

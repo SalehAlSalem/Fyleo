@@ -39,40 +39,20 @@ const NavBar = () => {
           'flex items-center justify-end gap-4': true,
           'mobile:gap-2': true,
         })}>
-          <button
-            className={classNames({
-              'theme-btn-shadow rounded-xl bg-[#3B82F6]': true,
-              'px-4 py-2': true,
-              'monu text-sm text-white font-normal': true,
-              'mobile:text-xs': true,
-              'hidden' : (user) ? true: false,
-            })}
-          >
-            <Link to='/login'>Login</Link>
-          </button>
-          <button 
-            className={classNames({
-              'theme-btn-shadow rounded-xl bg-[#3B82F6]': true,
-              'px-4 py-2': true,
-              'monu text-sm text-white font-normal': true,
-              'mobile:text-xs': true,
-              'hidden' : (user) ? true: false,
-            })}
-          >
-            <Link to='/Dashboard'>UserName</Link>
-          </button>
-          <button
-            className={classNames({
-              'theme-btn-shadow rounded-xl bg-[#3B82F6]': true,
-              'px-4 py-2': true,
-              'monu text-sm text-white font-normal': true,
-              'mobile:text-xs': true,
-              'hidden' : (user) ? false: true,
-            })}
-            onClick={() => signout()}
-          >
-            Logout
-          </button>
+          {!user && (
+            <>
+              <Link to='/login' className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white font-normal mobile:text-xs">Login</Link>
+              <Link to='/signup' className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white font-normal mobile:text-xs">Sign Up</Link>
+            </>
+          )}
+
+          {user && (
+            <>
+              <Link to='/Dashboard' className="px-4 py-2 monu text-sm text-gray-800">{user.displayName || user.email}</Link>
+              <Link to='/Dashboard/upload' className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white">Upload</Link>
+              <button onClick={() => signout()} className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white">Logout</button>
+            </>
+          )}
           <DarkMode />
         </div>
       </div>
