@@ -1,11 +1,7 @@
-import { app, auth, db } from './ClientApp.mjs';
-import React, { useState ,useEffect } from 'react';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { auth, db } from './ClientApp.mjs';
+import React, { useState, useEffect } from 'react';
 import { collection, doc, setDoc, getDoc } from 'firebase/firestore';
-
-// Reuse initialized app and db from ClientApp
-const storage = getStorage(app);
-const firestore = db;
+import { uploadFileToCloudinaryAndFirestore } from '../Cloudinary/index.mjs';
 
 //uploading pdfs
 const UploadDataPdf = () => {
@@ -20,57 +16,44 @@ const UploadDataPdf = () => {
       setProgress(Array.from(files).map(() => 0));
     };
   
-    const handleUpload = () => {
-      const uploadPromises = [];
-      const ids = [];
-  
-      selectedFiles.forEach((file, index) => {
-        
-        const fileName = `${file.name}`;
-        const storageRef = ref(storage, 'Pdfs/' + fileName);
-        const uploadTask = uploadBytesResumable(storageRef, file);
-  
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const uploadProgress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-            setProgress((prevProgress) => {
-              const updatedProgress = [...prevProgress];
-              updatedProgress[index] = uploadProgress;
-              console.log('working');
-              return updatedProgress;
-            });
-          },
-          (error) => {
-            console.log('Error uploading file:', error);
-          },
-          async () => {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            const fileId = doc(collection(firestore, 'files')).id;
-            await setDoc(doc(firestore, 'files', fileId), {
-              name: file.name,
-              downloadURL: downloadURL,
-              dec:"",
-              mat_type:"",
-              pages:""
-            });
-            console.log('working2');
-            ids.push(fileId);
-            setUploadedFiles((prevUploadedFiles) => [...prevUploadedFiles, file]);
-            setFileIds(ids);
-          }
-        );
-  
-        uploadPromises.push(uploadTask);
+    const handleUpload = async () => {
+      const uploadPromises = selectedFiles.map(async (file, index) => {
+        try {
+          // Upload to Cloudinary and save to Firestore
+          const result = await uploadFileToCloudinaryAndFirestore(file, {
+            dec: "",
+            mat_type: "",
+            pages: ""
+          });
+
+          // Update progress and file lists
+          setProgress(prev => {
+            const newProgress = [...prev];
+            newProgress[index] = 100;
+            return newProgress;
+          });
+
+          setUploadedFiles(prev => [...prev, file]);
+          setFileIds(prev => [...prev, result.id]);
+
+          return result;
+        } catch (error) {
+          console.error(`Error uploading file ${file.name}:`, error);
+          setProgress(prev => {
+            const newProgress = [...prev];
+            newProgress[index] = 0;
+            return newProgress;
+          });
+          throw error;
+        }
       });
-  
-      Promise.all(uploadPromises)
-        .then(() => {
-          console.log('All files uploaded successfully!');
-        })
-        .catch((error) => {
-          console.error('Error uploading files:', error);
-        });
+
+      try {
+        await Promise.all(uploadPromises);
+        console.log('All files uploaded successfully!');
+      } catch (error) {
+        console.error('Error uploading files:', error);
+      }
     };
   
     
@@ -88,57 +71,42 @@ const UploadDataImage = () => {
     setProgress(Array.from(files).map(() => 0));
   };
 
-  const handleUpload = () => {
-    const uploadPromises = [];
-    const ids = [];
+  const handleUpload = async () => {
+    const uploadPromises = selectedFiles.map(async (file, index) => {
+      try {
+        // Upload to Cloudinary and save to Firestore
+        const result = await uploadFileToCloudinaryAndFirestore(file, {
+          resource_type: 'image'
+        });
 
-    selectedFiles.forEach((file, index) => {
-      
-      const fileName = `${file.name}`;
-      const storageRef = ref(storage, 'images/' + fileName);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+        // Update progress and file lists
+        setProgress(prev => {
+          const newProgress = [...prev];
+          newProgress[index] = 100;
+          return newProgress;
+        });
 
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const uploadProgress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-          setProgress((prevProgress) => {
-            const updatedProgress = [...prevProgress];
-            updatedProgress[index] = uploadProgress;
-            console.log('working');
-            return updatedProgress;
-          });
-        },
-        (error) => {
-          console.log('Error uploading file:', error);
-        },
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          const fileId = doc(collection(firestore, 'files')).id;
-          await setDoc(doc(firestore, 'files', fileId), {
-            name: file.name,
-            downloadURL: downloadURL,
-            dec:"",
-            mat_type:"",
-            pages:""
-          });
-          console.log('working2');
-          ids.push(fileId);
-          setUploadedFiles((prevUploadedFiles) => [...prevUploadedFiles, file]);
-          setFileIds(ids);
-        }
-      );
+        setUploadedFiles(prev => [...prev, file]);
+        setFileIds(prev => [...prev, result.id]);
 
-      uploadPromises.push(uploadTask);
+        return result;
+      } catch (error) {
+        console.error(`Error uploading file ${file.name}:`, error);
+        setProgress(prev => {
+          const newProgress = [...prev];
+          newProgress[index] = 0;
+          return newProgress;
+        });
+        throw error;
+      }
     });
 
-    Promise.all(uploadPromises)
-      .then(() => {
-        console.log('All files uploaded successfully!');
-      })
-      .catch((error) => {
-        console.error('Error uploading files:', error);
-      });
+    try {
+      await Promise.all(uploadPromises);
+      console.log('All files uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading files:', error);
+    }
   };
 
   
@@ -151,24 +119,19 @@ const UploadDataImage = () => {
 //downloading func
 
 const FetchItem = ({ itemId }) => {
- 
   const [itemData, setItemData] = useState(null);
-  const [downloadURL, setDownloadURL] = useState(null);
 
   useEffect(() => {
     const fetchItemData = async () => {
       try {
-        console.log("working3");
-        const itemDocRef = doc(firestore, 'files', itemId);
+        console.log("Fetching item:", itemId);
+        const itemDocRef = doc(db, 'files', itemId);
         const itemDocSnap = await getDoc(itemDocRef);
 
         if (itemDocSnap.exists()) {
           const itemDetails = itemDocSnap.data();
           setItemData(itemDetails);
-
-          const fileRef = ref(storage, 'files/' + itemDetails.filename);
-          const url = await getDownloadURL(fileRef);
-          setDownloadURL(url);
+          // Note: We don't need to fetch URL separately - it's stored in itemDetails.secure_url
         } else {
           console.log('Item does not exist.');
         }
