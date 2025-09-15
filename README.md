@@ -1,4 +1,4 @@
-# Resource-Sharing
+# Fyleo
 
 Welcome to the College Resource Sharing Website! This platform is designed to facilitate the sharing of educational resources among college students. Whether you need lecture notes, study guides, practice exams, or any other material, this website is here to help you.
 
@@ -24,17 +24,17 @@ More deatils of the project our provided at this [Notion Link](https://grey-soyb
 
 #### Follow the steps mentioned below to setup the project locally on your computer
 
-1. Fork the repository by clicking on `Fork` option on top right of the main repository.
+1. Fork the repository by clicking on `Fork` option on top right of the main repository (or clone directly from https://github.com/SalehAlSalem/Fyleo).
 2. Open Command Prompt/Terminal on your local computer.
 3. Clone the forked repository by adding your own GitHub username in place of `<username>`.
 
 ```bash
-    git clone https://github.com/<username>/resource-sharing/
+    git clone https://github.com/SalehAlSalem/Fyleo.git
 ```
 4. Navigate to the resource-sharing directory.
 
 ```bash
-    cd resource-sharing
+    cd Fyleo
 ```
 
 5. Install all resource-sharing dependencies. 

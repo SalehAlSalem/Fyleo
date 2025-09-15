@@ -37,7 +37,7 @@ const HeroSection = () => {
               'hero-section-sm:text-center hero-section-sm:flex-col hero-section-sm:gap-1 hero-section-sm:text-gray-200': true,
               'mobile:text-[1.75rem]': true,
             })}>
-              Welcome to UniShare
+              Welcome to Fyleo
               <div className={classNames({
                 'flex items-center justify-center gap-2 my-3': true,
                 'hero-section-sm:static absolute !bottom-[0.65rem] lg:right-[4.25rem]': true,
