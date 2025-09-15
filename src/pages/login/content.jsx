@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Navigate } from "react-router-dom";
-import { useAuthState, useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { useAuthState, useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { auth } from '../../../Firebase/ClientApp.mjs';
 import { browserLocalPersistence, browserSessionPersistence, setPersistence } from 'firebase/auth';
 
 
 function LoginForm() {
   const [signInWithEmailAndPassword, user, loading, error] = useSignInWithEmailAndPassword(auth);
+  const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
   const [emailid, setEmailid] = useState('');
   const [password, setPassword] = useState('');
   const [rememberme, setRememberMe]=useState(false);
@@ -59,6 +60,19 @@ function LoginForm() {
         </div>
         <hr className=' ' />
         <form className="px-6 py-4">
+          <div className="mb-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                setErrorcause('');
+                signInWithGoogle();
+              }}
+              className="w-full bg-white border border-gray-300 text-gray-800 font-semibold py-2 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
+            >
+              <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+              Continue with Google
+            </button>
+          </div>
         <div className={`my-3 text-center text-base bg-red-500 text-white rounded-lg p-1 capitalize ${(error)? 'visible' : 'hidden'}`}>
               {(error) ? error.message.replaceAll('Firebase: Error (auth/', '').replaceAll(').', '').replaceAll('-', ' ') : null}
             </div>
