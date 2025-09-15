@@ -26,10 +26,10 @@ const App = () => {
           <Route path="/pdfviewer/:id" element={<PDFViewer/>}></Route>
           <Route path="/resetpassword" element={<Reset/>}></Route>
           <Route path="/dashboard" element={<Dashboard/>}></Route>
-          <Route path="*" element={<PageNoteFound/>}></Route>
           <Route path="/uploads" element={<Uploads />}></Route>
           <Route path="/downloads" element={<Downloads />}></Route>
           <Route path="/bookmarks" element={<Bookmarks />}></Route>
+          <Route path="*" element={<PageNoteFound/>}></Route>
 
         </Routes>
       </BrowserRouter>

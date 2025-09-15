@@ -52,8 +52,8 @@ const NavBar = () => {
 
           {user && (
             <>
-              <Link to='/Dashboard' className="px-4 py-2 monu text-sm text-gray-800">{user.displayName || user.email}</Link>
-              <Link to='/Dashboard/upload' className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white">Upload</Link>
+              <Link to='/dashboard' className="px-4 py-2 monu text-sm text-gray-800">{user.displayName || user.email}</Link>
+              <Link to='/uploads' className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white">Upload</Link>
               <button onClick={() => signout()} className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white">Logout</button>
             </>
           )}
