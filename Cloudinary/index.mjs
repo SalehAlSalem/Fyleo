@@ -4,6 +4,14 @@ import { collection, doc, setDoc } from 'firebase/firestore';
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
+if (!cloudName || !uploadPreset) {
+  // Fail fast when env vars are missing to avoid silent failures on client
+  // We can't throw at import time in some bundlers, so expose a helpful console error.
+  // Consumers should still handle thrown errors from uploadToCloudinary.
+  // eslint-disable-next-line no-console
+  console.error('Cloudinary env vars missing. Ensure VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET are set.');
+}
+
 // Main upload function
 export const uploadToCloudinary = async (file) => {
   const formData = new FormData();
@@ -16,11 +24,24 @@ export const uploadToCloudinary = async (file) => {
       body: formData
     });
 
-    if (!response.ok) {
-      throw new Error('Upload failed');
+    const text = await response.text();
+    // Try to parse JSON body if possible
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      data = { message: text };
     }
 
-    const data = await response.json();
+    if (!response.ok) {
+      const err = new Error(`Cloudinary upload failed: ${response.status} ${response.statusText}`);
+      err.status = response.status;
+      err.body = data;
+      // eslint-disable-next-line no-console
+      console.error('Cloudinary upload error:', err);
+      throw err;
+    }
+
     return data;
   } catch (error) {
     console.error('Upload error:', error);
