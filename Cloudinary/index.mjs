@@ -74,13 +74,24 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
       approved: false // Default to false until moderator approves
     };
 
-    // Save to Firestore
-    await setDoc(doc(db, 'files', fileId), fileData);
-
-    return {
-      id: fileId,
-      ...fileData
-    };
+    // Save to Firestore (best-effort). If saving fails, return result with firestoreSaved=false
+    try {
+      await setDoc(doc(db, 'files', fileId), fileData);
+      return {
+        id: fileId,
+        ...fileData,
+        firestoreSaved: true
+      };
+    } catch (fireErr) {
+      // eslint-disable-next-line no-console
+      console.error('Cloudinary: uploaded but failed to save to Firestore', fireErr);
+      return {
+        id: fileId,
+        ...fileData,
+        firestoreSaved: false,
+        firestoreError: String(fireErr)
+      };
+    }
   } catch (error) {
     console.error('Error in upload process:', error);
     throw error;

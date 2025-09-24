@@ -26,32 +26,46 @@ const Upload = ({ open, setOpen }) => {
     setProgress(0);
 
     try {
-      // Upload images first (if any)
+      const total = imageFiles.length + (pdfFile ? 1 : 0);
+      let done = 0;
+      const results = [];
+
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
-        await uploadFileToCloudinaryAndFirestore(file, {
+        const res = await uploadFileToCloudinaryAndFirestore(file, {
           title,
           description,
           category,
           pages,
           resource_type: 'image'
         });
-        setProgress(Math.round(((i + 1) / (imageFiles.length + (pdfFile ? 1 : 0))) * 100));
+        results.push({ file: file.name, result: res });
+        done++;
+        setProgress(Math.round((done / total) * 100));
       }
 
-      // Upload pdf
       if (pdfFile) {
-        await uploadFileToCloudinaryAndFirestore(pdfFile, {
+        const res = await uploadFileToCloudinaryAndFirestore(pdfFile, {
           title,
           description,
           category,
           pages,
           resource_type: 'raw'
         });
-        setProgress(100);
+        results.push({ file: pdfFile.name, result: res });
+        done++;
+        setProgress(Math.round((done / total) * 100));
       }
 
-      setStatus('Upload complete');
+      // Summarize results
+      const failedFirestore = results.filter(r => r.result && r.result.firestoreSaved === false);
+      if (failedFirestore.length > 0) {
+        setStatus(`Upload succeeded to Cloudinary but saving to Firestore failed for ${failedFirestore.length} file(s). Check console.`);
+        // eslint-disable-next-line no-console
+        console.warn('Some uploads failed to save to Firestore:', failedFirestore);
+      } else {
+        setStatus('Upload complete');
+      }
     } catch (err) {
       console.error('Upload error:', err);
       setStatus('Upload failed. See console for details.');
