@@ -51,6 +51,42 @@ More deatils of the project our provided at this [Notion Link](https://grey-soyb
 
 7. Access the live development server at [localhost:5173](http://localhost:5173).
 
+### Local environment variables
+
+Create a `.env.local` file in the project root and add the following values (replace with your keys):
+
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+
+VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
+VITE_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
+VITE_AUTO_APPROVE=true
+
+Note: For quick development you can set `VITE_AUTO_APPROVE=true` so uploads show immediately. In production, set it to `false` and use an admin workflow to approve uploads.
+
+### Vercel / Deployment notes
+
+- Add the same env vars in the Vercel dashboard (do NOT commit them to source control).
+- Ensure Firestore rules allow the client-side behavior you expect, or implement a server-side endpoint to accept Cloudinary webhooks and write metadata securely.
+
+### Admin scripts
+
+Two helper scripts are provided to fix legacy Firestore documents:
+
+- `scripts/approve_all_files.mjs` — Set `approved=true` for all files where it's missing.
+- `scripts/set_uploader_by_email.mjs` — Set `uploaderUid` and approve by matching an email address.
+
+Run them locally with a Firebase service account (set `GOOGLE_APPLICATION_CREDENTIALS` env var) using:
+
+```powershell
+$env:GOOGLE_APPLICATION_CREDENTIALS='C:\path\to\service-account.json'
+node .\scripts\set_uploader_by_email.mjs --email you@example.com --uid YOUR_FIREBASE_UID
+```
+
+
 
 
 ### Communication

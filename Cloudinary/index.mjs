@@ -4,7 +4,11 @@ import { collection, doc, setDoc, serverTimestamp, updateDoc, increment } from '
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 // Allow quick toggling of auto-approval for uploads (useful for testing).
-const AUTO_APPROVE = (import.meta.env.VITE_AUTO_APPROVE === 'true') || true;
+// If VITE_AUTO_APPROVE is explicitly set to 'false', treat it as false,
+// otherwise default to true for local/dev convenience.
+const AUTO_APPROVE = (typeof import.meta.env.VITE_AUTO_APPROVE !== 'undefined')
+  ? String(import.meta.env.VITE_AUTO_APPROVE).toLowerCase() === 'true'
+  : true;
 
 if (!cloudName || !uploadPreset) {
   // Fail fast when env vars are missing to avoid silent failures on client
@@ -13,6 +17,18 @@ if (!cloudName || !uploadPreset) {
   // eslint-disable-next-line no-console
   console.error('Cloudinary env vars missing. Ensure VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET are set.');
 }
+
+// Helper: remove keys with undefined values because Firestore rejects undefined.
+// Defined at module scope so it can be reused by multiple functions.
+const cleanObject = (obj) => {
+  const out = {};
+  Object.keys(obj || {}).forEach((k) => {
+    if (typeof obj[k] !== 'undefined') {
+      out[k] = obj[k];
+    }
+  });
+  return out;
+};
 
 // Main upload function
 export const uploadToCloudinary = async (file) => {
@@ -94,17 +110,6 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
   ...metadata,
   // Default approval behaviour: use VITE_AUTO_APPROVE if provided; otherwise default to true
   approved: AUTO_APPROVE
-    };
-
-    // Helper: remove keys with undefined values because Firestore doesn't accept undefined
-    const cleanObject = (obj) => {
-      const out = {};
-      Object.keys(obj).forEach((k) => {
-        if (typeof obj[k] !== 'undefined') {
-          out[k] = obj[k];
-        }
-      });
-      return out;
     };
 
     const fileData = cleanObject(rawFileData);
