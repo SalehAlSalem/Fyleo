@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import classNames from "classnames";
 import { uploadFileToCloudinaryAndFirestore, saveMetadataToFirestore } from '../../../Cloudinary/index.mjs';
+import { auth } from '../../../Firebase/ClientApp.mjs';
 
 const Upload = ({ open, setOpen }) => {
   const [title, setTitle] = useState("");
@@ -11,6 +12,7 @@ const Upload = ({ open, setOpen }) => {
   const [pdfFile, setPdfFile] = useState(null);
   const [status, setStatus] = useState("");
   const [progress, setProgress] = useState(0);
+  const [lastFailDetails, setLastFailDetails] = useState(null);
 
   const handleImageChange = (e) => {
     setImageFiles(Array.from(e.target.files));
@@ -22,6 +24,12 @@ const Upload = ({ open, setOpen }) => {
   };
 
   const handleSubmit = async () => {
+    // Ensure the user is signed in before uploading (client-side guard)
+    if (!auth || !auth.currentUser) {
+      setStatus('Please sign in before uploading.');
+      return;
+    }
+
     setStatus('Uploading...');
     setProgress(0);
 
@@ -69,6 +77,7 @@ const Upload = ({ open, setOpen }) => {
         localStorage.setItem('pendingFileMetadata', JSON.stringify([...pending, ...toSave]));
         // eslint-disable-next-line no-console
         console.warn('Some uploads failed to save to Firestore, saved to localStorage pendingFileMetadata:', toSave, 'details:', details);
+        setLastFailDetails(details);
       } else {
         setStatus('Upload complete');
       }
@@ -129,6 +138,13 @@ const Upload = ({ open, setOpen }) => {
             <div className="mt-2 flex gap-2">
               <button onClick={handleRetryPending} className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white">Retry pending saves</button>
             </div>
+          </div>
+        )}
+
+        {lastFailDetails && (
+          <div className="w-[85%] mt-4 p-3 bg-red-50 rounded-md">
+            <div className="text-sm font-medium text-red-700">Last Firestore save failures (copy details):</div>
+            <pre className="text-xs overflow-auto max-h-40 mt-2 p-2 bg-white rounded">{JSON.stringify(lastFailDetails, null, 2)}</pre>
           </div>
         )}
 
