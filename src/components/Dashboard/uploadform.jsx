@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import classNames from "classnames";
-import { uploadFileToCloudinaryAndFirestore } from '../../../Cloudinary/index.mjs';
+import { uploadFileToCloudinaryAndFirestore, saveMetadataToFirestore } from '../../../Cloudinary/index.mjs';
 
 const Upload = ({ open, setOpen }) => {
   const [title, setTitle] = useState("");
@@ -60,9 +60,13 @@ const Upload = ({ open, setOpen }) => {
       // Summarize results
       const failedFirestore = results.filter(r => r.result && r.result.firestoreSaved === false);
       if (failedFirestore.length > 0) {
-        setStatus(`Upload succeeded to Cloudinary but saving to Firestore failed for ${failedFirestore.length} file(s). Check console.`);
+        setStatus(`Upload succeeded to Cloudinary but saving to Firestore failed for ${failedFirestore.length} file(s). You can retry.`);
+        // Persist failures locally so user can retry later
+        const pending = JSON.parse(localStorage.getItem('pendingFileMetadata') || '[]');
+        const toSave = failedFirestore.map(f => ({ ...f.result }));
+        localStorage.setItem('pendingFileMetadata', JSON.stringify([...pending, ...toSave]));
         // eslint-disable-next-line no-console
-        console.warn('Some uploads failed to save to Firestore:', failedFirestore);
+        console.warn('Some uploads failed to save to Firestore, saved to localStorage pendingFileMetadata:', toSave);
       } else {
         setStatus('Upload complete');
       }
@@ -70,6 +74,31 @@ const Upload = ({ open, setOpen }) => {
       console.error('Upload error:', err);
       setStatus('Upload failed. See console for details.');
     }
+  };
+
+  // Retry pending metadata saved in localStorage
+  const [pending, setPending] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('pendingFileMetadata') || '[]');
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const handleRetryPending = async () => {
+    if (!pending.length) return;
+    setStatus('Retrying pending metadata saves...');
+    const remaining = [];
+    for (const pd of pending) {
+      const res = await saveMetadataToFirestore(pd);
+      if (!res.ok) {
+        remaining.push(pd);
+      }
+    }
+    localStorage.setItem('pendingFileMetadata', JSON.stringify(remaining));
+    setPending(remaining);
+    if (remaining.length === 0) setStatus('All pending metadata saved successfully');
+    else setStatus(`${remaining.length} pending items remain`);
   };
 
   return (
@@ -91,6 +120,15 @@ const Upload = ({ open, setOpen }) => {
           <div className="text-sm text-gray-600">{status}</div>
           <div className="text-sm text-gray-600">{progress}%</div>
         </div>
+
+        {pending.length > 0 && (
+          <div className="w-[85%] mt-4 p-3 bg-yellow-50 rounded-md">
+            <div className="text-sm font-medium">You have {pending.length} pending metadata save(s).</div>
+            <div className="mt-2 flex gap-2">
+              <button onClick={handleRetryPending} className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white">Retry pending saves</button>
+            </div>
+          </div>
+        )}
 
         <button onClick={handleSubmit}
           className={classNames({

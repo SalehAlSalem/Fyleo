@@ -98,6 +98,22 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
   }
 };
 
+// Separate helper to attempt saving metadata to Firestore later (retry)
+export const saveMetadataToFirestore = async (fileData) => {
+  try {
+    const id = fileData.id || doc(collection(db, 'files')).id;
+    await setDoc(doc(db, 'files', id), {
+      ...fileData,
+      createdAt: fileData.createdAt || new Date().toISOString(),
+    });
+    return { ok: true, id };
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('saveMetadataToFirestore error', err);
+    return { ok: false, error: String(err) };
+  }
+};
+
 // React hook for file upload with progress
 export const useCloudinaryUpload = (onProgress) => {
   const uploadFile = async (file, metadata = {}) => {
