@@ -72,24 +72,38 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
     // Create a new document in Firestore
     const fileId = doc(collection(db, 'files')).id;
     
-    // Prepare file metadata
-    const fileData = {
-      name: file.name,
-      category: metadata.category || null,
-      categorySlug: metadata.categorySlug || null,
-      secure_url: cloudinaryResponse.secure_url,
-      public_id: cloudinaryResponse.public_id,
-      format: cloudinaryResponse.format,
-      resource_type: cloudinaryResponse.resource_type,
-      bytes: cloudinaryResponse.bytes,
-      width: cloudinaryResponse.width,
-      height: cloudinaryResponse.height,
-      folder: cloudinaryResponse.folder,
+    // Prepare file metadata; avoid including undefined fields (Firestore rejects undefined)
+    const rawFileData = {
+      name: file && file.name ? file.name : null,
+      category: metadata && metadata.category ? metadata.category : null,
+      categorySlug: metadata && metadata.categorySlug ? metadata.categorySlug : null,
+      secure_url: cloudinaryResponse && cloudinaryResponse.secure_url ? cloudinaryResponse.secure_url : null,
+      public_id: cloudinaryResponse && cloudinaryResponse.public_id ? cloudinaryResponse.public_id : null,
+      format: cloudinaryResponse && cloudinaryResponse.format ? cloudinaryResponse.format : null,
+      resource_type: cloudinaryResponse && cloudinaryResponse.resource_type ? cloudinaryResponse.resource_type : null,
+      bytes: cloudinaryResponse && typeof cloudinaryResponse.bytes !== 'undefined' ? cloudinaryResponse.bytes : null,
+      width: cloudinaryResponse && typeof cloudinaryResponse.width !== 'undefined' ? cloudinaryResponse.width : null,
+      height: cloudinaryResponse && typeof cloudinaryResponse.height !== 'undefined' ? cloudinaryResponse.height : null,
+      // cloudinaryResponse.folder may be undefined; include only when defined
+      folder: typeof cloudinaryResponse !== 'undefined' && typeof cloudinaryResponse.folder !== 'undefined' ? cloudinaryResponse.folder : undefined,
       createdAt: new Date().toISOString(),
       uploaderUid: (auth && auth.currentUser) ? auth.currentUser.uid : null,
       ...metadata,
       approved: false // Default to false until moderator approves
     };
+
+    // Helper: remove keys with undefined values because Firestore doesn't accept undefined
+    const cleanObject = (obj) => {
+      const out = {};
+      Object.keys(obj).forEach((k) => {
+        if (typeof obj[k] !== 'undefined') {
+          out[k] = obj[k];
+        }
+      });
+      return out;
+    };
+
+    const fileData = cleanObject(rawFileData);
 
     // Save to Firestore (best-effort). If saving fails, return result with firestoreSaved=false
     try {
@@ -99,7 +113,7 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
         ...fileData,
         firestoreSaved: true
       };
-    } catch (fireErr) {
+  } catch (fireErr) {
       // eslint-disable-next-line no-console
       console.error('Cloudinary: uploaded but failed to save to Firestore', {
         message: fireErr && fireErr.message,
@@ -128,10 +142,9 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
 export const saveMetadataToFirestore = async (fileData) => {
   try {
     const id = fileData.id || doc(collection(db, 'files')).id;
-    await setDoc(doc(db, 'files', id), {
-      ...fileData,
-      createdAt: fileData.createdAt || new Date().toISOString(),
-    });
+    // ensure we don't store undefined in the saved object
+    const toSave = cleanObject({ ...fileData, createdAt: fileData.createdAt || new Date().toISOString() });
+    await setDoc(doc(db, 'files', id), toSave);
     return { ok: true, id };
   } catch (err) {
     // eslint-disable-next-line no-console
