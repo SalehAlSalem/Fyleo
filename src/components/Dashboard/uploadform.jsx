@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import classNames from "classnames";
 import { uploadFileToCloudinaryAndFirestore, saveMetadataToFirestore } from '../../../Cloudinary/index.mjs';
 import { auth } from '../../../Firebase/ClientApp.mjs';
-import cardData from '../../../config/CardData.mjs';
+import cardData from '../../config/CardData.mjs';
 
 const Upload = ({ open, setOpen }) => {
   const [title, setTitle] = useState("");
