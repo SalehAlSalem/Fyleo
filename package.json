@@ -9,8 +9,9 @@
     }
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+  "dev": "vite",
+  "build": "vite build",
+  "approve:all": "node scripts/approve_all_files.mjs",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "format": "npx prettier --write .",
     "preview": "vite preview"
