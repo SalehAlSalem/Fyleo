@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import classNames from "classnames";
 import { uploadFileToCloudinaryAndFirestore, saveMetadataToFirestore } from '../../../Cloudinary/index.mjs';
 import { auth } from '../../../Firebase/ClientApp.mjs';
+import cardData from '../../../config/CardData.mjs';
 
 const Upload = ({ open, setOpen }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [pages, setPages] = useState(0);
   const [imageFiles, setImageFiles] = useState([]);
   const [pdfFile, setPdfFile] = useState(null);
   const [status, setStatus] = useState("");
@@ -40,11 +40,12 @@ const Upload = ({ open, setOpen }) => {
 
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
+        const categoryObj = cardData.find(c => c.domain === category) || null;
         const res = await uploadFileToCloudinaryAndFirestore(file, {
           title,
           description,
-          category,
-          pages,
+          category: categoryObj ? categoryObj.domain : category,
+          categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
           resource_type: 'image'
         });
         results.push({ file: file.name, result: res });
@@ -53,11 +54,12 @@ const Upload = ({ open, setOpen }) => {
       }
 
       if (pdfFile) {
+        const categoryObj = cardData.find(c => c.domain === category) || null;
         const res = await uploadFileToCloudinaryAndFirestore(pdfFile, {
           title,
           description,
-          category,
-          pages,
+          category: categoryObj ? categoryObj.domain : category,
+          categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
           resource_type: 'raw'
         });
         results.push({ file: pdfFile.name, result: res });
@@ -124,8 +126,13 @@ const Upload = ({ open, setOpen }) => {
         <label className="text-xl mb-2 w-[85%]">PDF:</label>
         <input type="file" onChange={handlePdfChange} className="w-[85%] h-12 rounded-lg border border-gray-400 text-100 py-2 pl-4 mb-2" accept="application/pdf" />
 
-        <input value={category} onChange={(e) => setCategory(e.target.value)} type="text" className="w-[85%] h-10 rounded-lg border border-gray-400 text-100 py-2 pl-4 m-2" placeholder="Category" />
-        <input value={pages} onChange={(e) => setPages(e.target.value)} type="number" className="w-[85%] h-10 rounded-lg border border-gray-400 text-100 py-2 pl-4 m-2" placeholder="Number of pages" />
+        <label className="text-gray-500 w-[85%]">Category / Subject</label>
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-[85%] h-10 rounded-lg border border-gray-400 text-100 py-2 pl-4 m-2">
+          <option value="">Select a category</option>
+          {cardData.map(c => (
+            <option key={c.id} value={c.domain}>{c.domain}</option>
+          ))}
+        </select>
 
         <div className="w-[85%] flex justify-between items-center mt-4">
           <div className="text-sm text-gray-600">{status}</div>

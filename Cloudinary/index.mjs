@@ -17,6 +17,11 @@ export const uploadToCloudinary = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', uploadPreset);
+  // Optional: if caller provided a folder, it should be present on the file object as file._folder
+  if (file && file._folder) {
+    // Cloudinary expects a 'folder' field in the form data
+    formData.append('folder', file._folder);
+  }
 
   try {
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
@@ -53,6 +58,15 @@ export const uploadToCloudinary = async (file) => {
 export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) => {
   try {
     // Upload to Cloudinary
+    // Attach requested folder to file temporarily so uploadToCloudinary can read it
+    if (metadata && metadata.categorySlug) {
+      // clone file-like objects may be read-only; attach a non-enumerable property if possible
+      try {
+        file._folder = metadata.categorySlug;
+      } catch (e) {
+        // ignore if we cannot attach
+      }
+    }
     const cloudinaryResponse = await uploadToCloudinary(file);
     
     // Create a new document in Firestore
@@ -61,6 +75,8 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
     // Prepare file metadata
     const fileData = {
       name: file.name,
+      category: metadata.category || null,
+      categorySlug: metadata.categorySlug || null,
       secure_url: cloudinaryResponse.secure_url,
       public_id: cloudinaryResponse.public_id,
       format: cloudinaryResponse.format,
