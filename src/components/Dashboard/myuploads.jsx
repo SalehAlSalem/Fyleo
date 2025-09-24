@@ -30,8 +30,8 @@ const MyUploads = () => {
     fetchFiles();
   }, []);
 
-  if (loading) return <div>Loading your uploads...</div>;
-  if (!files.length) return <div>No uploads yet.</div>;
+  // Don't early-return so the Publish button is always visible.
+  const uid = auth && auth.currentUser ? auth.currentUser.uid : null;
 
   const [publishing, setPublishing] = useState(false);
   const publishAll = async () => {
