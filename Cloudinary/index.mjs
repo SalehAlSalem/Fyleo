@@ -1,5 +1,5 @@
 import { db, auth } from '../Firebase/ClientApp.mjs';
-import { collection, doc, setDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -86,7 +86,8 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
       height: cloudinaryResponse && typeof cloudinaryResponse.height !== 'undefined' ? cloudinaryResponse.height : null,
       // cloudinaryResponse.folder may be undefined; include only when defined
       folder: typeof cloudinaryResponse !== 'undefined' && typeof cloudinaryResponse.folder !== 'undefined' ? cloudinaryResponse.folder : undefined,
-      createdAt: new Date().toISOString(),
+  // Use Firestore serverTimestamp to keep server-side consistent timestamps
+  createdAt: serverTimestamp(),
       uploaderUid: (auth && auth.currentUser) ? auth.currentUser.uid : null,
       ...metadata,
       approved: false // Default to false until moderator approves
@@ -108,6 +109,17 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
     // Save to Firestore (best-effort). If saving fails, return result with firestoreSaved=false
     try {
       await setDoc(doc(db, 'files', fileId), fileData);
+      // Award 1 point to uploader if uploaderUid is present
+      try {
+        if (fileData.uploaderUid) {
+          const userRef = doc(db, 'users', fileData.uploaderUid);
+          await updateDoc(userRef, { points: increment(1) });
+        }
+      } catch (ptsErr) {
+        // Non-fatal: log point update failure
+        // eslint-disable-next-line no-console
+        console.warn('Failed to update user points for uploader', ptsErr);
+      }
       return {
         id: fileId,
         ...fileData,
@@ -143,7 +155,7 @@ export const saveMetadataToFirestore = async (fileData) => {
   try {
     const id = fileData.id || doc(collection(db, 'files')).id;
     // ensure we don't store undefined in the saved object
-    const toSave = cleanObject({ ...fileData, createdAt: fileData.createdAt || new Date().toISOString() });
+    const toSave = cleanObject({ ...fileData, createdAt: fileData.createdAt || serverTimestamp() });
     await setDoc(doc(db, 'files', id), toSave);
     return { ok: true, id };
   } catch (err) {
