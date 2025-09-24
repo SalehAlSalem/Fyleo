@@ -60,13 +60,15 @@ const Upload = ({ open, setOpen }) => {
       // Summarize results
       const failedFirestore = results.filter(r => r.result && r.result.firestoreSaved === false);
       if (failedFirestore.length > 0) {
-        setStatus(`Upload succeeded to Cloudinary but saving to Firestore failed for ${failedFirestore.length} file(s). You can retry.`);
+        // Show detailed error info if available
+        const details = failedFirestore.map(f => ({ file: f.file, error: f.result.firestoreError }));
+        setStatus(`Upload succeeded to Cloudinary but saving to Firestore failed for ${failedFirestore.length} file(s). See console for details.`);
         // Persist failures locally so user can retry later
         const pending = JSON.parse(localStorage.getItem('pendingFileMetadata') || '[]');
         const toSave = failedFirestore.map(f => ({ ...f.result }));
         localStorage.setItem('pendingFileMetadata', JSON.stringify([...pending, ...toSave]));
         // eslint-disable-next-line no-console
-        console.warn('Some uploads failed to save to Firestore, saved to localStorage pendingFileMetadata:', toSave);
+        console.warn('Some uploads failed to save to Firestore, saved to localStorage pendingFileMetadata:', toSave, 'details:', details);
       } else {
         setStatus('Upload complete');
       }

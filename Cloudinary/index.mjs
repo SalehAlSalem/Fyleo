@@ -1,4 +1,4 @@
-import { db } from '../Firebase/ClientApp.mjs';
+import { db, auth } from '../Firebase/ClientApp.mjs';
 import { collection, doc, setDoc } from 'firebase/firestore';
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -70,6 +70,7 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
       height: cloudinaryResponse.height,
       folder: cloudinaryResponse.folder,
       createdAt: new Date().toISOString(),
+      uploaderUid: (auth && auth.currentUser) ? auth.currentUser.uid : null,
       ...metadata,
       approved: false // Default to false until moderator approves
     };
@@ -84,12 +85,21 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
       };
     } catch (fireErr) {
       // eslint-disable-next-line no-console
-      console.error('Cloudinary: uploaded but failed to save to Firestore', fireErr);
+      console.error('Cloudinary: uploaded but failed to save to Firestore', {
+        message: fireErr && fireErr.message,
+        code: fireErr && fireErr.code,
+        stack: fireErr && fireErr.stack,
+        raw: fireErr
+      });
+      const errObj = {
+        message: fireErr && fireErr.message ? String(fireErr.message) : String(fireErr),
+        code: fireErr && fireErr.code ? String(fireErr.code) : undefined,
+      };
       return {
         id: fileId,
         ...fileData,
         firestoreSaved: false,
-        firestoreError: String(fireErr)
+        firestoreError: errObj
       };
     }
   } catch (error) {
@@ -109,8 +119,17 @@ export const saveMetadataToFirestore = async (fileData) => {
     return { ok: true, id };
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error('saveMetadataToFirestore error', err);
-    return { ok: false, error: String(err) };
+    console.error('saveMetadataToFirestore error', {
+      message: err && err.message,
+      code: err && err.code,
+      stack: err && err.stack,
+      raw: err
+    });
+    const errorObj = {
+      message: err && err.message ? String(err.message) : String(err),
+      code: err && err.code ? String(err.code) : undefined,
+    };
+    return { ok: false, error: errorObj };
   }
 };
 
