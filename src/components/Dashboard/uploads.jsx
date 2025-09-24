@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { NavBar } from '../../components';
 import Sidepanel from "./sidepanel";
 import classNames from "classnames";
+import MyUploads from './myuploads';
 
 const Uploads = () => {
     const [open, setOpen] = useState(false);
@@ -59,6 +60,9 @@ const Uploads = () => {
                                 </div>
                             </div>
                             </div>
+                        <div className="w-full mt-8">
+                            <MyUploads />
+                        </div>
                     </div>
                 </div>
             </div>     
