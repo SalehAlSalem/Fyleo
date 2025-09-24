@@ -3,6 +3,8 @@ import { collection, doc, setDoc, serverTimestamp, updateDoc, increment } from '
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+// Allow quick toggling of auto-approval for uploads (useful for testing).
+const AUTO_APPROVE = (import.meta.env.VITE_AUTO_APPROVE === 'true') || true;
 
 if (!cloudName || !uploadPreset) {
   // Fail fast when env vars are missing to avoid silent failures on client
@@ -89,8 +91,9 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
   // Use Firestore serverTimestamp to keep server-side consistent timestamps
   createdAt: serverTimestamp(),
       uploaderUid: (auth && auth.currentUser) ? auth.currentUser.uid : null,
-      ...metadata,
-      approved: false // Default to false until moderator approves
+  ...metadata,
+  // Default approval behaviour: use VITE_AUTO_APPROVE if provided; otherwise default to true
+  approved: AUTO_APPROVE
     };
 
     // Helper: remove keys with undefined values because Firestore doesn't accept undefined
