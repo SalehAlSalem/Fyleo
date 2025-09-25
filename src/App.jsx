@@ -13,6 +13,7 @@ import Uploads from './components/Dashboard/uploads';
 import Downloads from './components/Dashboard/downloads';
 import Bookmarks from './components/Dashboard/bookmarks';
 import Upload from './components/Dashboard/uploadform';
+import CloudinaryTest from './components/CloudinaryTest';
 const App = () => {
   return (
     <>
@@ -29,6 +30,7 @@ const App = () => {
           <Route path="/uploads" element={<Uploads />}></Route>
           <Route path="/downloads" element={<Downloads />}></Route>
           <Route path="/bookmarks" element={<Bookmarks />}></Route>
+          <Route path="/test" element={<CloudinaryTest />}></Route>
           <Route path="*" element={<PageNoteFound/>}></Route>
 
         </Routes>

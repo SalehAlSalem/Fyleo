@@ -102,7 +102,8 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
     if (metadata && metadata.categorySlug) {
       // clone file-like objects may be read-only; attach a non-enumerable property if possible
       try {
-        file._folder = metadata.categorySlug;
+        // Use the correct folder structure: fyleo/uploads/{categorySlug}
+        file._folder = `fyleo/uploads/${metadata.categorySlug}`;
       } catch (e) {
         // ignore if we cannot attach
       }
