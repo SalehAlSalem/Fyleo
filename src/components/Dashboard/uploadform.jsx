@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import classNames from "classnames";
-import { uploadFileToCloudinaryAndFirestore, saveMetadataToFirestore } from '../../../Cloudinary/index.mjs';
+import { uploadFileToFirebaseStorage } from '../../../Firebase/Storage.mjs';
 import { auth } from '../../../Firebase/ClientApp.mjs';
 import cardData from '../../config/CardData.mjs';
 
@@ -41,13 +41,19 @@ const Upload = ({ open, setOpen }) => {
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         const categoryObj = cardData.find(c => c.domain === category) || null;
-        const res = await uploadFileToCloudinaryAndFirestore(file, {
-          title,
-          description,
+        
+        const onFileProgress = (percent) => {
+          const overallProgress = ((done + (percent / 100)) / total) * 100;
+          setProgress(Math.round(overallProgress));
+        };
+        
+        const res = await uploadFileToFirebaseStorage(file, {
           category: categoryObj ? categoryObj.domain : category,
           categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
-          resource_type: 'image'
-        });
+          description: description,
+          tags: [category].filter(Boolean),
+        }, onFileProgress);
+        
         results.push({ file: file.name, result: res });
         done++;
         setProgress(Math.round((done / total) * 100));
@@ -55,33 +61,46 @@ const Upload = ({ open, setOpen }) => {
 
       if (pdfFile) {
         const categoryObj = cardData.find(c => c.domain === category) || null;
-        const res = await uploadFileToCloudinaryAndFirestore(pdfFile, {
-          title,
-          description,
+        
+        const onFileProgress = (percent) => {
+          const overallProgress = ((done + (percent / 100)) / total) * 100;
+          setProgress(Math.round(overallProgress));
+        };
+        
+        const res = await uploadFileToFirebaseStorage(pdfFile, {
           category: categoryObj ? categoryObj.domain : category,
           categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
-          resource_type: 'raw'
-        });
+          description: description,
+          tags: [category].filter(Boolean),
+        }, onFileProgress);
+        
         results.push({ file: pdfFile.name, result: res });
         done++;
         setProgress(Math.round((done / total) * 100));
       }
 
-      // Summarize results
-      const failedFirestore = results.filter(r => r.result && r.result.firestoreSaved === false);
-      if (failedFirestore.length > 0) {
-        // Show detailed error info if available
-        const details = failedFirestore.map(f => ({ file: f.file, error: f.result.firestoreError }));
-        setStatus(`Upload succeeded to Cloudinary but saving to Firestore failed for ${failedFirestore.length} file(s). See console for details.`);
-        // Persist failures locally so user can retry later
-        const pending = JSON.parse(localStorage.getItem('pendingFileMetadata') || '[]');
-        const toSave = failedFirestore.map(f => ({ ...f.result }));
-        localStorage.setItem('pendingFileMetadata', JSON.stringify([...pending, ...toSave]));
-        // eslint-disable-next-line no-console
-        console.warn('Some uploads failed to save to Firestore, saved to localStorage pendingFileMetadata:', toSave, 'details:', details);
-        setLastFailDetails(details);
+      // Check results - Firebase Storage uploads are atomic (either succeed completely or fail)
+      const successfulUploads = results.filter(r => r.result && r.result.success);
+      const failedUploads = results.filter(r => !r.result || !r.result.success);
+      
+      if (failedUploads.length > 0) {
+        setStatus(`${failedUploads.length} file(s) failed to upload. Check console for details.`);
+        console.error('Failed uploads:', failedUploads);
       } else {
-        setStatus('Upload complete');
+        setStatus(`تم رفع ${successfulUploads.length} ملف بنجاح! 🎉`);
+        // Clear form on success
+        setTitle('');
+        setDescription('');
+        setCategory('');
+        setImageFiles([]);
+        setPdfFile(null);
+        
+        // Show success message with file details
+        console.log('Uploaded files:', successfulUploads.map(r => ({
+          name: r.file,
+          url: r.result.downloadURL,
+          id: r.result.fileId
+        })));
       }
     } catch (err) {
       console.error('Upload error:', err);
@@ -89,29 +108,14 @@ const Upload = ({ open, setOpen }) => {
     }
   };
 
-  // Retry pending metadata saved in localStorage
-  const [pending, setPending] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('pendingFileMetadata') || '[]');
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const handleRetryPending = async () => {
-    if (!pending.length) return;
-    setStatus('Retrying pending metadata saves...');
-    const remaining = [];
-    for (const pd of pending) {
-      const res = await saveMetadataToFirestore(pd);
-      if (!res.ok) {
-        remaining.push(pd);
-      }
-    }
-    localStorage.setItem('pendingFileMetadata', JSON.stringify(remaining));
-    setPending(remaining);
-    if (remaining.length === 0) setStatus('All pending metadata saved successfully');
-    else setStatus(`${remaining.length} pending items remain`);
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setCategory('');
+    setImageFiles([]);
+    setPdfFile(null);
+    setProgress(0);
+    setStatus('');
   };
 
   return (
@@ -139,19 +143,23 @@ const Upload = ({ open, setOpen }) => {
           <div className="text-sm text-gray-600">{progress}%</div>
         </div>
 
-        {pending.length > 0 && (
-          <div className="w-[85%] mt-4 p-3 bg-yellow-50 rounded-md">
-            <div className="text-sm font-medium">You have {pending.length} pending metadata save(s).</div>
-            <div className="mt-2 flex gap-2">
-              <button onClick={handleRetryPending} className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white">Retry pending saves</button>
+        {progress > 0 && progress < 100 && (
+          <div className="w-[85%] mt-4">
+            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+              <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style={{width: `${progress}%`}}></div>
             </div>
           </div>
         )}
 
-        {lastFailDetails && (
-          <div className="w-[85%] mt-4 p-3 bg-red-50 rounded-md">
-            <div className="text-sm font-medium text-red-700">Last Firestore save failures (copy details):</div>
-            <pre className="text-xs overflow-auto max-h-40 mt-2 p-2 bg-white rounded">{JSON.stringify(lastFailDetails, null, 2)}</pre>
+        {status && (
+          <div className={`w-[85%] mt-4 p-3 rounded-md ${
+            status.includes('بنجاح') || status.includes('complete') 
+              ? 'bg-green-50 text-green-700' 
+              : status.includes('failed') || status.includes('error')
+              ? 'bg-red-50 text-red-700'
+              : 'bg-blue-50 text-blue-700'
+          }`}>
+            <div className="text-sm font-medium">{status}</div>
           </div>
         )}
 

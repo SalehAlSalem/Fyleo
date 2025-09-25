@@ -32,16 +32,24 @@ const MaterialsPage = () => {
 
           // Filter approved OR owned by current user
           const uid = auth && auth.currentUser ? auth.currentUser.uid : null;
-          const visible = results.filter(r => r.approved === true || (uid && r.uploaderUid === uid));
+          const visible = results.filter(r => r.approved === true || (uid && r.uploadedBy === uid));
           // Map to the MaterialCard expected shape
           const mapped = visible.map(r => ({
             id: r.id,
-            title: r.name || r.title || 'Untitled',
-            // keep the canonical url in `url`, and keep `image` for backward compatibility
-            url: r.secure_url || r.image || '',
-            image: (r.resource_type === 'image') ? (r.secure_url || r.image || '/bookmark.svg') : '/file-icon.svg',
-            resource_type: r.resource_type || (r.format && r.format.toLowerCase() === 'pdf' ? 'raw' : 'image'),
-            fields: [r.category || '', r.format || '', (r.createdAt && r.createdAt.toDate) ? r.createdAt.toDate().toLocaleDateString() : '']
+            title: r.originalName || r.name || r.title || 'Untitled',
+            // Firebase Storage uses downloadURL
+            url: r.downloadURL || r.secure_url || r.image || '',
+            image: r.type?.startsWith('image/') 
+              ? (r.downloadURL || r.secure_url || '/bookmark.svg') 
+              : r.type === 'application/pdf' 
+              ? '/file-icon.svg' 
+              : '/bookmark.svg',
+            resource_type: r.type?.startsWith('image/') ? 'image' : 'raw',
+            fields: [
+              r.category || '', 
+              r.format || r.type?.split('/')[1] || '', 
+              (r.createdAt && r.createdAt.toDate) ? r.createdAt.toDate().toLocaleDateString('ar-SA') : ''
+            ]
           }));
           setMaterials(mapped);
         } catch (error) {
