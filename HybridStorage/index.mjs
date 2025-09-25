@@ -1,6 +1,6 @@
 // نظام تخزين هجين مجاني - GitHub + Supabase
-import { db } from './ClientApp.mjs';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../Firebase/ClientApp.mjs';
+import { collection, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 
 // إعدادات GitHub
 const GITHUB_CONFIG = {
