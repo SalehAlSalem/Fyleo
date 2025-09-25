@@ -7,10 +7,10 @@ import react from '@vitejs/plugin-react'
 // so runtime errors on platforms like Vercel show accurate stacks.
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' 
-    ? (process.env.VERCEL ? '/' : '/Fyleo/') // Vercel vs GitHub Pages
-    : '/',
+  base: process.env.GITHUB_ACTIONS ? '/Fyleo/' : '/',
   build: {
     sourcemap: true,
+    outDir: 'dist',
+    assetsDir: 'assets'
   },
 })

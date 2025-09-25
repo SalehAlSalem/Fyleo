@@ -1,17 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-  <!-- Vite serves files from the project root in production under / -->
-  <link rel="icon" type="image/png" href="/Favicon.webp" />
+    <link rel="icon" type="image/png" href="/Favicon.webp" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fyleo</title>
+    <title>Fyleo - مشاركة الملفات التعليمية</title>
+    <meta name="description" content="منصة Fyleo لمشاركة وتنظيم الملفات التعليمية والأكاديمية" />
+    
+    <!-- GitHub Pages SPA support -->
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
   </head>
   <body>
    <div id="root"></div>
    <div id="modal" class="top-0 z-[1000000] absolute"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  
+   <script type="module" src="/src/main.jsx"></script>
   </body>
-
 </html>

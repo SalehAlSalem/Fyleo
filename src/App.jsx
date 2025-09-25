@@ -15,9 +15,12 @@ import Bookmarks from './components/Dashboard/bookmarks';
 import Upload from './components/Dashboard/uploadform';
 import CloudinaryTest from './components/CloudinaryTest';
 const App = () => {
+  // Use basename for GitHub Pages deployment
+  const basename = import.meta.env.PROD && !window.location.hostname.includes('vercel') ? '/Fyleo' : '';
+  
   return (
     <>
-      <BrowserRouter>
+      <BrowserRouter basename={basename}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/materials/:category" element={<MaterialsPage />} />
