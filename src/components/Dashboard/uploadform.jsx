@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import classNames from "classnames";
-import { uploadFileToFirebaseStorage } from '../../../Firebase/Storage.mjs';
+import { uploadFileHybrid } from '../../../HybridStorage/index.mjs';
 import { auth } from '../../../Firebase/ClientApp.mjs';
 import cardData from '../../config/CardData.mjs';
 
@@ -41,17 +41,27 @@ const Upload = ({ open, setOpen }) => {
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         const categoryObj = cardData.find(c => c.domain === category) || null;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        const storageProvider = file.size <= 25 * 1024 * 1024 ? 'GitHub' : 'Supabase';
+        
+        setStatus(`Uploading ${file.name} (${fileSize}MB) via ${storageProvider}...`);
         
         const onFileProgress = (percent) => {
           const overallProgress = ((done + (percent / 100)) / total) * 100;
           setProgress(Math.round(overallProgress));
         };
         
-        const res = await uploadFileToFirebaseStorage(file, {
+        const res = await uploadFileHybrid(file, {
           category: categoryObj ? categoryObj.domain : category,
           categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
           description: description,
           tags: [category].filter(Boolean),
+          title: title,
+          uploadedBy: auth.currentUser.uid,
+          uploaderEmail: auth.currentUser.email,
+          uploaderName: auth.currentUser.displayName || 'Anonymous',
+          approved: false,
+          fileType: file.type,
         }, onFileProgress);
         
         results.push({ file: file.name, result: res });
@@ -61,17 +71,27 @@ const Upload = ({ open, setOpen }) => {
 
       if (pdfFile) {
         const categoryObj = cardData.find(c => c.domain === category) || null;
+        const fileSize = (pdfFile.size / 1024 / 1024).toFixed(2);
+        const storageProvider = pdfFile.size <= 25 * 1024 * 1024 ? 'GitHub' : 'Supabase';
+        
+        setStatus(`Uploading ${pdfFile.name} (${fileSize}MB) via ${storageProvider}...`);
         
         const onFileProgress = (percent) => {
           const overallProgress = ((done + (percent / 100)) / total) * 100;
           setProgress(Math.round(overallProgress));
         };
         
-        const res = await uploadFileToFirebaseStorage(pdfFile, {
+        const res = await uploadFileHybrid(pdfFile, {
           category: categoryObj ? categoryObj.domain : category,
           categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
           description: description,
           tags: [category].filter(Boolean),
+          title: title,
+          uploadedBy: auth.currentUser.uid,
+          uploaderEmail: auth.currentUser.email,
+          uploaderName: auth.currentUser.displayName || 'Anonymous',
+          approved: false,
+          fileType: pdfFile.type,
         }, onFileProgress);
         
         results.push({ file: pdfFile.name, result: res });
@@ -141,6 +161,15 @@ const Upload = ({ open, setOpen }) => {
         <div className="w-[85%] flex justify-between items-center mt-4">
           <div className="text-sm text-gray-600">{status}</div>
           <div className="text-sm text-gray-600">{progress}%</div>
+        </div>
+
+        {/* مؤشر نظام التخزين الذكي */}
+        <div className="w-[85%] mt-2 p-2 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
+          <div className="text-xs text-gray-700 font-medium mb-1">💾 النظام الذكي المجاني:</div>
+          <div className="text-xs text-gray-600">
+            📁 الملفات الصغيرة (&lt;25MB): GitHub (مجاني تماماً)<br/>
+            🚀 الملفات الكبيرة (&lt;100MB): Supabase (1GB مجاني شهرياً)
+          </div>
         </div>
 
         {progress > 0 && progress < 100 && (
