@@ -1,4 +1,99 @@
-# Fyleo
+# 🚀 Fyleo - Free Hybrid File Storage Platform
+
+[![Deploy Status](https://github.com/SalehAlSalem/Fyleo/actions/workflows/deploy.yml/badge.svg)](https://github.com/SalehAlSalem/Fyleo/actions/workflows/deploy.yml)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://salehalsalem.github.io/Fyleo/)
+
+## 🌟 Features
+
+### 💾 Free Hybrid Storage System
+- **Small Files (<25MB)**: GitHub Storage (100% Free)
+- **Large Files (25-100MB)**: Supabase Storage (1GB Free Monthly)
+- **Smart Routing**: Automatic selection based on file size
+- **Fallback Support**: GitHub backup if Supabase fails
+
+### 🔐 Complete Authentication
+- Firebase Authentication
+- User dashboard and file management
+- Role-based access control
+
+### 📱 Modern UI/UX
+- Responsive design with Tailwind CSS
+- Dark/Light mode support
+- Real-time upload progress
+- PDF viewer integration
+
+### 🚀 Production Ready
+- Automated CI/CD with GitHub Actions
+- Environment-based configuration
+- SSL-enabled deployment
+- Optimized build process
+
+## 🛠️ Tech Stack
+
+- **Frontend**: React 18 + Vite
+- **Styling**: Tailwind CSS
+- **Authentication**: Firebase Auth
+- **Database**: Firestore
+- **Storage**: GitHub API + Supabase Storage
+- **Deployment**: GitHub Pages + Actions
+- **File Handling**: React PDF Viewer
+
+## ⚡ Quick Start
+
+1. **Clone & Install**
+   ```bash
+   git clone https://github.com/SalehAlSalem/Fyleo.git
+   cd Fyleo
+   npm install
+   ```
+
+2. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   # Fill in your API keys (see HYBRID_STORAGE_SETUP.md)
+   ```
+
+3. **Development**
+   ```bash
+   npm run dev
+   ```
+
+## 📖 Documentation
+
+- [🔧 Hybrid Storage Setup Guide](./HYBRID_STORAGE_SETUP.md)
+- [🚀 Deployment Guide](./DEPLOYMENT_GUIDE.md)
+- [📋 Environment Variables](./env_example.txt)
+
+## 🌐 Live Demo
+
+Visit: **https://salehalsalem.github.io/Fyleo/**
+
+## 💝 Cost Breakdown
+
+| Service | Free Tier | Usage |
+|---------|-----------|-------|
+| GitHub Storage | Unlimited (files <25MB) | Small files, documents, images |
+| Supabase Storage | 1GB/month | Large files, videos |
+| Firebase Auth | 10,000 users | User authentication |
+| Firestore | 1GB storage | File metadata |
+| GitHub Pages | Unlimited | Website hosting |
+| **Total Cost** | **$0/month** | **Production ready!** |
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+**Built with ❤️ by [SalehAlSalem](https://github.com/SalehAlSalem)**
 
 Welcome to the College Resource Sharing Website! This platform is designed to facilitate the sharing of educational resources among college students. Whether you need lecture notes, study guides, practice exams, or any other material, this website is here to help you.
 
