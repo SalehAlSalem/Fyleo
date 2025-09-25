@@ -86,6 +86,32 @@ $env:GOOGLE_APPLICATION_CREDENTIALS='C:\path\to\service-account.json'
 node .\scripts\set_uploader_by_email.mjs --email you@example.com --uid YOUR_FIREBASE_UID
 ```
 
+### Migrate existing PDF/DOCX uploaded via `/image/upload` -> `/raw/upload`
+
+If some older files were uploaded using the image endpoint (so their public links don't open for PDFs), use the migration helper to re-upload them to Cloudinary `raw/upload` and update Firestore documents.
+
+Requirements (run locally):
+- Node.js
+- Firebase service account JSON file
+- Environment variables:
+    - `GOOGLE_APPLICATION_CREDENTIALS` (path to service account JSON)
+    - `CLOUDINARY_CLOUD_NAME`
+    - `CLOUDINARY_UPLOAD_PRESET`
+
+Run example (PowerShell):
+
+```powershell
+$env:GOOGLE_APPLICATION_CREDENTIALS='C:\path\to\service-account.json'
+$env:CLOUDINARY_CLOUD_NAME='your_cloud_name'
+$env:CLOUDINARY_UPLOAD_PRESET='fyleo_unsigned_preset'
+node .\scripts\migrate_image_to_raw.mjs
+```
+
+The script will:
+- scan `files` collection for docs whose `secure_url` used `/image/upload` and appear to be PDFs/DOCs,
+- download each file, re-upload to Cloudinary `raw/upload`, and update the Firestore document with the new `secure_url` and `resource_type: 'raw'`.
+
+
 
 
 
