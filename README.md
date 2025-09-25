@@ -1,6 +1,7 @@
 # 🚀 Fyleo - Free Hybrid File Storage Platform
 
 [![Deploy Status](https://github.com/SalehAlSalem/Fyleo/actions/workflows/deploy.yml/badge.svg)](https://github.com/SalehAlSalem/Fyleo/actions/workflows/deploy.yml)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SalehAlSalem/Fyleo)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://salehalsalem.github.io/Fyleo/)
 
 ## 🌟 Features
@@ -61,12 +62,22 @@
 ## 📖 Documentation
 
 - [🔧 Hybrid Storage Setup Guide](./HYBRID_STORAGE_SETUP.md)
-- [🚀 Deployment Guide](./DEPLOYMENT_GUIDE.md)
+- [🚀 Vercel Deployment (Recommended)](./VERCEL_DEPLOYMENT.md)
+- [🐙 GitHub Pages Deployment](./DEPLOYMENT_GUIDE.md)
 - [📋 Environment Variables](./env_example.txt)
 
 ## 🌐 Live Demo
 
-Visit: **https://salehalsalem.github.io/Fyleo/**
+**Primary (Vercel)**: https://fyleo.vercel.app ⚡  
+**Backup (GitHub Pages)**: https://salehalsalem.github.io/Fyleo/
+
+## 🚀 Quick Deploy
+
+| Platform | Speed | Ease | Click to Deploy |
+|----------|-------|------|----------------|
+| **Vercel** ⭐ | ⚡⚡⚡ | 🟢 Easiest | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SalehAlSalem/Fyleo) |
+| GitHub Pages | ⚡⚡ | 🟡 Medium | [Setup Guide](./DEPLOYMENT_GUIDE.md) |
+| Netlify | ⚡⚡⚡ | 🟢 Easy | [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/SalehAlSalem/Fyleo) |
 
 ## 💝 Cost Breakdown
 
