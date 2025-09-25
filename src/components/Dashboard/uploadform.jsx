@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import classNames from "classnames";
-import { uploadFileHybrid } from '../../../HybridStorage/index.mjs';
+// استخدام Firebase Storage مباشرة لحين إصلاح النظام الهجين
+import { uploadFileToFirebas } from '../../../Firebase/Storage.mjs';
 import { auth } from '../../../Firebase/ClientApp.mjs';
 import cardData from '../../config/CardData.mjs';
 
@@ -42,16 +43,15 @@ const Upload = ({ open, setOpen }) => {
         const file = imageFiles[i];
         const categoryObj = cardData.find(c => c.domain === category) || null;
         const fileSize = (file.size / 1024 / 1024).toFixed(2);
-        const storageProvider = file.size <= 25 * 1024 * 1024 ? 'GitHub' : 'Supabase';
         
-        setStatus(`Uploading ${file.name} (${fileSize}MB) via ${storageProvider}...`);
+        setStatus(`Uploading ${file.name} (${fileSize}MB)...`);
         
         const onFileProgress = (percent) => {
           const overallProgress = ((done + (percent / 100)) / total) * 100;
           setProgress(Math.round(overallProgress));
         };
         
-        const res = await uploadFileHybrid(file, {
+        const res = await uploadFileToFirebaseStorage(file, {
           category: categoryObj ? categoryObj.domain : category,
           categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
           description: description,
@@ -72,16 +72,15 @@ const Upload = ({ open, setOpen }) => {
       if (pdfFile) {
         const categoryObj = cardData.find(c => c.domain === category) || null;
         const fileSize = (pdfFile.size / 1024 / 1024).toFixed(2);
-        const storageProvider = pdfFile.size <= 25 * 1024 * 1024 ? 'GitHub' : 'Supabase';
         
-        setStatus(`Uploading ${pdfFile.name} (${fileSize}MB) via ${storageProvider}...`);
+        setStatus(`Uploading ${pdfFile.name} (${fileSize}MB)...`);
         
         const onFileProgress = (percent) => {
           const overallProgress = ((done + (percent / 100)) / total) * 100;
           setProgress(Math.round(overallProgress));
         };
         
-        const res = await uploadFileHybrid(pdfFile, {
+        const res = await uploadFileToFirebaseStorage(pdfFile, {
           category: categoryObj ? categoryObj.domain : category,
           categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
           description: description,
