@@ -6,26 +6,26 @@ import { Navigate } from 'react-router-dom';
 
 const PasswordValidationModal = () => {
   return (
-    <div className="group relative flex items-center justify-center">
+    <div className="group relative flex items-center justify-center" dir="rtl">
       <img
         src={"/info.png"} className="w-4 h-4 cursor-pointer opacity-70 mb-[0.2rem]"
       />
-      <span className="z-[1000] w-[25rem] absolute top-0 !left-[-7.35rem] scale-0 rounded bg-white border-double border-4 border-sky-500 p-2 text-xs text-gray-900 group-hover:scale-100 transition-all">
+      <span className="z-[1000] w-[25rem] absolute top-0 right-[-7.35rem] scale-0 rounded bg-white border-double border-4 border-sky-500 p-2 text-xs text-gray-900 group-hover:scale-100 transition-all">
         <span className='flex items-center justify-start gap-1'>
           <p>{"1️⃣"}</p>
-          Password should be atleast 6 digit long.
+          كلمة المرور يجب أن تكون 6 أحرف على الأقل
         </span>
         <span className='flex items-center justify-start gap-1'>
           <p>{"2️⃣"}</p>
-          Password should contain atleast one uppercase letter.
+          يجب أن تحتوي على حرف كبير واحد على الأقل
         </span>
         <span className='flex items-center justify-start gap-1'>
           <p>{"3️⃣"}</p>
-          Password should contain atleast one lowercase letter.
+          يجب أن تحتوي على حرف صغير واحد على الأقل
         </span>
         <span className='flex items-center justify-start gap-1'>
           <p>{"4️⃣"}</p>
-          Password should contain one digit.
+          يجب أن تحتوي على رقم واحد على الأقل
         </span>
         <span className='flex items-center justify-start gap-1'>
           <p>{"5️⃣"}</p>

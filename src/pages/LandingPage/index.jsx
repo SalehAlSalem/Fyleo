@@ -4,20 +4,18 @@ import Content from '../../components/content';
 
 const LandingPage = () => {
   return (
-    <>
+    <div dir="rtl">
+      <div className={'flex flex-col items-start justify-center gap-20'}>
+        <NavBar />
+        <HeroSection />
+        <Content />
+        <Footer />
+      </div>
 
-    <div className={'flex flex-col items-start justify-center gap-20 '}>
-      <NavBar />
-      <HeroSection />
-      <Content />
-      <Footer />
+      <div>
+        <BackToTop />
+      </div>
     </div>
-
-    <div>
-      <BackToTop />
-    </div>
-
-    </>
   );
 };
 

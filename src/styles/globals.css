@@ -44,6 +44,30 @@ body {
   overflow-x: hidden;
   cursor: default;
   color: var(--primary-color) !important;
+  direction: rtl;
+  text-align: right;
+}
+
+/* Force RTL for Arabic content */
+html[lang="ar"],
+html[dir="rtl"],
+body[dir="rtl"] {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* Ensure all content follows RTL */
+* {
+  direction: rtl;
+}
+
+/* Fix for specific elements that should be LTR */
+input[type="email"],
+input[type="password"],
+code,
+pre {
+  direction: ltr;
+  text-align: left;
 }
 
 li {
