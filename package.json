@@ -14,7 +14,8 @@
     "approve:all": "node scripts/approve_all_files.mjs",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "format": "npx prettier --write .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {
     "@fontsource/comfortaa": "^5.0.3",
