@@ -6,7 +6,13 @@ const MaterialCard = (props) => {
   return (
     <div className='flex items-center justify-center flex-col'>
      <div className='w-[90vw] bg-[#f1f5f9] dark:bg-[#E7E5E4] flex items-center justify-center m-5 shadow-[2px_4px_8px_rgba(0,0,0,0.25)] rounded-2xl max-md:flex-col px-3'>
-        <img className='w-64 rounded-2xl m-3' src={props.material.image} alt="" />
+        {props.material.resource_type === 'image' ? (
+          <img className='w-64 rounded-2xl m-3' src={props.material.image} alt="" />
+        ) : (
+          <div className='w-64 rounded-2xl m-3 flex items-center justify-center bg-white shadow-inner'>
+            <img src="/file-icon.svg" alt="file" className='w-20' />
+          </div>
+        )}
         <div className='flex items-center justify-center w-full flex-col m-2 max-md:p-3'>
           <div className='flex items-center justify-center w-full'>
             <div className='flex items-center justify-left text-3xl text-black/[0.75] w-full'>
@@ -26,9 +32,15 @@ const MaterialCard = (props) => {
             ))}
           </div>
           <div className='flex items-end justify-end w-full h-28'>
-          <button className='theme-btn-shadow m-2 px-5 py-2 bg-[#3B82F6] shadow-[0px_4px_11.3333px_rgba(0,0,0,0.25)] text-white rounded-lg'>
+          {props.material.resource_type === 'image' ? (
+            <a href={props.material.url} target="_blank" rel="noreferrer" className='theme-btn-shadow m-2 px-5 py-2 bg-[#3B82F6] shadow-[0px_4px_11.3333px_rgba(0,0,0,0.25)] text-white rounded-lg'>
               Download
-            </button>
+            </a>
+          ) : (
+            <a href={props.material.url} target="_blank" rel="noreferrer" className='theme-btn-shadow m-2 px-5 py-2 bg-[#10B981] shadow-[0px_4px_11.3333px_rgba(0,0,0,0.25)] text-white rounded-lg'>
+              Open file
+            </a>
+          )}
             <Link to={`/details/${props.id}`}>
             <button className='theme-btn-shadow m-2 px-5 py-2 bg-[#3B82F6] shadow-[0px_4px_11.3333px_rgba(0,0,0,0.25)] text-white rounded-lg'>
                 Details

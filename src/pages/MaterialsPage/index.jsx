@@ -37,7 +37,10 @@ const MaterialsPage = () => {
           const mapped = visible.map(r => ({
             id: r.id,
             title: r.name || r.title || 'Untitled',
-            image: r.secure_url || r.image || '/bookmark.svg',
+            // keep the canonical url in `url`, and keep `image` for backward compatibility
+            url: r.secure_url || r.image || '',
+            image: (r.resource_type === 'image') ? (r.secure_url || r.image || '/bookmark.svg') : '/file-icon.svg',
+            resource_type: r.resource_type || (r.format && r.format.toLowerCase() === 'pdf' ? 'raw' : 'image'),
             fields: [r.category || '', r.format || '', (r.createdAt && r.createdAt.toDate) ? r.createdAt.toDate().toLocaleDateString() : '']
           }));
           setMaterials(mapped);
