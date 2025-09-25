@@ -35,6 +35,26 @@ export const uploadToCloudinary = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', uploadPreset);
+
+  // Determine resource type: image / video / raw (for PDF, DOCX, ZIP, etc.)
+  const inferResourceType = (f) => {
+    if (!f) return 'raw';
+    const mime = (f.type || '').toLowerCase();
+    if (mime.startsWith('image/')) return 'image';
+    if (mime.startsWith('video/')) return 'video';
+    // fallback to extension check when MIME is missing
+    const name = f.name || '';
+    const ext = name.split('.').pop().toLowerCase();
+    const rawExts = ['pdf','doc','docx','zip','rar','7z','txt','csv','xlsx','ppt','pptx'];
+    if (rawExts.includes(ext)) return 'raw';
+    // default to raw for unknown types (safer than image)
+    return 'raw';
+  };
+
+  const resourceType = inferResourceType(file);
+  // Include explicit resource_type in form data as well (some endpoints accept it)
+  formData.append('resource_type', resourceType);
+
   // Optional: if caller provided a folder, it should be present on the file object as file._folder
   if (file && file._folder) {
     // Cloudinary expects a 'folder' field in the form data
@@ -42,7 +62,9 @@ export const uploadToCloudinary = async (file) => {
   }
 
   try {
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+    // Use the correct endpoint for the inferred resource type
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+    const response = await fetch(uploadUrl, {
       method: 'POST',
       body: formData
     });
@@ -98,7 +120,7 @@ export const uploadFileToCloudinaryAndFirestore = async (file, metadata = {}) =>
       secure_url: cloudinaryResponse && cloudinaryResponse.secure_url ? cloudinaryResponse.secure_url : null,
       public_id: cloudinaryResponse && cloudinaryResponse.public_id ? cloudinaryResponse.public_id : null,
       format: cloudinaryResponse && cloudinaryResponse.format ? cloudinaryResponse.format : null,
-      resource_type: cloudinaryResponse && cloudinaryResponse.resource_type ? cloudinaryResponse.resource_type : null,
+      resource_type: cloudinaryResponse && cloudinaryResponse.resource_type ? cloudinaryResponse.resource_type : resourceType,
       bytes: cloudinaryResponse && typeof cloudinaryResponse.bytes !== 'undefined' ? cloudinaryResponse.bytes : null,
       width: cloudinaryResponse && typeof cloudinaryResponse.width !== 'undefined' ? cloudinaryResponse.width : null,
       height: cloudinaryResponse && typeof cloudinaryResponse.height !== 'undefined' ? cloudinaryResponse.height : null,
