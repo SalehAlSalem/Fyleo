@@ -4,12 +4,14 @@ import App from './App.jsx';
 import { auth, db } from '../Firebase/ClientApp.mjs';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { ModernThemeProvider } from './components/modern/ModernComponents.jsx';
 import "@fontsource/comfortaa";
 import "@fontsource/comfortaa/400.css";
 import "@fontsource/comfortaa/500.css";
 import "@fontsource/comfortaa/600.css";
 import "@fontsource/comfortaa/700.css";
 import './styles/globals.css';
+import './styles/modern-globals.css';
 
 // Simple Error Boundary to avoid a blank white screen on runtime errors.
 class ErrorBoundary extends React.Component {
@@ -57,7 +59,9 @@ if (typeof window !== 'undefined') {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <App />
+      <ModernThemeProvider>
+        <App />
+      </ModernThemeProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );
