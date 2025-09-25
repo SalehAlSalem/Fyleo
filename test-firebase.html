@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Connection Test - Fyleo</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 600px;
+            width: 90%;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid #22c55e;
+            color: #22c55e;
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            color: #ef4444;
+        }
+        .loading {
+            background: rgba(249, 115, 22, 0.2);
+            border: 2px solid #f97316;
+            color: #f97316;
+        }
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚀 Fyleo</div>
+        <h1>اختبار اتصال Firebase</h1>
+        
+        <div id="auth-status" class="status loading">
+            🔄 جاري فحص المصادقة...
+        </div>
+        
+        <div id="firestore-status" class="status loading">
+            🔄 جاري فحص قاعدة البيانات...
+        </div>
+        
+        <div id="storage-status" class="status loading">
+            🔄 جاري فحص التخزين...
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button onclick="testFirebase()">🔄 إعادة الاختبار</button>
+            <button onclick="window.location.href='/'">🏠 العودة للموقع</button>
+        </div>
+        
+        <div id="details" style="margin-top: 20px; font-size: 14px; opacity: 0.8;"></div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getStorage, ref, listAll } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+        // Firebase configuration (نفس الإعدادات من المشروع)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpJE4pzwJOiIQ2z8z9Go1EfJ3z5HuSjc0",
+            authDomain: "fyleo-app.firebaseapp.com",
+            projectId: "fyleo-app",
+            storageBucket: "fyleo-app.appspot.com",
+            messagingSenderId: "267240147915",
+            appId: "1:267240147915:web:d123d1d1d1d1d1d1d1d1d1",
+            measurementId: "G-XXXXXXXXX"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // Test Functions
+        window.testFirebase = async function() {
+            updateStatus('auth-status', 'loading', '🔄 جاري فحص المصادقة...');
+            updateStatus('firestore-status', 'loading', '🔄 جاري فحص قاعدة البيانات...');
+            updateStatus('storage-status', 'loading', '🔄 جاري فحص التخزين...');
+            
+            // Test Authentication
+            try {
+                await new Promise((resolve) => {
+                    const unsubscribe = onAuthStateChanged(auth, (user) => {
+                        unsubscribe();
+                        resolve(user);
+                    });
+                });
+                updateStatus('auth-status', 'success', '✅ المصادقة تعمل بشكل صحيح');
+            } catch (error) {
+                updateStatus('auth-status', 'error', `❌ خطأ في المصادقة: ${error.message}`);
+            }
+
+            // Test Firestore
+            try {
+                // محاولة قراءة مستند اختبار
+                const testDoc = doc(db, 'test', 'connection');
+                await getDoc(testDoc);
+                updateStatus('firestore-status', 'success', '✅ قاعدة البيانات تعمل بشكل صحيح');
+            } catch (error) {
+                updateStatus('firestore-status', 'error', `❌ خطأ في قاعدة البيانات: ${error.message}`);
+            }
+
+            // Test Storage
+            try {
+                const storageRef = ref(storage, '/');
+                await listAll(storageRef);
+                updateStatus('storage-status', 'success', '✅ التخزين يعمل بشكل صحيح');
+            } catch (error) {
+                updateStatus('storage-status', 'error', `❌ خطأ في التخزين: ${error.message}`);
+            }
+
+            // Show details
+            document.getElementById('details').innerHTML = `
+                <strong>تفاصيل الاتصال:</strong><br>
+                Project ID: ${firebaseConfig.projectId}<br>
+                Auth Domain: ${firebaseConfig.authDomain}<br>
+                Storage Bucket: ${firebaseConfig.storageBucket}<br>
+                وقت الاختبار: ${new Date().toLocaleString('ar-SA')}
+            `;
+        };
+
+        function updateStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            element.innerHTML = message;
+        }
+
+        // Run test on page load
+        testFirebase();
+    </script>
+</body>
+</html>
