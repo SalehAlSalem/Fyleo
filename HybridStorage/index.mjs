@@ -1,6 +1,13 @@
-// نظام تخزين هجين مجاني - GitHub + Supabase
+// نظام تخزين هجين مجاني محسن - GitHub + Supabase
 import { db } from '../Firebase/ClientApp.js';
 import { collection, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
+
+// 🚨 تسجيل مفصل للتشخيص
+const log = (level, message, data = null) => {
+    const timestamp = new Date().toLocaleTimeString('ar-SA');
+    const prefix = level === 'error' ? '❌' : level === 'warn' ? '⚠️' : level === 'success' ? '✅' : 'ℹ️';
+    console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](`${prefix} [${timestamp}] ${message}`, data || '');
+};
 
 // إعدادات GitHub
 const GITHUB_CONFIG = {
@@ -18,24 +25,41 @@ const SUPABASE_CONFIG = {
     bucket: 'fyleo-files' // اسم bucket مُحدث
 };
 
-// تحقق من التكوين
+// تحقق محسن من التكوين
 const validateConfig = () => {
-    const issues = [];
+    log('info', '🔍 فحص تكوين النظام الهجين...');
     
-    if (!GITHUB_CONFIG.token) {
-        issues.push('❌ VITE_GITHUB_TOKEN missing - GitHub uploads will fail');
-    }
+    const status = {
+        github: !!GITHUB_CONFIG.token,
+        supabase: !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey),
+        firebase: !!db
+    };
     
-    if (!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) {
-        issues.push('❌ Supabase config missing - Large file uploads will fail');
-    }
+    log('info', 'حالة الخدمات:', {
+        '🐙 GitHub': status.github ? 'متاح' : 'غير متاح',
+        '⚡ Supabase': status.supabase ? 'متاح' : 'غير متاح', 
+        '🔥 Firebase': status.firebase ? 'متاح' : 'غير متاح'
+    });
     
-    if (issues.length > 0) {
-        console.warn('🚨 Hybrid Storage Configuration Issues:', issues);
+    if (!status.firebase) {
+        log('error', 'Firebase غير متاح - لا يمكن حفظ بيانات الملفات');
         return false;
     }
     
-    console.log('✅ Hybrid Storage: All configurations valid');
+    if (!status.github && !status.supabase) {
+        log('error', 'لا توجد أنظمة تخزين متاحة');
+        return false;
+    }
+    
+    if (!status.github) {
+        log('warn', 'GitHub غير متاح - الملفات الصغيرة ستُرفع على Supabase');
+    }
+    
+    if (!status.supabase) {
+        log('warn', 'Supabase غير متاح - الملفات الكبيرة ستفشل');
+    }
+    
+    log('success', 'النظام الهجين جاهز للعمل');
     return true;
 };
 
@@ -67,50 +91,69 @@ const getStorageProvider = (fileSize) => {
  * رفع ملف إلى GitHub باستخدام GitHub API
  */
 const uploadToGitHub = async (file, fileName, onProgress) => {
-    try {
-        // فحص وجود GitHub token
-        if (!GITHUB_CONFIG.token) {
-            throw new Error('GitHub token is required. Please set VITE_GITHUB_TOKEN in your .env file');
-        }
+    if (!GITHUB_CONFIG.token) {
+        throw new Error('لا يوجد GitHub token. يرجى إضافة VITE_GITHUB_TOKEN في ملف .env');
+    }
 
-        // تحويل الملف إلى base64
+    log('info', `🐙 بدء رفع على GitHub: ${fileName}`);
+    
+    try {
+        // تقدم: تحويل الملف
+        if (onProgress) onProgress(20);
+        log('info', '📝 تحويل الملف إلى base64...');
         const base64Content = await fileToBase64(file);
         
-        // إنشاء path فريد للملف
-        const filePath = `${GITHUB_CONFIG.filesPath}${Date.now()}_${fileName}`;
+        // إنشاء path فريد
+        if (onProgress) onProgress(40);
+        const timestamp = Date.now();
+        const cleanFileName = fileName.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const filePath = `${GITHUB_CONFIG.filesPath}${timestamp}_${cleanFileName}`;
         
-        // رفع إلى GitHub
+        log('info', `📂 مسار الملف: ${filePath}`);
+        
+        // رفع إلى GitHub API
+        if (onProgress) onProgress(60);
+        log('info', '⬆️ رفع إلى GitHub API...');
+        
         const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${filePath}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `token ${GITHUB_CONFIG.token}`,
                 'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json'
             },
             body: JSON.stringify({
-                message: `Upload file: ${fileName}`,
+                message: `📄 رفع ملف: ${fileName} [Fyleo]`,
                 content: base64Content,
                 branch: GITHUB_CONFIG.branch
             })
         });
 
         if (!response.ok) {
-            throw new Error(`GitHub upload failed: ${response.statusText}`);
+            const errorText = await response.text();
+            log('error', `GitHub API خطأ: ${response.status}`, errorText);
+            throw new Error(`فشل رفع GitHub: ${response.status} - ${response.statusText}`);
         }
 
         const result = await response.json();
+        if (onProgress) onProgress(75);
         
-        // إرجاع URL للملف
+        log('success', `✅ تم رفع الملف بنجاح على GitHub`);
+        
         return {
             downloadURL: result.content.download_url,
             fileName: fileName,
             fileSize: file.size,
             provider: 'github',
-            path: filePath
+            path: filePath,
+            storageProvider: 'GitHub (مجاني)',
+            githubSha: result.content.sha,
+            htmlUrl: result.content.html_url
         };
 
     } catch (error) {
-        console.error('GitHub upload error:', error);
-        throw error;
+        log('error', '❌ فشل رفع GitHub', error.message);
+        throw new Error(`GitHub: ${error.message}`);
     }
 };
 
@@ -118,101 +161,168 @@ const uploadToGitHub = async (file, fileName, onProgress) => {
  * رفع ملف إلى Supabase Storage
  */
 const uploadToSupabase = async (file, fileName, onProgress) => {
-    try {
-        // فحص وجود Supabase configuration
-        if (!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) {
-            throw new Error('Supabase configuration is required. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file');
-        }
+    if (!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) {
+        throw new Error('لا يوجد إعدادات Supabase. يرجى إضافة VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY في ملف .env');
+    }
 
-        // تحتاج تثبيت Supabase client أولاً
+    log('info', `⚡ بدء رفع على Supabase: ${fileName}`);
+    
+    try {
+        // إنشاء Supabase client
+        if (onProgress) onProgress(20);
+        log('info', '🔗 الاتصال بـ Supabase...');
+        
         const { createClient } = await import('@supabase/supabase-js');
         const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
         // إنشاء اسم ملف فريد
-        const uniqueFileName = `${Date.now()}_${fileName}`;
+        if (onProgress) onProgress(30);
+        const timestamp = Date.now();
+        const cleanFileName = fileName.replace(/[^a-zA-Z0-9.\-_ ]/g, '_');
+        const uniqueFileName = `fyleo/${timestamp}_${cleanFileName}`;
+        
+        log('info', `📂 اسم الملف: ${uniqueFileName}`);
 
-        // رفع الملف
+        // رفع الملف مع تتبع التقدم
+        if (onProgress) onProgress(40);
+        log('info', '⬆️ رفع إلى Supabase Storage...');
+        
         const { data, error } = await supabase.storage
             .from(SUPABASE_CONFIG.bucket)
             .upload(uniqueFileName, file, {
+                cacheControl: '3600',
+                upsert: false,
                 onUploadProgress: (progress) => {
-                    const percentage = (progress.loaded / progress.total) * 100;
-                    onProgress?.(percentage);
+                    if (progress.loaded && progress.total) {
+                        const percentage = 40 + ((progress.loaded / progress.total) * 35); // 40-75%
+                        if (onProgress) onProgress(Math.round(percentage));
+                    }
                 }
             });
 
         if (error) {
-            throw error;
+            log('error', 'خطأ Supabase Storage', error);
+            throw new Error(`Supabase Storage: ${error.message}`);
         }
 
         // الحصول على public URL
+        if (onProgress) onProgress(80);
+        log('info', '🔗 الحصول على رابط الملف العام...');
+        
         const { data: publicURLData } = supabase.storage
             .from(SUPABASE_CONFIG.bucket)
             .getPublicUrl(uniqueFileName);
+
+        if (!publicURLData?.publicUrl) {
+            throw new Error('فشل في الحصول على رابط الملف العام');
+        }
+
+        log('success', `✅ تم رفع الملف بنجاح على Supabase`);
 
         return {
             downloadURL: publicURLData.publicUrl,
             fileName: fileName,
             fileSize: file.size,
             provider: 'supabase',
-            path: uniqueFileName
+            path: uniqueFileName,
+            storageProvider: 'Supabase (احتياطي)',
+            bucketId: SUPABASE_CONFIG.bucket
         };
 
     } catch (error) {
-        console.error('Supabase upload error:', error);
-        throw error;
+        log('error', '❌ فشل رفع Supabase', error.message);
+        throw new Error(`Supabase: ${error.message}`);
     }
 };
 
 /**
- * النظام الرئيسي للرفع الهجين
+ * النظام الرئيسي للرفع الهجين المحسن
  */
 export const uploadFileHybrid = async (file, metadata, onProgress) => {
+    // التحقق من صحة المدخلات
+    if (!file) {
+        throw new Error('لا يوجد ملف للرفع');
+    }
+    
+    if (!validateConfig()) {
+        throw new Error('تكوين النظام الهجين غير صحيح');
+    }
+    
+    const fileSize = (file.size / 1024 / 1024).toFixed(2);
+    log('info', `🚀 بدء رفع الملف: ${file.name} (${fileSize}MB)`);
+    
     try {
-        // تحديد نظام التخزين المناسب
+        // تحديد نظام التخزين
         const provider = getStorageProvider(file.size);
+        log('info', `📁 استخدام ${provider === 'github' ? 'GitHub' : 'Supabase'} للرفع`);
         
-        console.log(`Using ${provider} for file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-
+        // رفع التقدم للمستخدم
+        if (onProgress) onProgress(5); // بدء العملية
+        
         let uploadResult;
-
-        // الرفع حسب النظام المحدد مع fallback
+        
+        // الرفع حسب النظام المحدد مع fallback ذكي
         if (provider === 'github') {
-            uploadResult = await uploadToGitHub(file, file.name, onProgress);
+            log('info', '⬆️ رفع على GitHub...');
+            try {
+                uploadResult = await uploadToGitHub(file, file.name, onProgress);
+                log('success', `✅ تم الرفع بنجاح على GitHub`);
+            } catch (githubError) {
+                log('error', 'فشل رفع GitHub، محاولة Supabase...', githubError.message);
+                if (SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey) {
+                    uploadResult = await uploadToSupabase(file, file.name, onProgress);
+                    log('success', '✅ تم الرفع بنجاح على Supabase (احتياطي)');
+                } else {
+                    throw githubError;
+                }
+            }
         } else {
+            log('info', '⬆️ رفع على Supabase...');
             try {
                 uploadResult = await uploadToSupabase(file, file.name, onProgress);
+                log('success', `✅ تم الرفع بنجاح على Supabase`);
             } catch (supabaseError) {
-                console.warn('Supabase upload failed, trying GitHub as fallback:', supabaseError.message);
-                
-                // إذا كان الملف صغير بما يكفي، جرب GitHub
-                if (file.size <= FILE_SIZE_LIMITS.GITHUB_MAX_SIZE) {
+                log('error', 'فشل رفع Supabase، محاولة GitHub...', supabaseError.message);
+                if (file.size <= FILE_SIZE_LIMITS.GITHUB_MAX_SIZE && GITHUB_CONFIG.token) {
                     uploadResult = await uploadToGitHub(file, file.name, onProgress);
+                    log('success', '✅ تم الرفع بنجاح على GitHub (احتياطي)');
                 } else {
-                    throw new Error(`File too large for fallback. Original error: ${supabaseError.message}`);
+                    throw new Error(`الملف كبير جداً (${fileSize}MB). الحد الأقصى: ${FILE_SIZE_LIMITS.SUPABASE_MAX_SIZE / 1024 / 1024}MB`);
                 }
             }
         }
-
+        
+        if (onProgress) onProgress(80); // اكتمال الرفع
+        
         // حفظ معلومات الملف في Firestore
+        log('info', '💾 حفظ بيانات الملف في قاعدة البيانات...');
         const fileData = {
+            name: file.name,
+            size: file.size,
+            type: file.type,
             ...metadata,
             ...uploadResult,
             uploadedAt: serverTimestamp(),
             downloadCount: 0,
-            viewCount: 0
+            viewCount: 0,
+            approved: true // اعتماد تلقائي
         };
 
         const docRef = await addDoc(collection(db, 'files'), fileData);
-
-        return {
+        if (onProgress) onProgress(100); // اكتمال العملية
+        
+        const result = {
             id: docRef.id,
             ...fileData
         };
+        
+        log('success', `🎉 تم رفع الملف بنجاح! ID: ${docRef.id}`);
+        return result;
 
     } catch (error) {
-        console.error('Hybrid upload error:', error);
-        throw error;
+        log('error', `❌ فشل رفع الملف: ${file.name}`, error.message);
+        if (onProgress) onProgress(0); // إعادة تعيين التقدم
+        throw new Error(`فشل رفع الملف: ${error.message}`);
     }
 };
 

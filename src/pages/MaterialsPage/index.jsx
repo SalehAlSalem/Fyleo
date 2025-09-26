@@ -33,21 +33,23 @@ const MaterialsPage = () => {
           // Filter approved OR owned by current user
           const uid = auth && auth.currentUser ? auth.currentUser.uid : null;
           const visible = results.filter(r => r.approved === true || (uid && r.uploadedBy === uid));
-          // Map to the MaterialCard expected shape
+          // Map to the MaterialCard expected shape - دعم النظام الهجين
           const mapped = visible.map(r => ({
             id: r.id,
-            title: r.originalName || r.name || r.title || 'Untitled',
-            // Firebase Storage uses downloadURL
+            title: r.name || r.title || r.originalName || 'Untitled',
+            // النظام الهجين: GitHub أو Supabase أو Firebase Storage القديم
             url: r.downloadURL || r.secure_url || r.image || '',
             image: r.type?.startsWith('image/') 
               ? (r.downloadURL || r.secure_url || '/bookmark.svg') 
               : r.type === 'application/pdf' 
-              ? '/file-icon.svg' 
+              ? '/2.2_Scales.pdf' 
               : '/bookmark.svg',
             resource_type: r.type?.startsWith('image/') ? 'image' : 'raw',
             fields: [
               r.category || '', 
-              r.format || r.type?.split('/')[1] || '', 
+              r.format || r.type?.split('/')[1] || '',
+              `${((r.size || r.fileSize || 0) / 1024 / 1024).toFixed(1)}MB`, // حجم الملف
+              r.provider === 'github' ? '🐙 GitHub' : r.provider === 'supabase' ? '⚡ Supabase' : '🔥 Firebase', // مصدر التخزين 
               (r.createdAt && r.createdAt.toDate) ? r.createdAt.toDate().toLocaleDateString('ar-SA') : ''
             ]
           }));

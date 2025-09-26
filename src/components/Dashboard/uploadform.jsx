@@ -25,108 +25,180 @@ const Upload = ({ open, setOpen }) => {
   };
 
   const handleSubmit = async () => {
-    // Ensure the user is signed in before uploading (client-side guard)
+    // التحقق من تسجيل الدخول
     if (!auth || !auth.currentUser) {
-      setStatus('Please sign in before uploading.');
+      setStatus('❌ يرجى تسجيل الدخول أولاً');
+      setLastFailDetails('يجب تسجيل الدخول قبل رفع الملفات');
       return;
     }
 
-    setStatus('Uploading...');
+    // التحقق من وجود ملفات
+    const totalFiles = imageFiles.length + (pdfFile ? 1 : 0);
+    if (totalFiles === 0) {
+      setStatus('❌ يرجى اختيار ملف واحد على الأقل');
+      setLastFailDetails('لا توجد ملفات محددة للرفع');
+      return;
+    }
+
+    // التحقق من البيانات المطلوبة
+    if (!title.trim()) {
+      setStatus('❌ يرجى إدخال عنوان الملف');
+      setLastFailDetails('العنوان مطلوب');
+      return;
+    }
+
+    if (!category) {
+      setStatus('❌ يرجى اختيار الفئة');
+      setLastFailDetails('الفئة مطلوبة');
+      return;
+    }
+
+    // بدء عملية الرفع
+    setStatus('⚡ تحضير الملفات للرفع...');
     setProgress(0);
+    setLastFailDetails(null);
 
     try {
-      const total = imageFiles.length + (pdfFile ? 1 : 0);
       let done = 0;
       const results = [];
+      const user = auth.currentUser;
 
+      // رفع الصور
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         const categoryObj = cardData.find(c => c.domain === category) || null;
         const fileSize = (file.size / 1024 / 1024).toFixed(2);
         
-        const storageType = fileSize < 25 ? 'GitHub (مجاني)' : 'Supabase (احتياطي)';
-        setStatus(`📁 رفع ${file.name} (${fileSize}MB) على ${storageType}...`);
+        setStatus(`� رفع صورة: ${file.name} (${fileSize}MB)...`);
         
         const onFileProgress = (percent) => {
-          const overallProgress = ((done + (percent / 100)) / total) * 100;
-          setProgress(Math.round(overallProgress));
+          const fileProgress = ((done + (percent / 100)) / totalFiles) * 100;
+          setProgress(Math.round(fileProgress));
         };
         
-        const res = await uploadFileHybrid(file, {
-          category: categoryObj ? categoryObj.domain : category,
-          categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
-          description: description,
-          tags: [category].filter(Boolean),
-          title: title,
-          uploadedBy: auth.currentUser.uid,
-          uploaderEmail: auth.currentUser.email,
-          uploaderName: auth.currentUser.displayName || 'مجهول',
-          approved: true, // ✅ اعتماد تلقائي
-          fileType: file.type,
-        }, onFileProgress);
+        try {
+          const res = await uploadFileHybrid(file, {
+            category: categoryObj ? categoryObj.domain : category,
+            categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
+            description: description.trim(),
+            tags: [category].filter(Boolean),
+            title: title.trim(),
+            uploadedBy: user.uid,
+            uploaderEmail: user.email,
+            uploaderName: user.displayName || 'مستخدم',
+            approved: true,
+            fileType: file.type,
+          }, onFileProgress);
+          
+          results.push({ 
+            file: file.name, 
+            result: res,
+            success: true,
+            provider: res.storageProvider || res.provider
+          });
+          
+          setStatus(`✅ تم رفع ${file.name} بنجاح على ${res.storageProvider || res.provider}`);
+          
+        } catch (fileError) {
+          console.error(`خطأ رفع ${file.name}:`, fileError);
+          results.push({ 
+            file: file.name, 
+            error: fileError.message,
+            success: false 
+          });
+          setStatus(`❌ فشل رفع ${file.name}: ${fileError.message}`);
+        }
         
-        results.push({ file: file.name, result: res });
         done++;
-        setProgress(Math.round((done / total) * 100));
+        setProgress(Math.round((done / totalFiles) * 100));
       }
 
+      // رفع PDF إذا كان موجود
       if (pdfFile) {
         const categoryObj = cardData.find(c => c.domain === category) || null;
         const fileSize = (pdfFile.size / 1024 / 1024).toFixed(2);
         
-        const storageType = fileSize < 25 ? 'GitHub (مجاني)' : 'Supabase (احتياطي)';
-        setStatus(`📄 رفع ${pdfFile.name} (${fileSize}MB) على ${storageType}...`);
+        setStatus(`📄 رفع PDF: ${pdfFile.name} (${fileSize}MB)...`);
         
         const onFileProgress = (percent) => {
-          const overallProgress = ((done + (percent / 100)) / total) * 100;
-          setProgress(Math.round(overallProgress));
+          const fileProgress = ((done + (percent / 100)) / totalFiles) * 100;
+          setProgress(Math.round(fileProgress));
         };
         
-        const res = await uploadFileHybrid(pdfFile, {
-          category: categoryObj ? categoryObj.domain : category,
-          categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
-          description: description,
-          tags: [category].filter(Boolean),
-          title: title,
-          uploadedBy: auth.currentUser.uid,
-          uploaderEmail: auth.currentUser.email,
-          uploaderName: auth.currentUser.displayName || 'مجهول',
-          approved: true, // ✅ اعتماد تلقائي
-          fileType: pdfFile.type,
-        }, onFileProgress);
+        try {
+          const res = await uploadFileHybrid(pdfFile, {
+            category: categoryObj ? categoryObj.domain : category,
+            categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
+            description: description.trim(),
+            tags: [category].filter(Boolean),
+            title: title.trim(),
+            uploadedBy: user.uid,
+            uploaderEmail: user.email,
+            uploaderName: user.displayName || 'مستخدم',
+            approved: true,
+            fileType: pdfFile.type,
+          }, onFileProgress);
+          
+          results.push({ 
+            file: pdfFile.name, 
+            result: res,
+            success: true,
+            provider: res.storageProvider || res.provider
+          });
+          
+          setStatus(`✅ تم رفع ${pdfFile.name} بنجاح على ${res.storageProvider || res.provider}`);
+          
+        } catch (fileError) {
+          console.error(`خطأ رفع ${pdfFile.name}:`, fileError);
+          results.push({ 
+            file: pdfFile.name, 
+            error: fileError.message,
+            success: false 
+          });
+          setStatus(`❌ فشل رفع ${pdfFile.name}: ${fileError.message}`);
+        }
         
-        results.push({ file: pdfFile.name, result: res });
         done++;
-        setProgress(Math.round((done / total) * 100));
+        setProgress(Math.round((done / totalFiles) * 100));
       }
 
-      // Check results - Hybrid Storage uploads
-      const successfulUploads = results.filter(r => r.result && r.result.id);
-      const failedUploads = results.filter(r => !r.result || !r.result.id);
+      // تحليل النتائج
+      const successfulUploads = results.filter(r => r.success);
+      const failedUploads = results.filter(r => !r.success);
       
-      if (failedUploads.length > 0) {
-        setStatus(`فشل رفع ${failedUploads.length} ملف. تحقق من وحدة التحكم للتفاصيل.`);
-        console.error('فشل الرفع:', failedUploads);
+      if (successfulUploads.length === 0) {
+        setStatus(`❌ فشل رفع جميع الملفات (${failedUploads.length})`);
+        setLastFailDetails(failedUploads.map(f => `${f.file}: ${f.error}`).join('\n'));
+      } else if (failedUploads.length > 0) {
+        setStatus(`⚠️ تم رفع ${successfulUploads.length} من ${totalFiles} ملف. ${failedUploads.length} فشل`);
+        setLastFailDetails(failedUploads.map(f => `${f.file}: ${f.error}`).join('\n'));
       } else {
-        setStatus(`🎉 تم رفع ${successfulUploads.length} ملف بنجاح عبر النظام الهجين المجاني!`);
-        // Clear form on success
+        setStatus(`🎉 تم رفع جميع الملفات بنجاح! (${successfulUploads.length})`);
+        setLastFailDetails(null);
+        
+        // مسح النموذج عند النجاح
         setTitle('');
         setDescription('');
         setCategory('');
         setImageFiles([]);
         setPdfFile(null);
+        setProgress(0);
         
-        // Show success message with file details
-        console.log('الملفات المرفوعة:', successfulUploads.map(r => ({
+        // تسجيل تفاصيل الرفع
+        console.log('✅ الملفات المرفوعة بنجاح:', successfulUploads.map(r => ({
           name: r.file,
-          url: r.result.downloadURL || r.result.url,
+          url: r.result.downloadURL,
           id: r.result.id,
-          provider: r.result.provider // GitHub أو Supabase
+          provider: r.provider,
+          size: r.result.fileSize
         })));
       }
+      
     } catch (err) {
-      console.error('Upload error:', err);
-      setStatus('Upload failed. See console for details.');
+      console.error('❌ خطأ عام في الرفع:', err);
+      setStatus(`❌ خطأ غير متوقع: ${err.message}`);
+      setLastFailDetails(err.message);
+      setProgress(0);
     }
   };
 
@@ -165,15 +237,44 @@ const Upload = ({ open, setOpen }) => {
           <div className="text-sm text-gray-600">{progress}%</div>
         </div>
 
-        {/* مؤشر نظام التخزين الهجين المجاني */}
-        <div className="w-[85%] mt-2 p-2 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
-          <div className="text-xs text-gray-700 font-medium mb-1">💾 النظام الهجين المجاني 100%:</div>
-          <div className="text-xs text-gray-600">
-            📁 الملفات الصغيرة (&lt;25MB): GitHub (مجاني تماماً)<br/>
-            🚀 الملفات الكبيرة (25-100MB): Supabase (1GB مجاني شهرياً)<br/>
-            🔐 البيانات: Firebase Firestore + Auth
+        {/* حالة النظام الهجين */}
+        <div className="w-[85%] mt-2 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
+          <div className="text-sm text-gray-800 font-semibold mb-2">💾 النظام الهجين المجاني:</div>
+          <div className="grid grid-cols-1 gap-2 text-xs">
+            <div className="flex items-center justify-between">
+              <span>📁 GitHub (ملفات &lt; 25MB)</span>
+              <span className={`px-2 py-1 rounded text-xs ${
+                import.meta.env.VITE_GITHUB_TOKEN ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {import.meta.env.VITE_GITHUB_TOKEN ? '✅ متاح' : '❌ غير متاح'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>⚡ Supabase (ملفات 25-100MB)</span>
+              <span className={`px-2 py-1 rounded text-xs ${
+                (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) ? '✅ متاح' : '❌ غير متاح'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>� Firebase (البيانات)</span>
+              <span className={`px-2 py-1 rounded text-xs ${
+                auth ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {auth ? '✅ متصل' : '❌ غير متصل'}
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* رسائل الخطأ التفصيلية */}
+        {lastFailDetails && (
+          <div className="w-[85%] mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+            <div className="text-sm text-red-800 font-medium mb-1">❌ تفاصيل الخطأ:</div>
+            <div className="text-xs text-red-700 whitespace-pre-line">{lastFailDetails}</div>
+          </div>
+        )}
 
         {progress > 0 && progress < 100 && (
           <div className="w-[85%] mt-4">
