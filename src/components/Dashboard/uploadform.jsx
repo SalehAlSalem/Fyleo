@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import classNames from "classnames";
-// استخدام Firebase Storage مؤقتاً
-import { uploadFileTemporary } from '../../utils/firebaseUpload.js';
+// استخدام النظام الهجين مع fallback محلي
+import { uploadFileHybridFallback } from '../../utils/hybridFallback.js';
 import { auth } from '../../../Firebase/ClientApp.js';
 import cardData from '../../config/CardData.mjs';
 
@@ -83,12 +83,16 @@ const Upload = ({ open, setOpen }) => {
         };
         
         try {
-          const res = await uploadFileTemporary(file, {
+          const res = await uploadFileHybridFallback(file, {
             category: categoryObj ? categoryObj.domain : category,
             categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
             description: description.trim(),
             tags: [category].filter(Boolean),
             title: title.trim(),
+            uploadedBy: user.uid,
+            uploaderEmail: user.email,
+            uploaderName: user.displayName || 'مستخدم',
+            approved: true,
             fileType: file.type,
           }, onFileProgress);
           
@@ -96,10 +100,10 @@ const Upload = ({ open, setOpen }) => {
             file: file.name, 
             result: res,
             success: true,
-            provider: res.storageProvider || 'firebase'
+            provider: res.storageProvider || res.provider
           });
           
-          setStatus(`✅ تم رفع ${file.name} بنجاح على Firebase Storage`);
+          setStatus(`✅ تم رفع ${file.name} بنجاح على ${res.storageProvider || res.provider}`);
           
         } catch (fileError) {
           console.error(`خطأ رفع ${file.name}:`, fileError);
@@ -128,12 +132,16 @@ const Upload = ({ open, setOpen }) => {
         };
         
         try {
-          const res = await uploadFileTemporary(pdfFile, {
+          const res = await uploadFileHybridFallback(pdfFile, {
             category: categoryObj ? categoryObj.domain : category,
             categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
             description: description.trim(),
             tags: [category].filter(Boolean),
             title: title.trim(),
+            uploadedBy: user.uid,
+            uploaderEmail: user.email,
+            uploaderName: user.displayName || 'مستخدم',
+            approved: true,
             fileType: pdfFile.type,
           }, onFileProgress);
           
@@ -141,10 +149,10 @@ const Upload = ({ open, setOpen }) => {
             file: pdfFile.name, 
             result: res,
             success: true,
-            provider: res.storageProvider || 'firebase'
+            provider: res.storageProvider || res.provider
           });
           
-          setStatus(`✅ تم رفع ${pdfFile.name} بنجاح على Firebase Storage`);
+          setStatus(`✅ تم رفع ${pdfFile.name} بنجاح على ${res.storageProvider || res.provider}`);
           
         } catch (fileError) {
           console.error(`خطأ رفع ${pdfFile.name}:`, fileError);
