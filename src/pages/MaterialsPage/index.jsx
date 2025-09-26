@@ -1,4 +1,5 @@
 import { NavBar, MaterialIntro, MaterialCard, SearchBar, Footer, BackToTop } from '../../components';
+import FileList from '../../components/FileList';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import cardData from '../../config/CardData.mjs';
@@ -70,6 +71,8 @@ const MaterialsPage = () => {
           <NavBar />
           <MaterialIntro image={categoryimage} length={materials.length} category={cardData[categoryid-1].domain}/>
           <SearchBar />
+          {/* قائمة مباشرة من الملفات الحية من Firestore مع فلترة حسب الفئة */}
+          <FileList max={100} categorySlug={cardData[categoryid-1].urlparams} />
           {materials.slice(0,5).map((material) =>
           (
             <MaterialCard material={material} key={material.id} id={material.id} />

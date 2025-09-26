@@ -14,6 +14,8 @@ const Upload = ({ open, setOpen }) => {
   const [status, setStatus] = useState("");
   const [progress, setProgress] = useState(0);
   const [lastFailDetails, setLastFailDetails] = useState(null);
+  const [simulationNotice, setSimulationNotice] = useState(false);
+  const [fileDiagnostics, setFileDiagnostics] = useState([]); // [{name,status,progress,provider,isSimulation,error}]
 
   const handleImageChange = (e) => {
     setImageFiles(Array.from(e.target.files));
@@ -74,12 +76,13 @@ const Upload = ({ open, setOpen }) => {
         const file = imageFiles[i];
         const categoryObj = cardData.find(c => c.domain === category) || null;
         const fileSize = (file.size / 1024 / 1024).toFixed(2);
-        
-        setStatus(`� رفع صورة: ${file.name} (${fileSize}MB)...`);
+        setStatus(`📤 رفع صورة: ${file.name} (${fileSize}MB)...`);
+        setFileDiagnostics(prev => [...prev, { name: file.name, status: 'بدء', progress: 0, provider: null, isSimulation: false, error: null }]);
         
         const onFileProgress = (percent) => {
           const fileProgress = ((done + (percent / 100)) / totalFiles) * 100;
           setProgress(Math.round(fileProgress));
+          setFileDiagnostics(prev => prev.map(fd => fd.name === file.name ? { ...fd, progress: Math.min(99, Math.round(percent)), status: 'جاري الرفع' } : fd));
         };
         
         try {
@@ -100,8 +103,14 @@ const Upload = ({ open, setOpen }) => {
             file: file.name, 
             result: res,
             success: true,
-            provider: res.storageProvider || res.provider
+            provider: res.storageProvider || res.provider,
+            isSimulation: !!res.isSimulation
           });
+
+          if (res.isSimulation) {
+            setSimulationNotice(true);
+          }
+          setFileDiagnostics(prev => prev.map(fd => fd.name === file.name ? { ...fd, status: 'نجاح', progress: 100, provider: res.storageProvider || res.provider, isSimulation: !!res.isSimulation } : fd));
           
           setStatus(`✅ تم رفع ${file.name} بنجاح على ${res.storageProvider || res.provider}`);
           
@@ -113,6 +122,7 @@ const Upload = ({ open, setOpen }) => {
             success: false 
           });
           setStatus(`❌ فشل رفع ${file.name}: ${fileError.message}`);
+          setFileDiagnostics(prev => prev.map(fd => fd.name === file.name ? { ...fd, status: 'فشل', error: fileError.message } : fd));
         }
         
         done++;
@@ -125,10 +135,12 @@ const Upload = ({ open, setOpen }) => {
         const fileSize = (pdfFile.size / 1024 / 1024).toFixed(2);
         
         setStatus(`📄 رفع PDF: ${pdfFile.name} (${fileSize}MB)...`);
+        setFileDiagnostics(prev => [...prev, { name: pdfFile.name, status: 'بدء', progress: 0, provider: null, isSimulation: false, error: null }]);
         
         const onFileProgress = (percent) => {
           const fileProgress = ((done + (percent / 100)) / totalFiles) * 100;
           setProgress(Math.round(fileProgress));
+          setFileDiagnostics(prev => prev.map(fd => fd.name === pdfFile.name ? { ...fd, progress: Math.min(99, Math.round(percent)), status: 'جاري الرفع' } : fd));
         };
         
         try {
@@ -149,8 +161,13 @@ const Upload = ({ open, setOpen }) => {
             file: pdfFile.name, 
             result: res,
             success: true,
-            provider: res.storageProvider || res.provider
+            provider: res.storageProvider || res.provider,
+            isSimulation: !!res.isSimulation
           });
+          if (res.isSimulation) {
+            setSimulationNotice(true);
+          }
+          setFileDiagnostics(prev => prev.map(fd => fd.name === pdfFile.name ? { ...fd, status: 'نجاح', progress: 100, provider: res.storageProvider || res.provider, isSimulation: !!res.isSimulation } : fd));
           
           setStatus(`✅ تم رفع ${pdfFile.name} بنجاح على ${res.storageProvider || res.provider}`);
           
@@ -162,6 +179,7 @@ const Upload = ({ open, setOpen }) => {
             success: false 
           });
           setStatus(`❌ فشل رفع ${pdfFile.name}: ${fileError.message}`);
+          setFileDiagnostics(prev => prev.map(fd => fd.name === pdfFile.name ? { ...fd, status: 'فشل', error: fileError.message } : fd));
         }
         
         done++;
@@ -179,16 +197,18 @@ const Upload = ({ open, setOpen }) => {
         setStatus(`⚠️ تم رفع ${successfulUploads.length} من ${totalFiles} ملف. ${failedUploads.length} فشل`);
         setLastFailDetails(failedUploads.map(f => `${f.file}: ${f.error}`).join('\n'));
       } else {
-        setStatus(`🎉 تم رفع جميع الملفات بنجاح! (${successfulUploads.length})`);
+  const anySimulation = successfulUploads.some(r => r.isSimulation);
+  setStatus(`🎉 تم رفع جميع الملفات بنجاح! (${successfulUploads.length})${anySimulation ? ' (وضع محاكاة)' : ''}`);
         setLastFailDetails(null);
         
-        // مسح النموذج عند النجاح
+  // مسح النموذج عند النجاح
         setTitle('');
         setDescription('');
         setCategory('');
         setImageFiles([]);
         setPdfFile(null);
         setProgress(0);
+  setFileDiagnostics([]);
         
         // تسجيل تفاصيل الرفع
         console.log('✅ الملفات المرفوعة بنجاح:', successfulUploads.map(r => ({
@@ -196,7 +216,8 @@ const Upload = ({ open, setOpen }) => {
           url: r.result.downloadURL,
           id: r.result.id,
           provider: r.provider,
-          size: r.result.fileSize
+          size: r.result.fileSize,
+          isSimulation: r.isSimulation
         })));
       }
       
@@ -205,6 +226,7 @@ const Upload = ({ open, setOpen }) => {
       setStatus(`❌ خطأ غير متوقع: ${err.message}`);
       setLastFailDetails(err.message);
       setProgress(0);
+        setFileDiagnostics([]);
     }
   };
 
@@ -272,12 +294,37 @@ const Upload = ({ open, setOpen }) => {
                 <pre className="whitespace-pre-wrap">{lastFailDetails}</pre>
               </div>
             )}
+            {fileDiagnostics.length > 0 && (
+              <div className="mt-3 bg-white/60 rounded border border-gray-200 divide-y">
+                {fileDiagnostics.map(fd => (
+                  <div key={fd.name} className="p-2 text-xs flex flex-col gap-1">
+                    <div className="flex justify-between">
+                      <span className="font-semibold truncate max-w-[55%]" title={fd.name}>{fd.name}</span>
+                      <span className={`px-2 py-0.5 rounded-full font-medium ${fd.status === 'نجاح' ? 'bg-green-100 text-green-700' : fd.status === 'فشل' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>{fd.status}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 h-1.5 rounded overflow-hidden">
+                      <div className={`h-full ${fd.status==='فشل' ? 'bg-red-400' : 'bg-blue-500'} transition-all`} style={{width: `${fd.progress || (fd.status==='نجاح'?100:0)}%`}}></div>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-gray-600">
+                      <span>{fd.provider || (fd.isSimulation ? 'محاكاة' : '...')}</span>
+                      {fd.isSimulation && <span className="text-amber-700 font-semibold">Simulation</span>}
+                    </div>
+                    {fd.error && <div className="text-[10px] text-red-700">{fd.error}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* حالة النظام الهجين */}
-        <div className="w-[85%] mt-2 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
-          <div className="text-sm text-gray-800 font-semibold mb-2">� نظام Firebase Storage:</div>
+        {/* حالة النظام الهجين + وضع المحاكاة */}
+        <div className="w-[85%] mt-2 p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-slate-700 dark:to-slate-600 rounded-lg border border-blue-200 dark:border-slate-500">
+          <div className="text-sm text-gray-800 dark:text-gray-100 font-semibold mb-2">🌀 حالة التخزين الهجين:</div>
+          {simulationNotice && (
+            <div className="mb-2 text-xs font-bold text-yellow-800 bg-yellow-100 px-2 py-1 rounded">
+              ⚠️ يعمل حالياً في وضع المحاكاة (لن تُحفظ الملفات فعلياً في GitHub أو Supabase)
+            </div>
+          )}
           <div className="grid grid-cols-1 gap-2 text-xs">
             <div className="flex items-center justify-between">
               <span>📁 GitHub (ملفات &lt; 25MB)</span>
@@ -296,11 +343,19 @@ const Upload = ({ open, setOpen }) => {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span>� Firebase (البيانات)</span>
+              <span>🔥 Firebase (البيانات)</span>
               <span className={`px-2 py-1 rounded text-xs ${
                 auth ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
                 {auth ? '✅ متصل' : '❌ غير متصل'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>🪣 Bucket</span>
+              <span className={`px-2 py-1 rounded text-xs ${
+                import.meta.env.VITE_SUPABASE_BUCKET ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {import.meta.env.VITE_SUPABASE_BUCKET || 'غير مضبوط'}
               </span>
             </div>
           </div>

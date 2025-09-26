@@ -9,16 +9,16 @@ const uploadToLocalSimulation = async (file, fileName, onProgress) => {
         const interval = setInterval(() => {
             progress += 10;
             if (onProgress) onProgress(progress);
-            
+
             if (progress >= 100) {
                 clearInterval(interval);
-                // محاكاة رابط تحميل محلي
                 const mockUrl = `https://mock-storage.fyleo.app/files/${fileName}`;
                 resolve({
                     downloadURL: mockUrl,
                     storageProvider: 'local-simulation',
                     fileSize: file.size,
-                    fileName: fileName
+                    fileName: fileName,
+                    isSimulation: true
                 });
             }
         }, 200);
@@ -45,15 +45,11 @@ export const uploadFileHybridFallback = async (file, metadata, onProgress) => {
                            import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder.supabase.co';
 
         if (!hasGitHub && !hasSupabase) {
-            console.log('⚠️ النظام الهجين غير متاح، استخدام المحاكاة المحلية');
-            
-            // استخدام محاكاة محلية
+            console.log('⚠️ النظام الهجين غير متاح، استخدام المحاكاة المحلية (Simulation Mode)');
             const timestamp = Date.now();
             const fileName = `${timestamp}-${file.name}`;
-            
             const uploadResult = await uploadToLocalSimulation(file, fileName, onProgress);
-            
-            // حفظ البيانات في Firestore
+
             const fileData = {
                 name: file.name,
                 originalName: file.name,
@@ -62,6 +58,7 @@ export const uploadFileHybridFallback = async (file, metadata, onProgress) => {
                 downloadURL: uploadResult.downloadURL,
                 storageProvider: 'local-simulation',
                 storagePath: fileName,
+                isSimulation: true,
                 ...metadata,
                 uploadedAt: serverTimestamp(),
                 uploadedBy: auth.currentUser.uid,
@@ -73,20 +70,22 @@ export const uploadFileHybridFallback = async (file, metadata, onProgress) => {
             };
 
             const docRef = await addDoc(collection(db, 'files'), fileData);
-            console.log('💾 تم حفظ البيانات في Firestore:', docRef.id);
+            console.log('💾 تم حفظ (محاكاة) البيانات في Firestore:', docRef.id);
 
             return {
                 id: docRef.id,
                 downloadURL: uploadResult.downloadURL,
                 storageProvider: 'local-simulation',
                 fileSize: file.size,
+                isSimulation: true,
                 ...fileData
             };
         }
 
         // إذا كان النظام الهجين متاح، استخدمه
         const { uploadFileHybrid } = await import('../../HybridStorage/index.mjs');
-        return await uploadFileHybrid(file, metadata, onProgress);
+        const realResult = await uploadFileHybrid(file, metadata, onProgress);
+        return { ...realResult, isSimulation: realResult.isSimulation ?? false };
 
     } catch (error) {
         console.error('❌ فشل رفع الملف:', error);

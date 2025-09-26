@@ -1,4 +1,8 @@
+.env
 .env.local
+*.env.*
+# Prevent accidental secret exposure
+!env_example.txt
 node_modules/
 dist/
 .vscode/
@@ -6,3 +10,8 @@ dist/
 npm-debug.log
 coverage/
 *.log
+*.pem
+*.key
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

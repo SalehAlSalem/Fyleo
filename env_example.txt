@@ -9,6 +9,18 @@ VITE_FIREBASE_MEASUREMENT_ID=""
 VITE_CLOUDINARY_CLOUD_NAME=""
 VITE_CLOUDINARY_UPLOAD_PRESET=""
 
+# Supabase (Hybrid Storage)
+VITE_SUPABASE_URL="https://YOUR-PROJECT.supabase.co"
+VITE_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
+VITE_SUPABASE_BUCKET="files" # أو اسم الـ bucket الذي أنشأته
+
+# GitHub (اختياري للملفات الصغيرة <25MB) - ضع التوكن في Vercel فقط
+VITE_GITHUB_OWNER="SalehAlSalem"
+VITE_GITHUB_REPO="Fyleo"
+VITE_GITHUB_TOKEN="" # لا تملأه في الملف لو عام – استخدم .env.local محلي فقط
+
 # Local development: set to 'true' to auto-approve uploads, 'false' to require approval
 # Default in code is true when this var is not set.
 VITE_AUTO_APPROVE="true"
+
+# تحذير: لا ترفع هذا الملف بعد تعبئته إلى Git. استخدم .env.local محلياً وبيئة Vercel للإنتاج.

@@ -7,9 +7,6 @@ import {
 import {
     getFirestore,
 } from "firebase/firestore";
-import {
-    getStorage,
-} from "firebase/storage";
 
 // تحقق من وجود المتغيرات المطلوبة
 const hasRequiredConfig = import.meta.env.VITE_FIREBASE_API_KEY && 
@@ -57,30 +54,28 @@ if (typeof window !== 'undefined' && import.meta.env.VITE_FIREBASE_MEASUREMENT_I
     }
 }
 
-let auth, db, storage;
+let auth, db; // تمت إزالة التخزين Firebase Storage
 
 if (app) {
     try {
         auth = getAuth(app);
         db = getFirestore(app);
-        storage = getStorage(app);
+    // لا نستخدم Firebase Storage في هذا المشروع (استبدل بنظام هجين GitHub + Supabase)
     } catch (error) {
         console.error('❌ Firebase: Service initialization failed:', error);
         auth = null;
         db = null;
-        storage = null;
     }
 } else {
     // Fallback للوضع التجريبي
     auth = null;
     db = null;
-    storage = null;
+    // storage غير مستخدم
 }
 
 export {
     app,
     auth,
     db,
-    storage,
     firebaseConfig
 };

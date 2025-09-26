@@ -18,11 +18,11 @@ const GITHUB_CONFIG = {
     filesPath: 'uploads/' // مجلد الملفات في repository
 };
 
-// إعدادات Supabase
+// Supabase configuration (bucket made configurable)
 const SUPABASE_CONFIG = {
     url: import.meta.env.VITE_SUPABASE_URL,
     anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-    bucket: 'fyleo-files' // اسم bucket مُحدث
+    bucket: import.meta.env.VITE_SUPABASE_BUCKET || 'files'
 };
 
 // تحقق محسن من التكوين
@@ -32,12 +32,14 @@ const validateConfig = () => {
     const status = {
         github: !!GITHUB_CONFIG.token,
         supabase: !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey),
-        firebase: !!db
+        firebase: !!db,
+        supabaseBucket: !!SUPABASE_CONFIG.bucket
     };
     
     log('info', 'حالة الخدمات:', {
         '🐙 GitHub': status.github ? 'متاح' : 'غير متاح',
-        '⚡ Supabase': status.supabase ? 'متاح' : 'غير متاح', 
+        '⚡ Supabase': status.supabase ? 'متاح' : 'غير متاح',
+        '📦 Supabase Bucket': status.supabaseBucket ? SUPABASE_CONFIG.bucket : 'مفقود',
         '🔥 Firebase': status.firebase ? 'متاح' : 'غير متاح'
     });
     
@@ -48,6 +50,11 @@ const validateConfig = () => {
     
     if (!status.github && !status.supabase) {
         log('error', 'لا توجد أنظمة تخزين متاحة');
+        return false;
+    }
+
+    if (status.supabase && !status.supabaseBucket) {
+        log('error', '⚡ Supabase متاح لكن اسم الـ bucket غير مضبوط (أضف VITE_SUPABASE_BUCKET)');
         return false;
     }
     
@@ -162,7 +169,13 @@ const uploadToGitHub = async (file, fileName, onProgress) => {
  */
 const uploadToSupabase = async (file, fileName, onProgress) => {
     if (!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) {
-        throw new Error('لا يوجد إعدادات Supabase. يرجى إضافة VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY في ملف .env');
+        throw new Error('لا يوجد إعدادات Supabase (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY)');
+    }
+    if (!SUPABASE_CONFIG.bucket) {
+        throw new Error('لم يتم ضبط اسم الـ bucket (أضف VITE_SUPABASE_BUCKET)');
+    }
+    if (SUPABASE_CONFIG.url?.includes('placeholder') || SUPABASE_CONFIG.anonKey?.includes('placeholder')) {
+        throw new Error('قِيَم Supabase الحالية Placeholders وليست مفاتيح حقيقية');
     }
 
     log('info', `⚡ بدء رفع على Supabase: ${fileName}`);
@@ -179,7 +192,7 @@ const uploadToSupabase = async (file, fileName, onProgress) => {
         if (onProgress) onProgress(30);
         const timestamp = Date.now();
         const cleanFileName = fileName.replace(/[^a-zA-Z0-9.\-_ ]/g, '_');
-        const uniqueFileName = `fyleo/${timestamp}_${cleanFileName}`;
+    const uniqueFileName = `fyleo/${timestamp}_${cleanFileName}`; // path inside bucket
         
         log('info', `📂 اسم الملف: ${uniqueFileName}`);
 
