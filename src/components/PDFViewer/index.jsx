@@ -7,7 +7,7 @@ import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import NavBar from "../NavBar";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../Firebase/ClientApp.js";
-import { incrementViewCount } from "../../../Firebase/Storage.mjs";
+import { incrementViewCount } from "../../utils/fileCounters.js";
 import classNames from "classnames";
 
 export default function PDFViewer(){
