@@ -1,16 +1,16 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useTheme } from './components/modern/ModernComponents';
-import ModernNavbar from './components/modern/ModernNavbar';
-import ModernLandingPage from './pages/LandingPage/ModernLanding';
-import ModernMaterials from './pages/MaterialsPage/ModernMaterials';
-import ModernLogin from './pages/login/ModernLogin';
-import ModernSignup from './pages/signup/ModernSignup';
+import { useTheme } from './components/modern/ModernComponents.jsx';
+import ModernNavbar from './components/modern/ModernNavbar.jsx';
+import ModernLandingPage from './pages/LandingPage/ModernLanding.jsx';
+import ModernMaterials from './pages/MaterialsPage/ModernMaterials.jsx';
+import ModernLogin from './pages/login/ModernLogin.jsx';
+import ModernSignup from './pages/signup/ModernSignup.jsx';
 import Layout from './pages/OverviewPage';
-import PageNoteFound from './pages/404page'
+import Modern404 from './pages/404page/Modern404.jsx';
 import PDFViewer from './components/PDFViewer';
-import Reset from './pages/forgotpassword'
-import ModernDashboard from './components/Dashboard/ModernDashboard';
+import ModernForgotPassword from './pages/forgotpassword/ModernForgotPassword.jsx';
+import ModernDashboard from './components/Dashboard/ModernDashboard.jsx';
 import Uploads from './components/Dashboard/uploads';
 import Downloads from './components/Dashboard/downloads';
 import Bookmarks from './components/Dashboard/bookmarks';
@@ -33,12 +33,12 @@ const App = () => {
             <Route path="/details" element={<Layout />} />
             <Route path="/details/:id" element={<Layout />} />
             <Route path="/pdfviewer/:id" element={<PDFViewer />} />
-            <Route path="/resetpassword" element={<Reset />} />
+            <Route path="/resetpassword" element={<ModernForgotPassword />} />
             <Route path="/dashboard" element={<ModernDashboard />} />
             <Route path="/uploads" element={<Uploads />} />
             <Route path="/downloads" element={<Downloads />} />
             <Route path="/bookmarks" element={<Bookmarks />} />
-            <Route path="*" element={<PageNoteFound />} />
+            <Route path="*" element={<Modern404 />} />
           </Routes>
         </main>
       </BrowserRouter>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../../../Firebase/ClientApp.mjs';
+import { auth } from '../../../Firebase/ClientApp.js';
 import { 
   ModernButton, 
   ModernInput, 

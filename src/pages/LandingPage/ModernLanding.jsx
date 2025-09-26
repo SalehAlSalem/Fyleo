@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../../../Firebase/ClientApp.mjs';
+import { auth } from '../../../Firebase/ClientApp.js';
 import { 
   ModernButton, 
   ModernCard, 
   useTranslation,
   useTheme 
-} from '../../modern/ModernComponents';
+} from '../../components/modern/ModernComponents';
 import ModernFooter from '../../components/modern/ModernFooter';
 
 const ModernLandingPage = () => {

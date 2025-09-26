@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
-import { auth, db } from '../Firebase/ClientApp.mjs';
+import { auth, db } from '../Firebase/ClientApp.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ModernThemeProvider } from './components/modern/ModernComponents.jsx';

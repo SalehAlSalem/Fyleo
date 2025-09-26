@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { collection, query, where, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
-import { auth, db, storage } from '../../Firebase/ClientApp.mjs';
+import { auth, db, storage } from '../../../Firebase/ClientApp.js';
 import { 
   ModernCard, 
   ModernButton, 

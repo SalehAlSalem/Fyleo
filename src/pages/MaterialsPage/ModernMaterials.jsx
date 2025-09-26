@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db } from '../../Firebase/ClientApp.mjs';
+import { auth, db } from '../../../Firebase/ClientApp.js';
 import { 
   ModernCard, 
   ModernButton, 
   ModernInput,
   useTranslation 
-} from '../components/modern/ModernComponents';
+} from '../../components/modern/ModernComponents';
 
 const ModernMaterials = () => {
   const { category } = useParams();

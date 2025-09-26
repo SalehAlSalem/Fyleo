@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../../Firebase/ClientApp.mjs';
+import { auth } from '../../../Firebase/ClientApp.js';
 import { 
   ModernButton, 
   ThemeToggle, 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db, storage } from '../../Firebase/ClientApp.mjs';
+import { auth, db, storage } from '../../../Firebase/ClientApp.js';
 import { 
   ModernCard, 
   ModernButton, 

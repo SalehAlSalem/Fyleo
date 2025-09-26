@@ -1,33 +1,37 @@
-# 🚀 Fyleo - Free Hybrid File Storage Platform
+# 🎓 Fyleo - Modern Educational File Sharing Platform
 
-[![Deploy Status](https://github.com/SalehAlSalem/Fyleo/actions/workflows/deploy.yml/badge.svg)](https://github.com/SalehAlSalem/Fyleo/actions/workflows/deploy.yml)
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SalehAlSalem/Fyleo)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://salehalsalem.github.io/Fyleo/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://fyleo.vercel.app/)
 
-## 🌟 Features
+A modern, bilingual educational file sharing platform built with React and Firebase, featuring beautiful design, RTL support, and comprehensive file management.
 
-### 💾 Free Hybrid Storage System
-- **Small Files (<25MB)**: GitHub Storage (100% Free)
-- **Large Files (25-100MB)**: Supabase Storage (1GB Free Monthly)
-- **Smart Routing**: Automatic selection based on file size
-- **Fallback Support**: GitHub backup if Supabase fails
+## ✨ Features
 
-### 🔐 Complete Authentication
-- Firebase Authentication
-- User dashboard and file management
-- Role-based access control
+### 🎨 Modern Design System
+- **Beautiful UI**: Gradient-based design inspired by the logo colors (Orange → Purple → Blue)
+- **Bilingual Support**: Full Arabic and English support with RTL/LTR switching
+- **Dark/Light Themes**: Complete theme system with smooth transitions
+- **Responsive Design**: Works perfectly on all devices and screen sizes
+- **Accessibility**: WCAG compliant with keyboard navigation support
 
-### 📱 Modern UI/UX
-- Responsive design with Tailwind CSS
-- Dark/Light mode support
-- Real-time upload progress
-- PDF viewer integration
+### 🔐 Authentication & Security
+- **Firebase Authentication**: Secure user management with Google Sign-In
+- **Email/Password**: Traditional authentication method
+- **Password Reset**: Secure password recovery system
+- **Protected Routes**: Route-based access control
 
-### 🚀 Production Ready
-- Automated CI/CD with GitHub Actions
-- Environment-based configuration
-- SSL-enabled deployment
-- Optimized build process
+### � File Management
+- **Firebase Storage**: Reliable cloud storage with security rules
+- **Smart Upload**: Progress tracking and error handling
+- **File Categories**: Organized by subject areas
+- **Search & Filter**: Advanced search capabilities
+- **PDF Viewer**: Integrated document viewer
+
+### 🌐 Internationalization
+- **Complete i18n**: All text supports Arabic and English
+- **RTL Support**: Perfect right-to-left layout for Arabic
+- **Language Switching**: Instant language switching with persistence
+- **Contextual Translation**: Smart translation based on user preference
 
 ## 🛠️ Tech Stack
 
