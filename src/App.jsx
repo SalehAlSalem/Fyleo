@@ -16,6 +16,8 @@ import Downloads from './components/Dashboard/downloads';
 import Bookmarks from './components/Dashboard/bookmarks';
 import Upload from './components/Dashboard/uploadform';
 import LoadingScreen from './components/LoadingScreen.jsx';
+import TestUploadSystem from './pages/TestUpload.jsx';
+import TestFileDisplay from './pages/TestFileDisplay.jsx';
 
 const App = () => {
   const { theme } = useTheme();
@@ -85,6 +87,8 @@ const App = () => {
             <Route path="/uploads" element={<Uploads />} />
             <Route path="/downloads" element={<Downloads />} />
             <Route path="/bookmarks" element={<Bookmarks />} />
+            <Route path="/test-upload" element={<TestUploadSystem />} />
+            <Route path="/test-files" element={<TestFileDisplay />} />
             <Route path="*" element={<Modern404 />} />
           </Routes>
         </main>

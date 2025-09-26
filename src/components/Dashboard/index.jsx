@@ -107,8 +107,8 @@ const Dashboard = () => {
               Points: {stats.points}
             </p>
             
-            {/* System Test Button */}
-            <div className="mt-6 flex gap-4">
+            {/* System Test Buttons */}
+            <div className="mt-6 flex gap-4 flex-wrap">
               <button
                 onClick={handleTestSystem}
                 disabled={testResults.testing}
@@ -120,6 +120,13 @@ const Dashboard = () => {
               >
                 {testResults.testing ? '🧪 جاري الاختبار...' : '🚀 اختبار النظام الهجين'}
               </button>
+              
+              <Link
+                to="/test-upload"
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all"
+              >
+                🧪 صفحة الاختبار الشامل
+              </Link>
               
               {testResults.results && (
                 <div className={`px-4 py-2 rounded-lg ${
