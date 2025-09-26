@@ -25,10 +25,10 @@ function ResetPassword() {
         <div className="flex justify-between items-center text-center w-full pl-10 pr-10 pt-5 pb-1">
           <h1 className="text-2xl font-bold dark:text-[#1A1A1C]" style={{ fontFamily: 'monospace' }}>Reset Password</h1>
 
-          <h2 className="flex items-center justify-end dark:text-[#1A1A1C]">
-            <img src="/iiitdmj-logo.webp" alt="pr-0 w-6 h-6" className="pr-0 w-8 h-8 iiitdmj-logo mx-1" />
-            IIITDMJ
-          </h2>
+                    <div className="flex items-center">
+            <img src="/iiitdmj-logo.webp" alt="شعار الجامعة" className="pr-0 w-8 h-8 iiitdmj-logo mx-1" />
+            جامعة البلقاء التطبيقية
+          </div>
         </div>
         <hr className=' ' />
         <form className="px-6 py-4">

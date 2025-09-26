@@ -75,7 +75,7 @@ const ModernFooter = () => {
               </div>
             </Link>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              منصة متقدمة لمشاركة الملفات التعليمية مع طلاب جامعة IIITDMJ. 
+              منصة متقدمة لمشاركة الملفات التعليمية مع طلاب جامعة البلقاء التطبيقية. 
               نقدم حلول آمنة وسريعة لتبادل المواد الأكاديمية.
             </p>
             <div className="flex space-x-4 rtl:space-x-reverse">

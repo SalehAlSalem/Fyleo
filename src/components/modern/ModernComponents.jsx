@@ -279,7 +279,7 @@ export const translations = {
     // Hero Section
     heroTitle: 'شارك ملفاتك',
     heroSubtitle: 'بسهولة وأمان',
-    heroDescription: 'منصة متقدمة لمشاركة الملفات مع طلاب جامعة IIITDMJ. رفع سريع، تنظيم ذكي، وأمان عالي.',
+    heroDescription: 'منصة متقدمة لمشاركة الملفات مع طلاب جامعة البلقاء التطبيقية. رفع سريع، تنظيم ذكي، وأمان عالي.',
     newFeature: 'ميزة جديدة - Firebase Storage',
     getStarted: 'ابدأ الآن',
     exploreMaterials: 'استكشف المواد',
@@ -354,7 +354,7 @@ export const translations = {
     // Hero Section
     heroTitle: 'Share Your Files',
     heroSubtitle: 'Easily & Securely',
-    heroDescription: 'Advanced platform for sharing files with IIITDMJ students. Fast upload, smart organization, and high security.',
+    heroDescription: 'Advanced platform for sharing files with AlBalqa Applied University students. Fast upload, smart organization, and high security.',
     newFeature: 'New Feature - Firebase Storage',
     getStarted: 'Get Started',
     exploreMaterials: 'Explore Materials',

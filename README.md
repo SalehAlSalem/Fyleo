@@ -1,9 +1,10 @@
 # 🎓 Fyleo - Modern Educational File Sharing Platform
+### جامعة البلقاء التطبيقية | AlBalqa Applied University
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SalehAlSalem/Fyleo)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://fyleo.vercel.app/)
 
-A modern, bilingual educational file sharing platform built with React and Firebase, featuring beautiful design, RTL support, and comprehensive file management.
+A modern, bilingual educational file sharing platform built with React and Firebase for AlBalqa Applied University students, featuring beautiful design, RTL support, and comprehensive file management.
 
 ## ✨ Features
 
