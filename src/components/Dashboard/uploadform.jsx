@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import classNames from "classnames";
-// استخدام النظام الهجين المجاني GitHub + Supabase
-import { uploadFileHybrid } from '../../../HybridStorage/index.mjs';
+// استخدام Firebase Storage مؤقتاً
+import { uploadFileTemporary } from '../../utils/firebaseUpload.js';
 import { auth } from '../../../Firebase/ClientApp.js';
 import cardData from '../../config/CardData.mjs';
 
@@ -83,16 +83,12 @@ const Upload = ({ open, setOpen }) => {
         };
         
         try {
-          const res = await uploadFileHybrid(file, {
+          const res = await uploadFileTemporary(file, {
             category: categoryObj ? categoryObj.domain : category,
             categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
             description: description.trim(),
             tags: [category].filter(Boolean),
             title: title.trim(),
-            uploadedBy: user.uid,
-            uploaderEmail: user.email,
-            uploaderName: user.displayName || 'مستخدم',
-            approved: true,
             fileType: file.type,
           }, onFileProgress);
           
@@ -100,10 +96,10 @@ const Upload = ({ open, setOpen }) => {
             file: file.name, 
             result: res,
             success: true,
-            provider: res.storageProvider || res.provider
+            provider: res.storageProvider || 'firebase'
           });
           
-          setStatus(`✅ تم رفع ${file.name} بنجاح على ${res.storageProvider || res.provider}`);
+          setStatus(`✅ تم رفع ${file.name} بنجاح على Firebase Storage`);
           
         } catch (fileError) {
           console.error(`خطأ رفع ${file.name}:`, fileError);
@@ -132,16 +128,12 @@ const Upload = ({ open, setOpen }) => {
         };
         
         try {
-          const res = await uploadFileHybrid(pdfFile, {
+          const res = await uploadFileTemporary(pdfFile, {
             category: categoryObj ? categoryObj.domain : category,
             categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
             description: description.trim(),
             tags: [category].filter(Boolean),
             title: title.trim(),
-            uploadedBy: user.uid,
-            uploaderEmail: user.email,
-            uploaderName: user.displayName || 'مستخدم',
-            approved: true,
             fileType: pdfFile.type,
           }, onFileProgress);
           
@@ -149,10 +141,10 @@ const Upload = ({ open, setOpen }) => {
             file: pdfFile.name, 
             result: res,
             success: true,
-            provider: res.storageProvider || res.provider
+            provider: res.storageProvider || 'firebase'
           });
           
-          setStatus(`✅ تم رفع ${pdfFile.name} بنجاح على ${res.storageProvider || res.provider}`);
+          setStatus(`✅ تم رفع ${pdfFile.name} بنجاح على Firebase Storage`);
           
         } catch (fileError) {
           console.error(`خطأ رفع ${pdfFile.name}:`, fileError);
@@ -277,7 +269,7 @@ const Upload = ({ open, setOpen }) => {
 
         {/* حالة النظام الهجين */}
         <div className="w-[85%] mt-2 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
-          <div className="text-sm text-gray-800 font-semibold mb-2">💾 النظام الهجين المجاني:</div>
+          <div className="text-sm text-gray-800 font-semibold mb-2">� نظام Firebase Storage:</div>
           <div className="grid grid-cols-1 gap-2 text-xs">
             <div className="flex items-center justify-between">
               <span>📁 GitHub (ملفات &lt; 25MB)</span>
