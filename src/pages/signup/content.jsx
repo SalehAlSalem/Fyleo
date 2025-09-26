@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
 import { useAuthState, useCreateUserWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
-import { auth } from '../../../Firebase/ClientApp.mjs';
+import { auth } from '../../../Firebase/ClientApp.js';
 import { Navigate } from 'react-router-dom';
 
 const PasswordValidationModal = () => {

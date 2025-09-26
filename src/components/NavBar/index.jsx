@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { Link } from "react-router-dom";
 import DarkMode from '../DarkMode';
 import { useAuthState, useSignOut } from 'react-firebase-hooks/auth';
-import { auth } from '../../../Firebase/ClientApp.mjs';
+import { auth } from '../../../Firebase/ClientApp.js';
 
 const NavBar = () => {
   const [user, loading, error] = useAuthState(auth);

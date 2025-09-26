@@ -1,4 +1,4 @@
-import { storage, db, auth } from '../Firebase/ClientApp.mjs';
+import { storage, db, auth } from './ClientApp.js';
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from "firebase/storage";
 import { collection, doc, setDoc, serverTimestamp, updateDoc, increment, getDoc, deleteDoc } from 'firebase/firestore';
 

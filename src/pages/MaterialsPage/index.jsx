@@ -2,7 +2,7 @@ import { NavBar, MaterialIntro, MaterialCard, SearchBar, Footer, BackToTop } fro
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import cardData from '../../config/CardData.mjs';
-import { db, auth } from '../../../Firebase/ClientApp.mjs';
+import { db, auth } from '../../../Firebase/ClientApp.js';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 

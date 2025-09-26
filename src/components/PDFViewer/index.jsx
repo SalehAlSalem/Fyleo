@@ -6,7 +6,7 @@ import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import NavBar from "../NavBar";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../../Firebase/ClientApp.mjs";
+import { db } from "../../../Firebase/ClientApp.js";
 import { incrementViewCount } from "../../../Firebase/Storage.mjs";
 import classNames from "classnames";
 

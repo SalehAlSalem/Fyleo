@@ -1,4 +1,4 @@
-import { auth, db } from './ClientApp.mjs';
+import { auth, db } from './ClientApp.js';
 import React, { useState, useEffect } from 'react';
 import { collection, doc, setDoc, getDoc } from 'firebase/firestore';
 import { uploadFileToCloudinaryAndFirestore } from '../Cloudinary/index.mjs';

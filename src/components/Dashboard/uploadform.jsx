@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import classNames from "classnames";
 // استخدام Firebase Storage مباشرة لحين إصلاح النظام الهجين
 import { uploadFileToFirebas } from '../../../Firebase/Storage.mjs';
-import { auth } from '../../../Firebase/ClientApp.mjs';
+import { auth } from '../../../Firebase/ClientApp.js';
 import cardData from '../../config/CardData.mjs';
 
 const Upload = ({ open, setOpen }) => {

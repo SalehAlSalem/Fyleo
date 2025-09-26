@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { NavBar } from '../../components';
 import Sidepanel from "./sidepanel";
-import { auth, db } from '../../../Firebase/ClientApp.mjs';
+import { auth, db } from '../../../Firebase/ClientApp.js';
 import { doc, getDoc, setDoc, collection, query, where, getCountFromServer } from 'firebase/firestore';
 
 const Dashboard = () => {
