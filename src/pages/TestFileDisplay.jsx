@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { auth, db } from '../../../Firebase/ClientApp.js';
+import { auth, db } from '../../Firebase/ClientApp.js';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { NavBar } from '../../components';
+import { NavBar } from '../components';
 
 const TestFileDisplay = () => {
   const [filesByCategory, setFilesByCategory] = useState({});

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { auth, db } from '../../../Firebase/ClientApp.js';
+import { auth, db } from '../../Firebase/ClientApp.js';
 import { uploadFileHybrid } from '../../HybridStorage/index.mjs';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
