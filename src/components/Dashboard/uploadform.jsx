@@ -53,10 +53,16 @@ const Upload = ({ open, setOpen }) => {
       return;
     }
 
-    // بدء عملية الرفع
+    // Start upload process
     setStatus('⚡ تحضير الملفات للرفع...');
-    setProgress(0);
+    setProgress(5);
     setLastFailDetails(null);
+
+    // Show initial status
+    setTimeout(() => {
+      setStatus('🔄 جاري بدء عملية الرفع...');
+      setProgress(10);
+    }, 500);
 
     try {
       let done = 0;
@@ -232,10 +238,42 @@ const Upload = ({ open, setOpen }) => {
           ))}
         </select>
 
-        <div className="w-[85%] flex justify-between items-center mt-4">
-          <div className="text-sm text-gray-600">{status}</div>
-          <div className="text-sm text-gray-600">{progress}%</div>
-        </div>
+        {/* Progress Bar */}
+        {progress > 0 && (
+          <div className="w-[85%] mt-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-gray-700">Upload Progress</span>
+              <span className="text-sm font-medium text-gray-700">{progress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {/* Status Message */}
+        {status && (
+          <div className={`w-[85%] mt-3 p-3 rounded-lg border ${
+            status.includes('✅') || status.includes('🎉') 
+              ? 'bg-green-50 border-green-200 text-green-800' 
+              : status.includes('❌') 
+              ? 'bg-red-50 border-red-200 text-red-800'
+              : status.includes('⚠️')
+              ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+              : 'bg-blue-50 border-blue-200 text-blue-800'
+          }`}>
+            <div className="text-sm font-medium">{status}</div>
+            {lastFailDetails && (
+              <div className="text-xs mt-2 p-2 bg-red-100 rounded border border-red-200">
+                <strong>Error Details:</strong>
+                <pre className="whitespace-pre-wrap">{lastFailDetails}</pre>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* حالة النظام الهجين */}
         <div className="w-[85%] mt-2 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
@@ -276,36 +314,26 @@ const Upload = ({ open, setOpen }) => {
           </div>
         )}
 
-        {progress > 0 && progress < 100 && (
-          <div className="w-[85%] mt-4">
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-              <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style={{width: `${progress}%`}}></div>
-            </div>
-          </div>
-        )}
-
-        {status && (
-          <div className={`w-[85%] mt-4 p-3 rounded-md ${
-            status.includes('بنجاح') || status.includes('complete') 
-              ? 'bg-green-50 text-green-700' 
-              : status.includes('failed') || status.includes('error')
-              ? 'bg-red-50 text-red-700'
-              : 'bg-blue-50 text-blue-700'
-          }`}>
-            <div className="text-sm font-medium">{status}</div>
-          </div>
-        )}
-
-        <button onClick={handleSubmit}
-          className={classNames({
-            'theme-btn-shadow rounded-xl bg-[#3B82F6]': true,
-            'px-4 py-2': true,
-            'monu text-sm text-white font-normal': true,
-            'mobile:text-xs': true,
-          })}
-        >
-          Submit
-        </button>
+        <div className="w-[85%] flex justify-between gap-4 mt-6">
+          <button 
+            onClick={handleSubmit}
+            disabled={progress > 0 && progress < 100}
+            className={classNames({
+              'theme-btn-shadow rounded-xl flex-1 px-4 py-2 monu text-sm font-normal mobile:text-xs transition-all': true,
+              'bg-[#3B82F6] text-white hover:bg-blue-600': !(progress > 0 && progress < 100),
+              'bg-gray-400 text-gray-600 cursor-not-allowed': progress > 0 && progress < 100,
+            })}
+          >
+            {progress > 0 && progress < 100 ? 'جاري الرفع...' : 'رفع الملفات'}
+          </button>
+          
+          <button 
+            onClick={resetForm}
+            className="theme-btn-shadow rounded-xl bg-gray-500 hover:bg-gray-600 text-white flex-1 px-4 py-2 monu text-sm font-normal mobile:text-xs transition-all"
+          >
+            مسح النموذج
+          </button>
+        </div>
       </div>
     </div>
   );
