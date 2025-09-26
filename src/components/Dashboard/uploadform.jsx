@@ -44,7 +44,8 @@ const Upload = ({ open, setOpen }) => {
         const categoryObj = cardData.find(c => c.domain === category) || null;
         const fileSize = (file.size / 1024 / 1024).toFixed(2);
         
-        setStatus(`Uploading ${file.name} (${fileSize}MB)...`);
+        const storageType = fileSize < 25 ? 'GitHub (مجاني)' : 'Supabase (احتياطي)';
+        setStatus(`📁 رفع ${file.name} (${fileSize}MB) على ${storageType}...`);
         
         const onFileProgress = (percent) => {
           const overallProgress = ((done + (percent / 100)) / total) * 100;
@@ -73,7 +74,8 @@ const Upload = ({ open, setOpen }) => {
         const categoryObj = cardData.find(c => c.domain === category) || null;
         const fileSize = (pdfFile.size / 1024 / 1024).toFixed(2);
         
-        setStatus(`Uploading ${pdfFile.name} (${fileSize}MB)...`);
+        const storageType = fileSize < 25 ? 'GitHub (مجاني)' : 'Supabase (احتياطي)';
+        setStatus(`📄 رفع ${pdfFile.name} (${fileSize}MB) على ${storageType}...`);
         
         const onFileProgress = (percent) => {
           const overallProgress = ((done + (percent / 100)) / total) * 100;

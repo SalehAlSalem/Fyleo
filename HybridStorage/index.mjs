@@ -15,7 +15,28 @@ const GITHUB_CONFIG = {
 const SUPABASE_CONFIG = {
     url: import.meta.env.VITE_SUPABASE_URL,
     anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-    bucket: 'files' // اسم bucket
+    bucket: 'fyleo-files' // اسم bucket مُحدث
+};
+
+// تحقق من التكوين
+const validateConfig = () => {
+    const issues = [];
+    
+    if (!GITHUB_CONFIG.token) {
+        issues.push('❌ VITE_GITHUB_TOKEN missing - GitHub uploads will fail');
+    }
+    
+    if (!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) {
+        issues.push('❌ Supabase config missing - Large file uploads will fail');
+    }
+    
+    if (issues.length > 0) {
+        console.warn('🚨 Hybrid Storage Configuration Issues:', issues);
+        return false;
+    }
+    
+    console.log('✅ Hybrid Storage: All configurations valid');
+    return true;
 };
 
 // حدود الملفات
@@ -23,6 +44,11 @@ const FILE_SIZE_LIMITS = {
     GITHUB_MAX_SIZE: 25 * 1024 * 1024, // 25MB
     SUPABASE_MAX_SIZE: 100 * 1024 * 1024 // 100MB
 };
+
+// تحقق من التكوين عند التحميل
+if (typeof window !== 'undefined') {
+    validateConfig();
+}
 
 /**
  * تحديد نظام التخزين المناسب حسب حجم الملف

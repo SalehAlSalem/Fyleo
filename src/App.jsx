@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useTheme } from './components/modern/ModernComponents.jsx';
 import ModernNavbar from './components/modern/ModernNavbar.jsx';
@@ -15,9 +15,56 @@ import Uploads from './components/Dashboard/uploads';
 import Downloads from './components/Dashboard/downloads';
 import Bookmarks from './components/Dashboard/bookmarks';
 import Upload from './components/Dashboard/uploadform';
+import LoadingScreen from './components/LoadingScreen.jsx';
 
 const App = () => {
   const { theme } = useTheme();
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  
+  useEffect(() => {
+    // Simulate initialization time and check for critical errors
+    const initApp = async () => {
+      try {
+        // Check if environment variables are available
+        const hasFirebase = import.meta.env.VITE_FIREBASE_API_KEY;
+        if (!hasFirebase) {
+          console.warn('⚠️ Firebase configuration missing - some features may not work');
+        }
+        
+        // Small delay to show loading screen
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsLoading(false);
+      } catch (error) {
+        console.error('❌ App initialization error:', error);
+        setHasError(true);
+        setIsLoading(false);
+      }
+    };
+    
+    initApp();
+  }, []);
+  
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+  
+  if (hasError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-red-50">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-bold text-red-900 mb-4">خطأ في التحميل</h2>
+          <p className="text-red-700 mb-4">عذراً، حدث خطأ أثناء تحميل التطبيق</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div data-theme={theme} className="min-h-screen transition-colors duration-300">
