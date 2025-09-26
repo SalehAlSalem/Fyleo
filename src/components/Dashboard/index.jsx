@@ -4,11 +4,13 @@ import { NavBar } from '../../components';
 import Sidepanel from "./sidepanel";
 import { auth, db } from '../../../Firebase/ClientApp.js';
 import { doc, getDoc, setDoc, collection, query, where, getCountFromServer } from 'firebase/firestore';
+import { testHybridStorage, testConnections, showSystemInfo } from '../../utils/testSystem.mjs';
 
 const Dashboard = () => {
   const [open, setOpen] = useState(false);
   const [userData, setUserData] = useState({ name: '', roll: '', batch: '' });
   const [stats, setStats] = useState({ bookmarks: 0, uploads: 0, downloads: 0, points: 0 });
+  const [testResults, setTestResults] = useState({ testing: false, results: null });
 
   useEffect(() => {
     const loadUser = async () => {
@@ -40,6 +42,25 @@ const Dashboard = () => {
 
     loadUser();
   }, []);
+
+  const handleTestSystem = async () => {
+    setTestResults({ testing: true, results: null });
+    try {
+      showSystemInfo();
+      const connections = await testConnections();
+      const storage = await testHybridStorage();
+      setTestResults({ 
+        testing: false, 
+        results: { connections, storage } 
+      });
+    } catch (error) {
+      console.error('Test failed:', error);
+      setTestResults({ 
+        testing: false, 
+        results: { error: error.message } 
+      });
+    }
+  };
   return (
     <div className={`flex w-screen h-screen`}>
       <NavBar />
@@ -85,6 +106,32 @@ const Dashboard = () => {
             <p className={`username text-2xl font-semibold text-gray-700 mt-4`}>
               Points: {stats.points}
             </p>
+            
+            {/* System Test Button */}
+            <div className="mt-6 flex gap-4">
+              <button
+                onClick={handleTestSystem}
+                disabled={testResults.testing}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                  testResults.testing 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                {testResults.testing ? '🧪 جاري الاختبار...' : '🚀 اختبار النظام الهجين'}
+              </button>
+              
+              {testResults.results && (
+                <div className={`px-4 py-2 rounded-lg ${
+                  testResults.results.error ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                }`}>
+                  {testResults.results.error ? 
+                    `❌ فشل: ${testResults.results.error}` : 
+                    '✅ نجح الاختبار! تحقق من Console'
+                  }
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div >

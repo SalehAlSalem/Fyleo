@@ -34,42 +34,73 @@ A modern, bilingual educational file sharing platform built with React and Fireb
 - **Language Switching**: Instant language switching with persistence
 - **Contextual Translation**: Smart translation based on user preference
 
-## 🛠️ Tech Stack
+## � Tech Stack
 
-- **Frontend**: React 18 + Vite
-- **Styling**: Tailwind CSS
-- **Authentication**: Firebase Auth
-- **Database**: Firestore
-- **Storage**: GitHub API + Supabase Storage
-- **Deployment**: GitHub Pages + Actions
-- **File Handling**: React PDF Viewer
+- ⚛️ **React 18** with Vite
+- 🔥 **Firebase** (Authentication & Firestore Database)
+- 📁 **Hybrid Storage** (GitHub + Supabase) - Smart & Cost-Effective
+- 🎨 **Tailwind CSS** for styling
+- 📱 **Responsive Design**
+- 🌙 **Dark Mode Support**
+- 🌍 **RTL Support** (Arabic/English)
+- 📄 **PDF Viewer** integration
+
+## 💾 Storage Architecture
+
+**Fyleo** uses a hybrid storage system for optimal cost efficiency:
+
+### 📁 GitHub Storage (Free)
+- Files **< 25MB** → GitHub Repository
+- Completely free with no limits
+- Fast and reliable
+
+### 📁 Supabase Storage (1GB/month free)
+- Files **25-100MB** → Supabase Storage
+- 1GB free monthly quota
+- Professional backup solution
+
+### 🔥 Firebase (Auth & Database Only)
+- User authentication
+- File metadata storage
+- **NOT used for file storage** (cost savings)
 
 ## ⚡ Quick Start
 
-1. **Clone & Install**
+1. **Clone the repository**
    ```bash
    git clone https://github.com/SalehAlSalem/Fyleo.git
    cd Fyleo
+   ```
+
+2. **Install dependencies**
+   ```bash
    npm install
    ```
 
-2. **Environment Setup**
+3. **Configure Services** (See [SETUP.md](SETUP.md) for detailed guide)
    ```bash
    cp .env.example .env
-   # Fill in your API keys (see HYBRID_STORAGE_SETUP.md)
+   # Edit .env with your credentials
    ```
+   
+   Required configurations:
+   - 🔥 **Firebase**: Auth & Database credentials
+   - 🐙 **GitHub**: Personal Access Token (repo permissions)
+   - ⚡ **Supabase**: Project URL & Anon Key
 
-3. **Development**
+4. **Start development server**
    ```bash
    npm run dev
+   # or use the test script
+   ./start-test.bat  # Windows
+   ./test-deploy.sh  # Linux/Mac
    ```
 
-## 📖 Documentation
-
-- [🔧 Hybrid Storage Setup Guide](./HYBRID_STORAGE_SETUP.md)
-- [🚀 Vercel Deployment (Recommended)](./VERCEL_DEPLOYMENT.md)
-- [🐙 GitHub Pages Deployment](./DEPLOYMENT_GUIDE.md)
-- [📋 Environment Variables](./env_example.txt)
+5. **Test hybrid storage**
+   - Open `http://localhost:5173`
+   - Login and go to Dashboard
+   - Click "🚀 اختبار النظام الهجين" to test storage
+   - Upload files to verify GitHub/Supabase integration
 
 ## 🌐 Live Demo
 
