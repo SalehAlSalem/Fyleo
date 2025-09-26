@@ -1,4 +1,4 @@
-import { uploadFileHybrid } from '../../../HybridStorage/index.mjs';
+import { uploadFileHybrid } from '../../HybridStorage/index.mjs';
 
 // 🧪 اختبار النظام الهجين - Hybrid Storage Test
 export const testHybridStorage = async () => {
@@ -59,7 +59,7 @@ export const testConnections = async () => {
   
   // اختبار Firebase
   try {
-    const { auth } = await import('../../../Firebase/ClientApp.js');
+    const { auth } = await import('../../Firebase/ClientApp.js');
     results.firebase = !!auth;
     console.log('🔥 Firebase:', results.firebase ? '✅ متصل' : '❌ غير متصل');
   } catch (error) {
