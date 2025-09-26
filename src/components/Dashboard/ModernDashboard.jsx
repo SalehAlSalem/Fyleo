@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { collection, query, where, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
-import { ref, deleteObject } from 'firebase/storage';
-import { auth, db, storage } from '../../../Firebase/ClientApp.js';
+// تمت إزالة Firebase Storage؛ نستخدم فقط Firestore + النظام الهجين الخارجي
+import { auth, db } from '../../../Firebase/ClientApp.js';
 import { 
   ModernCard, 
   ModernButton, 
@@ -79,31 +79,14 @@ const ModernDashboard = () => {
     }
   };
 
-  const handleDeleteFile = async (fileId, fileName, filePath) => {
+  const handleDeleteFile = async (fileId, fileName) => {
     if (!confirm(`هل أنت متأكد من حذف الملف "${fileName}"؟`)) return;
-    
     setDeleteLoading(fileId);
     try {
-      // Delete from Firestore
+      // حذف من Firestore فقط (ملفات التخزين الخارجية لا تحذف تلقائياً هنا)
       await deleteDoc(doc(db, 'files', fileId));
-      
-      // Delete from Storage if path exists
-      if (filePath) {
-        try {
-          const fileRef = ref(storage, filePath);
-          await deleteObject(fileRef);
-        } catch (storageError) {
-          console.log('File not found in storage or already deleted');
-        }
-      }
-      
-      // Update local state
       setUserFiles(prev => prev.filter(file => file.id !== fileId));
-      setUserStats(prev => ({
-        ...prev,
-        totalFiles: prev.totalFiles - 1
-      }));
-      
+      setUserStats(prev => ({ ...prev, totalFiles: prev.totalFiles - 1 }));
     } catch (error) {
       console.error('Error deleting file:', error);
       alert('حدث خطأ أثناء حذف الملف');
@@ -346,7 +329,7 @@ const ModernDashboard = () => {
                           <ModernButton
                             variant="danger"
                             size="sm"
-                            onClick={() => handleDeleteFile(file.id, file.name, file.filePath)}
+                            onClick={() => handleDeleteFile(file.id, file.name)}
                             loading={deleteLoading === file.id}
                             disabled={deleteLoading === file.id}
                           >

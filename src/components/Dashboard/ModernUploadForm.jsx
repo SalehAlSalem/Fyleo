@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db, storage } from '../../../Firebase/ClientApp.js';
+import { auth, db } from '../../../Firebase/ClientApp.js';
+// استخدام النظام الهجين (GitHub + Supabase) مع وضع محاكاة تلقائي في حالة نقص المتغيرات
+import { uploadFileHybridFallback } from '../../utils/hybridFallback.js';
 import { 
   ModernCard, 
   ModernButton, 
@@ -80,12 +81,8 @@ const ModernUploadForm = ({ onUploadSuccess }) => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    if (!user) {
-      setError('يجب تسجيل الدخول أولاً');
-      return;
-    }
+    if (!user) { setError('يجب تسجيل الدخول أولاً'); return; }
 
     setUploading(true);
     setError('');
@@ -93,81 +90,62 @@ const ModernUploadForm = ({ onUploadSuccess }) => {
     setUploadProgress(0);
 
     try {
-      // Create unique file path
-      const timestamp = Date.now();
-      const fileName = `${timestamp}_${uploadData.file.name}`;
-      const filePath = `files/${user.uid}/${fileName}`;
-      const fileRef = ref(storage, filePath);
+      const file = uploadData.file;
+      const onProgress = (p) => setUploadProgress(Math.min(99, Math.round(p)));
 
-      // Upload file to Firebase Storage
-      const uploadTask = uploadBytesResumable(fileRef, uploadData.file);
+      // بيانات ميتاداتا موحدة للنظام الهجين
+      const metadata = {
+        title: uploadData.name.trim(),
+        description: uploadData.description.trim(),
+        category: uploadData.category,
+        categorySlug: uploadData.category,
+        originalName: file.name,
+        tags: [uploadData.category].filter(Boolean),
+        uploadedBy: user.uid,
+        uploaderEmail: user.email,
+        uploaderName: user.displayName || user.email || 'مستخدم',
+        fileType: file.type,
+        approved: true,
+      };
 
-      uploadTask.on('state_changed',
-        (snapshot) => {
-          // Progress tracking
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(Math.round(progress));
-        },
-        (error) => {
-          console.error('Upload error:', error);
-          setError('حدث خطأ أثناء رفع الملف');
-          setUploading(false);
-        },
-        async () => {
-          try {
-            // Get download URL
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            
-            // Save file metadata to Firestore
-            const fileData = {
-              name: uploadData.name.trim(),
-              description: uploadData.description.trim(),
-              category: uploadData.category,
-              originalName: uploadData.file.name,
-              downloadURL,
-              filePath,
-              size: uploadData.file.size,
-              type: uploadData.file.type,
-              uploadedBy: user.uid,
-              uploaderName: user.displayName || user.email || 'مجهول',
-              createdAt: serverTimestamp(),
-              downloads: 0
-            };
+      const result = await uploadFileHybridFallback(file, metadata, (percent) => {
+        onProgress(percent);
+      });
 
-            await addDoc(collection(db, 'files'), fileData);
-            
-            setSuccess('تم رفع الملف بنجاح!');
-            
-            // Reset form
-            setUploadData({
-              file: null,
-              name: '',
-              description: '',
-              category: ''
-            });
-            
-            // Reset file input
-            const fileInput = document.getElementById('file-input');
-            if (fileInput) fileInput.value = '';
-            
-            // Call success callback
-            if (onUploadSuccess) {
-              onUploadSuccess();
-            }
-            
-          } catch (firestoreError) {
-            console.error('Firestore error:', firestoreError);
-            setError('تم رفع الملف ولكن حدث خطأ في حفظ البيانات');
-          }
-        }
-      );
+      // حفظ ميتاداتا في Firestore (حتى في المحاكاة لتظهر في الواجهة)
+      const fileData = {
+        name: metadata.title,
+        description: metadata.description,
+        category: metadata.category,
+        originalName: metadata.originalName,
+        downloadURL: result.downloadURL || result.url || '#',
+        provider: result.storageProvider || result.provider || (result.isSimulation ? 'simulation' : 'unknown'),
+        size: file.size,
+        type: file.type,
+        uploadedBy: user.uid,
+        uploaderName: metadata.uploaderName,
+        createdAt: serverTimestamp(),
+        downloads: 0,
+        isSimulation: !!result.isSimulation,
+        hybrid: true,
+      };
 
-    } catch (error) {
-      console.error('Upload error:', error);
-      setError('حدث خطأ أثناء رفع الملف');
+      await addDoc(collection(db, 'files'), fileData);
+
+      setUploadProgress(100);
+      setSuccess(`تم رفع الملف بنجاح عبر ${fileData.provider === 'simulation' ? 'وضع المحاكاة' : fileData.provider}`);
+
+      // إعادة تعيين النموذج
+      setUploadData({ file: null, name: '', description: '', category: '' });
+      const fileInput = document.getElementById('file-input');
+      if (fileInput) fileInput.value = '';
+      if (onUploadSuccess) onUploadSuccess();
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError(`حدث خطأ أثناء رفع الملف: ${err.message}`);
     } finally {
       setUploading(false);
-      setUploadProgress(0);
+      setTimeout(() => setUploadProgress(0), 800);
     }
   };
 
