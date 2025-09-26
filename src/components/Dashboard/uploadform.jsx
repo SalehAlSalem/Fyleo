@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import classNames from "classnames";
-// استخدام Firebase Storage مباشرة لحين إصلاح النظام الهجين
-import { uploadFileToFirebas } from '../../../Firebase/Storage.mjs';
+// استخدام النظام الهجين المجاني GitHub + Supabase
+import { uploadFileHybrid } from '../../../HybridStorage/index.mjs';
 import { auth } from '../../../Firebase/ClientApp.js';
 import cardData from '../../config/CardData.mjs';
 
@@ -51,7 +51,7 @@ const Upload = ({ open, setOpen }) => {
           setProgress(Math.round(overallProgress));
         };
         
-        const res = await uploadFileToFirebaseStorage(file, {
+        const res = await uploadFileHybrid(file, {
           category: categoryObj ? categoryObj.domain : category,
           categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
           description: description,
@@ -59,8 +59,8 @@ const Upload = ({ open, setOpen }) => {
           title: title,
           uploadedBy: auth.currentUser.uid,
           uploaderEmail: auth.currentUser.email,
-          uploaderName: auth.currentUser.displayName || 'Anonymous',
-          approved: false,
+          uploaderName: auth.currentUser.displayName || 'مجهول',
+          approved: true, // ✅ اعتماد تلقائي
           fileType: file.type,
         }, onFileProgress);
         
@@ -80,7 +80,7 @@ const Upload = ({ open, setOpen }) => {
           setProgress(Math.round(overallProgress));
         };
         
-        const res = await uploadFileToFirebaseStorage(pdfFile, {
+        const res = await uploadFileHybrid(pdfFile, {
           category: categoryObj ? categoryObj.domain : category,
           categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
           description: description,
@@ -88,8 +88,8 @@ const Upload = ({ open, setOpen }) => {
           title: title,
           uploadedBy: auth.currentUser.uid,
           uploaderEmail: auth.currentUser.email,
-          uploaderName: auth.currentUser.displayName || 'Anonymous',
-          approved: false,
+          uploaderName: auth.currentUser.displayName || 'مجهول',
+          approved: true, // ✅ اعتماد تلقائي
           fileType: pdfFile.type,
         }, onFileProgress);
         
@@ -98,15 +98,15 @@ const Upload = ({ open, setOpen }) => {
         setProgress(Math.round((done / total) * 100));
       }
 
-      // Check results - Firebase Storage uploads are atomic (either succeed completely or fail)
-      const successfulUploads = results.filter(r => r.result && r.result.success);
-      const failedUploads = results.filter(r => !r.result || !r.result.success);
+      // Check results - Hybrid Storage uploads
+      const successfulUploads = results.filter(r => r.result && r.result.id);
+      const failedUploads = results.filter(r => !r.result || !r.result.id);
       
       if (failedUploads.length > 0) {
-        setStatus(`${failedUploads.length} file(s) failed to upload. Check console for details.`);
-        console.error('Failed uploads:', failedUploads);
+        setStatus(`فشل رفع ${failedUploads.length} ملف. تحقق من وحدة التحكم للتفاصيل.`);
+        console.error('فشل الرفع:', failedUploads);
       } else {
-        setStatus(`تم رفع ${successfulUploads.length} ملف بنجاح! 🎉`);
+        setStatus(`🎉 تم رفع ${successfulUploads.length} ملف بنجاح عبر النظام الهجين المجاني!`);
         // Clear form on success
         setTitle('');
         setDescription('');
@@ -115,10 +115,11 @@ const Upload = ({ open, setOpen }) => {
         setPdfFile(null);
         
         // Show success message with file details
-        console.log('Uploaded files:', successfulUploads.map(r => ({
+        console.log('الملفات المرفوعة:', successfulUploads.map(r => ({
           name: r.file,
-          url: r.result.downloadURL,
-          id: r.result.fileId
+          url: r.result.downloadURL || r.result.url,
+          id: r.result.id,
+          provider: r.result.provider // GitHub أو Supabase
         })));
       }
     } catch (err) {
@@ -162,12 +163,13 @@ const Upload = ({ open, setOpen }) => {
           <div className="text-sm text-gray-600">{progress}%</div>
         </div>
 
-        {/* مؤشر نظام التخزين الذكي */}
+        {/* مؤشر نظام التخزين الهجين المجاني */}
         <div className="w-[85%] mt-2 p-2 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
-          <div className="text-xs text-gray-700 font-medium mb-1">💾 النظام الذكي المجاني:</div>
+          <div className="text-xs text-gray-700 font-medium mb-1">💾 النظام الهجين المجاني 100%:</div>
           <div className="text-xs text-gray-600">
             📁 الملفات الصغيرة (&lt;25MB): GitHub (مجاني تماماً)<br/>
-            🚀 الملفات الكبيرة (&lt;100MB): Supabase (1GB مجاني شهرياً)
+            🚀 الملفات الكبيرة (25-100MB): Supabase (1GB مجاني شهرياً)<br/>
+            🔐 البيانات: Firebase Firestore + Auth
           </div>
         </div>
 
