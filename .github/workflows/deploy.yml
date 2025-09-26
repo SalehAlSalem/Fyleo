@@ -36,6 +36,7 @@ jobs:
       env:
         NODE_ENV: production
         GITHUB_ACTIONS: true
+        GITHUB_PAGES: true
         # Firebase Configuration (Auth & Database)
         VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
         VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}

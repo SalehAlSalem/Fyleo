@@ -11,17 +11,39 @@ import {
     getStorage,
 } from "firebase/storage";
 
+// تحقق من وجود المتغيرات المطلوبة
+const hasRequiredConfig = import.meta.env.VITE_FIREBASE_API_KEY && 
+                         import.meta.env.VITE_FIREBASE_AUTH_DOMAIN && 
+                         import.meta.env.VITE_FIREBASE_PROJECT_ID;
+
+if (!hasRequiredConfig && typeof window !== 'undefined') {
+    console.warn('⚠️ Firebase: Missing required environment variables. Some features may not work.');
+}
+
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCpJE4pzwJOiIQ2z8z9Go1EfJ3z5HuSjc0",
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "fyleo-app.firebaseapp.com",
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "fyleo-app",
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "fyleo-app.appspot.com",
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "267240147915",
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:267240147915:web:d123d1d1d1d1d1d1d1d1d1",
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-api-key",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "demo-project.firebaseapp.com",
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project",
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "demo-project.appspot.com",
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:demo",
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+let app;
+try {
+    app = initializeApp(firebaseConfig);
+    if (typeof window !== 'undefined') {
+        console.log('✅ Firebase: App initialized successfully');
+    }
+} catch (error) {
+    console.error('❌ Firebase: Initialization failed:', error);
+    // في بيئة الإنتاج، ننشئ app وهمي لمنع الأخطاء
+    if (typeof window !== 'undefined') {
+        console.warn('🚨 Running in fallback mode - some features may not work');
+    }
+    app = null;
+}
 
 // Initialize Analytics only in browser and when measurement id is provided
 let analytics;
@@ -35,9 +57,25 @@ if (typeof window !== 'undefined' && import.meta.env.VITE_FIREBASE_MEASUREMENT_I
     }
 }
 
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+let auth, db, storage;
+
+if (app) {
+    try {
+        auth = getAuth(app);
+        db = getFirestore(app);
+        storage = getStorage(app);
+    } catch (error) {
+        console.error('❌ Firebase: Service initialization failed:', error);
+        auth = null;
+        db = null;
+        storage = null;
+    }
+} else {
+    // Fallback للوضع التجريبي
+    auth = null;
+    db = null;
+    storage = null;
+}
 
 export {
     app,
