@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { signOut } from 'firebase/auth';
-import { auth } from '../../../Firebase/ClientApp.js';
+import { useAuth } from '../../hooks/useAuth';
 import { 
   ModernButton, 
   ThemeToggle, 
@@ -11,7 +9,7 @@ import {
 } from '../modern/ModernComponents';
 
 const ModernNavbar = () => {
-  const [user, loading] = useAuthState(auth);
+  const { user, loading, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -36,8 +34,12 @@ const ModernNavbar = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      navigate('/');
+      const result = await logout();
+      if (result.success) {
+        navigate('/');
+      } else {
+        console.error('Logout error:', result.error);
+      }
     } catch (error) {
       console.error('Logout error:', error);
     }
