@@ -37,32 +37,34 @@ A modern, bilingual educational file sharing platform built with React and Fireb
 ## � Tech Stack
 
 - ⚛️ **React 18** with Vite
-- 🔥 **Firebase** (Authentication & Firestore Database)
-- 📁 **Hybrid Storage** (GitHub + Supabase) - Smart & Cost-Effective
+- � **Appwrite** (Backend-as-a-Service) - Database, Auth & Storage
 - 🎨 **Tailwind CSS** for styling
 - 📱 **Responsive Design**
 - 🌙 **Dark Mode Support**
 - 🌍 **RTL Support** (Arabic/English)
 - 📄 **PDF Viewer** integration
 
-## 💾 Storage Architecture
+## � Backend Architecture
 
-**Fyleo** uses a hybrid storage system for optimal cost efficiency:
+**Fyleo** uses **Appwrite** as the primary Backend-as-a-Service (BaaS):
 
-### 📁 GitHub Storage (Free)
-- Files **< 25MB** → GitHub Repository
-- Completely free with no limits
-- Fast and reliable
+### � Appwrite Authentication
+- Email/Password authentication
+- Google OAuth integration  
+- Anonymous users support
+- Session management
 
-### 📁 Supabase Storage (1GB/month free)
-- Files **25-100MB** → Supabase Storage
-- 1GB free monthly quota
-- Professional backup solution
-
-### 🔥 Firebase (Auth & Database Only)
-- User authentication
+### � Appwrite Database
 - File metadata storage
-- **NOT used for file storage** (cost savings)
+- User profiles and preferences
+- Categories and subjects management
+- Download/view statistics
+
+### � Appwrite Storage
+- Secure file upload and storage
+- Multiple file format support
+- Built-in file optimization
+- Access control and permissions
 
 ## ⚡ Quick Start
 
@@ -77,16 +79,16 @@ A modern, bilingual educational file sharing platform built with React and Fireb
    npm install
    ```
 
-3. **Configure Services** (See [SETUP.md](SETUP.md) for detailed guide)
+3. **Configure Appwrite** (See [APPWRITE_SETUP.md](APPWRITE_SETUP.md) for detailed guide)
    ```bash
    cp .env.example .env
-   # Edit .env with your credentials
+   # Edit .env with your Appwrite credentials
    ```
    
    Required configurations:
-   - 🔥 **Firebase**: Auth & Database credentials
-   - 🐙 **GitHub**: Personal Access Token (repo permissions)
-   - ⚡ **Supabase**: Project URL & Anon Key
+   - � **Appwrite**: Project ID, Database ID, and Collection IDs
+   - � **Storage**: Bucket ID for file uploads
+   - 🔒 **Authentication**: Enable Email/Password and optional OAuth
 
 4. **Start development server**
    ```bash

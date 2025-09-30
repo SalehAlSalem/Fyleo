@@ -37,17 +37,13 @@ jobs:
         NODE_ENV: production
         GITHUB_ACTIONS: true
         GITHUB_PAGES: true
-        # Firebase Configuration (Auth & Database)
-        VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-        VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-        VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-        VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-        VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-        VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
-        # Hybrid Storage Configuration
-        VITE_GITHUB_OWNER: ${{ secrets.VITE_GITHUB_OWNER }}
-        VITE_GITHUB_REPO: ${{ secrets.VITE_GITHUB_REPO }}
-        VITE_GITHUB_TOKEN: ${{ secrets.VITE_GITHUB_TOKEN }}
+        # Appwrite Configuration (Main Backend)
+        VITE_APPWRITE_ENDPOINT: ${{ secrets.VITE_APPWRITE_ENDPOINT }}
+        VITE_APPWRITE_PROJECT_ID: ${{ secrets.VITE_APPWRITE_PROJECT_ID }}
+        VITE_APPWRITE_DATABASE_ID: ${{ secrets.VITE_APPWRITE_DATABASE_ID }}
+        VITE_APPWRITE_USERS_COLLECTION_ID: ${{ secrets.VITE_APPWRITE_USERS_COLLECTION_ID }}
+        VITE_APPWRITE_MATERIALS_COLLECTION_ID: ${{ secrets.VITE_APPWRITE_MATERIALS_COLLECTION_ID }}
+        VITE_APPWRITE_STORAGE_BUCKET_ID: ${{ secrets.VITE_APPWRITE_STORAGE_BUCKET_ID }}
         VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         # App Configuration
