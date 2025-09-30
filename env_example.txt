@@ -1,26 +1,14 @@
-VITE_FIREBASE_API_KEY=""
-VITE_FIREBASE_AUTH_DOMAIN=""
-VITE_FIREBASE_PROJECT_ID=""
-VITE_FIREBASE_MESSAGING_SENDER_ID=""
-VITE_FIREBASE_APP_ID=""
-VITE_FIREBASE_MEASUREMENT_ID=""
+# 🚀 Appwrite Configuration (النطاق الرسمي الوحيد المعتمد)
+VITE_APPWRITE_ENDPOINT="https://fyleo.appwrite.network/v1"
+VITE_APPWRITE_PROJECT_ID="YOUR_PROJECT_ID"
+VITE_APPWRITE_DATABASE_ID="YOUR_DATABASE_ID"
+VITE_APPWRITE_USERS_COLLECTION_ID="YOUR_USERS_COLLECTION_ID"
+VITE_APPWRITE_MATERIALS_COLLECTION_ID="YOUR_MATERIALS_COLLECTION_ID"
+VITE_APPWRITE_STORAGE_BUCKET_ID="YOUR_STORAGE_BUCKET_ID"
 
-# Cloudinary (required for uploads)
-VITE_CLOUDINARY_CLOUD_NAME=""
-VITE_CLOUDINARY_UPLOAD_PRESET=""
-
-# Supabase (Hybrid Storage)
-VITE_SUPABASE_URL="https://YOUR-PROJECT.supabase.co"
-VITE_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
-VITE_SUPABASE_BUCKET="files" # أو اسم الـ bucket الذي أنشأته
-
-# GitHub (اختياري للملفات الصغيرة <25MB) - ضع التوكن في Vercel فقط
-VITE_GITHUB_OWNER="SalehAlSalem"
-VITE_GITHUB_REPO="Fyleo"
-VITE_GITHUB_TOKEN="" # لا تملأه في الملف لو عام – استخدم .env.local محلي فقط
-
-# Local development: set to 'true' to auto-approve uploads, 'false' to require approval
-# Default in code is true when this var is not set.
+# App Configuration
+VITE_APP_NAME="Fyleo"
+VITE_APP_VERSION="3.0.0"
 VITE_AUTO_APPROVE="true"
 
-# تحذير: لا ترفع هذا الملف بعد تعبئته إلى Git. استخدم .env.local محلياً وبيئة Vercel للإنتاج.
+# تحذير: لا ترفع هذا الملف بعد تعبئته إلى Git. استخدم .env.local محلياً وبيئة النشر للإنتاج.

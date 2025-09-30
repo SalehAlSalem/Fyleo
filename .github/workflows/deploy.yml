@@ -37,8 +37,8 @@ jobs:
         NODE_ENV: production
         GITHUB_ACTIONS: true
         GITHUB_PAGES: true
-        # 🚀 Appwrite Configuration (All-in-One Backend)
-        VITE_APPWRITE_ENDPOINT: ${{ secrets.VITE_APPWRITE_ENDPOINT }}
+        # 🚀 Appwrite Configuration (النطاق الرسمي الوحيد المعتمد)
+        VITE_APPWRITE_ENDPOINT: "https://fyleo.appwrite.network/v1"
         VITE_APPWRITE_PROJECT_ID: ${{ secrets.VITE_APPWRITE_PROJECT_ID }}
         VITE_APPWRITE_DATABASE_ID: ${{ secrets.VITE_APPWRITE_DATABASE_ID }}
         VITE_APPWRITE_USERS_COLLECTION_ID: ${{ secrets.VITE_APPWRITE_USERS_COLLECTION_ID }}
