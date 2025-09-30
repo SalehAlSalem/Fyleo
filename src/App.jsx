@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useTheme } from './components/modern/ModernComponents.jsx';
+import { AuthProvider } from './hooks/useAuth.jsx';
 import ModernNavbar from './components/modern/ModernNavbar.jsx';
 import ModernLandingPage from './pages/LandingPage/ModernLanding.jsx';
 import ModernMaterials from './pages/MaterialsPage/ModernMaterials.jsx';
-import ModernLogin from './pages/login/ModernLogin.jsx';
-import ModernSignup from './pages/signup/ModernSignup.jsx';
+import AppwriteLogin from './pages/login/AppwriteLogin.jsx';
+import AppwriteSignup from './pages/signup/AppwriteSignup.jsx';
 import Layout from './pages/OverviewPage';
 import Modern404 from './pages/404page/Modern404.jsx';
 import PDFViewer from './components/PDFViewer';
@@ -18,6 +19,7 @@ import Upload from './components/Dashboard/uploadform';
 import LoadingScreen from './components/LoadingScreen.jsx';
 import TestUploadSystem from './pages/TestUpload.jsx';
 import TestFileDisplay from './pages/TestFileDisplay.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 const App = () => {
   const { theme } = useTheme();
@@ -28,10 +30,10 @@ const App = () => {
     // Simulate initialization time and check for critical errors
     const initApp = async () => {
       try {
-        // Check if environment variables are available
-        const hasFirebase = import.meta.env.VITE_FIREBASE_API_KEY;
-        if (!hasFirebase) {
-          console.warn('⚠️ Firebase configuration missing - some features may not work');
+        // Check if Appwrite environment variables are available
+        const hasAppwrite = import.meta.env.VITE_APPWRITE_ENDPOINT && import.meta.env.VITE_APPWRITE_PROJECT_ID;
+        if (!hasAppwrite) {
+          console.warn('⚠️ Appwrite configuration missing - authentication may not work');
         }
         
         // Small delay to show loading screen
@@ -69,31 +71,49 @@ const App = () => {
   }
 
   return (
-    <div data-theme={theme} className="min-h-screen transition-colors duration-300">
-      <BrowserRouter>
-        <ModernNavbar />
-        <main className="min-h-screen">
-          <Routes>
-            <Route path="/" element={<ModernLandingPage />} />
-            <Route path="/materials" element={<ModernMaterials />} />
-            <Route path="/materials/:category" element={<ModernMaterials />} />
-            <Route path="/login" element={<ModernLogin />} />
-            <Route path="/signup" element={<ModernSignup />} />
-            <Route path="/details" element={<Layout />} />
-            <Route path="/details/:id" element={<Layout />} />
-            <Route path="/pdfviewer/:id" element={<PDFViewer />} />
-            <Route path="/resetpassword" element={<ModernForgotPassword />} />
-            <Route path="/dashboard" element={<ModernDashboard />} />
-            <Route path="/uploads" element={<Uploads />} />
-            <Route path="/downloads" element={<Downloads />} />
-            <Route path="/bookmarks" element={<Bookmarks />} />
-            <Route path="/test-upload" element={<TestUploadSystem />} />
-            <Route path="/test-files" element={<TestFileDisplay />} />
-            <Route path="*" element={<Modern404 />} />
-          </Routes>
-        </main>
-      </BrowserRouter>
-    </div>
+    <AuthProvider>
+      <div data-theme={theme} className="min-h-screen transition-colors duration-300">
+        <BrowserRouter>
+          <ModernNavbar />
+          <main className="min-h-screen">
+            <Routes>
+              <Route path="/" element={<ModernLandingPage />} />
+              <Route path="/materials" element={<ModernMaterials />} />
+              <Route path="/materials/:category" element={<ModernMaterials />} />
+              <Route path="/login" element={<AppwriteLogin />} />
+              <Route path="/signup" element={<AppwriteSignup />} />
+              <Route path="/details" element={<Layout />} />
+              <Route path="/details/:id" element={<Layout />} />
+              <Route path="/pdfviewer/:id" element={<PDFViewer />} />
+              <Route path="/resetpassword" element={<ModernForgotPassword />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <ModernDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/uploads" element={
+                <ProtectedRoute>
+                  <Uploads />
+                </ProtectedRoute>
+              } />
+              <Route path="/downloads" element={
+                <ProtectedRoute>
+                  <Downloads />
+                </ProtectedRoute>
+              } />
+              <Route path="/bookmarks" element={
+                <ProtectedRoute>
+                  <Bookmarks />
+                </ProtectedRoute>
+              } />
+              <Route path="/test-upload" element={<TestUploadSystem />} />
+              <Route path="/test-files" element={<TestFileDisplay />} />
+              <Route path="*" element={<Modern404 />} />
+            </Routes>
+          </main>
+        </BrowserRouter>
+      </div>
+    </AuthProvider>
   )
 }
 

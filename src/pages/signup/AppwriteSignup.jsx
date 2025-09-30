@@ -1,0 +1,240 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { 
+  ModernButton, 
+  ModernInput, 
+  ModernCard,
+  ModernAlert,
+  useTranslation,
+  useTheme 
+} from '../../components/modern/ModernComponents';
+
+const AppwriteSignup = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const { user, signup } = useAuth();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  const validateForm = () => {
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('يرجى ملء جميع الحقول المطلوبة');
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('كلمات المرور غير متطابقة');
+      return false;
+    }
+
+    if (formData.password.length < 8) {
+      setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('البريد الإلكتروني غير صحيح');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const result = await signup(formData.email, formData.password, formData.name);
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        switch (result.error) {
+          case 'user_already_exists':
+            setError('البريد الإلكتروني مستخدم بالفعل');
+            break;
+          case 'user_invalid_password':
+            setError('كلمة المرور ضعيفة جداً');
+            break;
+          case 'user_invalid_email':
+            setError('البريد الإلكتروني غير صحيح');
+            break;
+          default:
+            setError('حدث خطأ أثناء إنشاء الحساب');
+        }
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      setError('حدث خطأ غير متوقع');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const getPasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    return strength;
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+  const strengthLabels = ['ضعيفة جداً', 'ضعيفة', 'متوسطة', 'قوية', 'قوية جداً'];
+  const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-green-600'];
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 px-4">
+      <ModernCard className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            إنشاء حساب جديد
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            انضم إلى مجتمع Fyleo التعليمي
+          </p>
+        </div>
+
+        <form onSubmit={handleSignup} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              الاسم الكامل
+            </label>
+            <ModernInput
+              type="text"
+              name="name"
+              placeholder="أدخل اسمك الكامل"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              البريد الإلكتروني
+            </label>
+            <ModernInput
+              type="email"
+              name="email"
+              placeholder="أدخل بريدك الإلكتروني"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              كلمة المرور
+            </label>
+            <ModernInput
+              type="password"
+              name="password"
+              placeholder="أدخل كلمة مرور قوية"
+              value={formData.password}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+            {formData.password && (
+              <div className="mt-2">
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${strengthColors[passwordStrength - 1] || 'bg-gray-300'}`}
+                      style={{ width: `${(passwordStrength / 5) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    {strengthLabels[passwordStrength - 1] || 'ضعيفة جداً'}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              تأكيد كلمة المرور
+            </label>
+            <ModernInput
+              type="password"
+              name="confirmPassword"
+              placeholder="أعد كتابة كلمة المرور"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
+
+          {error && (
+            <ModernAlert variant="error">
+              {error}
+            </ModernAlert>
+          )}
+
+          <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+            <p>• كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل</p>
+            <p>• يُفضل استخدام أحرف كبيرة وصغيرة وأرقام ورموز</p>
+          </div>
+
+          <ModernButton
+            type="submit"
+            className="w-full"
+            loading={loading}
+          >
+            إنشاء الحساب
+          </ModernButton>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            لديك حساب بالفعل؟{' '}
+            <Link 
+              to="/login" 
+              className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+            >
+              تسجيل الدخول
+            </Link>
+          </p>
+        </div>
+      </ModernCard>
+    </div>
+  );
+};
+
+export default AppwriteSignup;
