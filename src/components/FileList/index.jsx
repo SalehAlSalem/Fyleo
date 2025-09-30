@@ -24,24 +24,19 @@ const FileList = ({ max=50, enableSearch=true, categorySlug=null }) => {
   const [qText, setQText] = useState('');
 
   useEffect(() => {
-    try {
-      let base = collection(db, 'files');
-      let qRef = query(base, orderBy('uploadedAt', 'desc'));
-      // مبدئياً: limit ثم يمكن تحسين لاحقاً
-      const unsub = onSnapshot(qRef, (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setFiles(list);
+    const fetchFiles = async () => {
+      try {
+        const files = await DatabaseService.getAllFiles();
+        setFiles(files);
         setLoading(false);
-      }, (err) => {
-        console.error('FileList snapshot error:', err);
+      } catch (err) {
+        console.error('Error fetching files:', err);
         setError(err.message);
         setLoading(false);
-      });
-      return () => unsub();
-    } catch (e) {
-      setError(e.message);
-      setLoading(false);
-    }
+      }
+    };
+    
+    fetchFiles();
   }, []);
 
   const filtered = useMemo(() => {

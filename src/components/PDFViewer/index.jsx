@@ -25,13 +25,12 @@ export default function PDFViewer(){
 
             try {
                 setLoading(true);
-                const fileRef = doc(db, 'files', id);
-                const fileSnap = await getDoc(fileRef);
-
-                if (fileSnap.exists()) {
-                    const fileData = fileSnap.data();
-                    setFileInfo(fileData);
-                    setFileUrl(fileData.downloadURL || fileData.secure_url);
+                // Get file from Appwrite Database
+                const file = await DatabaseService.getFileById(id);
+                
+                if (file) {
+                    setFileInfo(file);
+                    setFileUrl(file.url);
                     
                     // Increment view count
                     await incrementViewCount(id);

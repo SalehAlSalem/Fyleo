@@ -21,17 +21,7 @@ const TestFileDisplay = () => {
   const fetchAllFiles = async () => {
     setLoading(true);
     try {
-      const filesRef = collection(db, 'files');
-      const q = query(filesRef, orderBy('uploadedAt', 'desc'));
-      const querySnapshot = await getDocs(q);
-      
-      const allFiles = [];
-      querySnapshot.forEach((doc) => {
-        allFiles.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
+      const allFiles = await DatabaseService.getAllFiles();
 
       // تجميع الملفات حسب الفئة
       const grouped = {};

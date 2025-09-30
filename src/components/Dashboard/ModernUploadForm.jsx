@@ -130,10 +130,10 @@ const ModernUploadForm = ({ onUploadSuccess }) => {
         hybrid: true,
       };
 
-      await addDoc(collection(db, 'files'), fileData);
+      const dbResult = await DatabaseService.createFile(fileData);
 
       setUploadProgress(100);
-      setSuccess(`تم رفع الملف بنجاح عبر ${fileData.provider === 'simulation' ? 'وضع المحاكاة' : fileData.provider}`);
+      setSuccess(`تم رفع الملف بنجاح عبر Appwrite`);
 
       // إعادة تعيين النموذج
       setUploadData({ file: null, name: '', description: '', category: '' });

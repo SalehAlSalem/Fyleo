@@ -386,6 +386,65 @@ class DatabaseService {
       throw error;
     }
   }
+
+  // Files functions
+  async createFile(fileData) {
+    try {
+      return await databases.createDocument(
+        DATABASE_ID,
+        'files',
+        ID.unique(),
+        fileData
+      );
+    } catch (error) {
+      console.error('❌ Error creating file:', error);
+      throw error;
+    }
+  }
+
+  async getFileById(fileId) {
+    try {
+      return await databases.getDocument(
+        DATABASE_ID,
+        'files',
+        fileId
+      );
+    } catch (error) {
+      console.error('❌ Error getting file:', error);
+      throw error;
+    }
+  }
+
+  async getAllFiles() {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        'files',
+        [Query.orderDesc('$createdAt')]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error getting all files:', error);
+      return [];
+    }
+  }
+
+  async getUserFiles(userEmail) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        'files',
+        [
+          Query.equal('uploadedBy', userEmail),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error getting user files:', error);
+      return [];
+    }
+  }
 }
 
 // Export singleton instance
