@@ -347,9 +347,9 @@ const Upload = ({ open, setOpen }) => {
             <div className="flex items-center justify-between">
               <span>🔥 Firebase (البيانات)</span>
               <span className={`px-2 py-1 rounded text-xs ${
-                auth ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                isAuthenticated ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {auth ? '✅ متصل' : '❌ غير متصل'}
+                {isAuthenticated ? '✅ متصل' : '❌ غير متصل'}
               </span>
             </div>
             <div className="flex items-center justify-between">

@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { NavBar } from '../../components';
 import Sidepanel from "./sidepanel";
 import { useAuth } from '../../hooks/useAuth';
-import DatabaseService from '../../services/databaseService';
-import { doc, getDoc, setDoc, collection, query, where, getCountFromServer } from 'firebase/firestore';
+import { DatabaseService } from '../../config/DatabaseService.js';
 
 
 const Dashboard = () => {

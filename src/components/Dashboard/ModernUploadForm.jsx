@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db } from '../../../Firebase/ClientApp.js';
-// استخدام النظام الهجين (GitHub + Supabase) مع وضع محاكاة تلقائي في حالة نقص المتغيرات
-import { uploadFileHybridFallback } from '../../utils/hybridFallback.js';
+import { useAuth } from '../../hooks/useAuth';
+import { DatabaseService } from '../../config/DatabaseService';
+import { StorageService } from '../../config/StorageService';
 import { 
   ModernCard, 
   ModernButton, 
@@ -13,7 +11,7 @@ import {
 } from '../modern/ModernComponents';
 
 const ModernUploadForm = ({ onUploadSuccess }) => {
-  const [user] = useAuthState(auth);
+  const { user } = useAuth();
   const [uploadData, setUploadData] = useState({
     file: null,
     name: '',
@@ -93,44 +91,28 @@ const ModernUploadForm = ({ onUploadSuccess }) => {
       const file = uploadData.file;
       const onProgress = (p) => setUploadProgress(Math.min(99, Math.round(p)));
 
-      // بيانات ميتاداتا موحدة للنظام الهجين
-      const metadata = {
-        title: uploadData.name.trim(),
-        description: uploadData.description.trim(),
-        category: uploadData.category,
-        categorySlug: uploadData.category,
-        originalName: file.name,
-        tags: [uploadData.category].filter(Boolean),
-        uploadedBy: user.uid,
-        uploaderEmail: user.email,
-        uploaderName: user.displayName || user.email || 'مستخدم',
-        fileType: file.type,
-        approved: true,
-      };
-
-      const result = await uploadFileHybridFallback(file, metadata, (percent) => {
-        onProgress(percent);
+      // رفع الملف لـ Appwrite Storage
+      const uploadResult = await StorageService.uploadFile(file, {
+        onProgress: onProgress
       });
 
-      // حفظ ميتاداتا في Firestore (حتى في المحاكاة لتظهر في الواجهة)
+      // حفظ بيانات الملف في قاعدة البيانات
       const fileData = {
-        name: metadata.title,
-        description: metadata.description,
-        category: metadata.category,
-        originalName: metadata.originalName,
-        downloadURL: result.downloadURL || result.url || '#',
-        provider: result.storageProvider || result.provider || (result.isSimulation ? 'simulation' : 'unknown'),
+        name: uploadData.name.trim(),
+        description: uploadData.description.trim(),
+        category: uploadData.category,
+        originalName: file.name,
+        fileId: uploadResult.fileId,
+        downloadURL: uploadResult.downloadURL,
         size: file.size,
         type: file.type,
-        uploadedBy: user.uid,
-        uploaderName: metadata.uploaderName,
-        createdAt: serverTimestamp(),
+        uploadedBy: user.$id,
+        uploaderName: user.name || user.email || 'مستخدم',
         downloads: 0,
-        isSimulation: !!result.isSimulation,
-        hybrid: true,
+        approved: true
       };
 
-      const dbResult = await DatabaseService.createFile(fileData);
+      await DatabaseService.createFile(fileData);
 
       setUploadProgress(100);
       setSuccess(`تم رفع الملف بنجاح عبر Appwrite`);

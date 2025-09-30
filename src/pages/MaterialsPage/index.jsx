@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import cardData from '../../config/CardData.mjs';
 import { useAuth } from '../../hooks/useAuth';
 import DatabaseService from '../../services/databaseService';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { DatabaseService } from '../../config/DatabaseService';
 
 
 const MaterialsPage = () => {

@@ -1,13 +1,12 @@
-import React from 'react'
+import React from 'react';
 import classNames from 'classnames';
 import { Link } from "react-router-dom";
 import DarkMode from '../DarkMode';
-import { useAuthState, useSignOut } from 'react-firebase-hooks/auth';
 import { useAuth } from '../../hooks/useAuth';
 
 const NavBar = () => {
-  const [user, loading, error] = useAuthState(auth);
-  const [signout, loadingg, erorr] = useSignOut(auth);
+  const { user, logout } = useAuth();
+  
   return (
     <div className={classNames({
       'w-screen h-fit': true,
@@ -52,9 +51,9 @@ const NavBar = () => {
 
           {user && (
             <>
-              <Link to='/dashboard' className="px-4 py-2 monu text-sm text-gray-800">{user.displayName || user.email}</Link>
+              <Link to='/dashboard' className="px-4 py-2 monu text-sm text-gray-800 dark:text-white">{user.name || user.email}</Link>
               <Link to='/uploads' className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white">Upload</Link>
-              <button onClick={() => signout()} className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white">Logout</button>
+              <button onClick={() => logout()} className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white">Logout</button>
             </>
           )}
           <DarkMode />

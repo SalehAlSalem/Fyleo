@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../../../Firebase/ClientApp.js';
+import { useAuth } from '../../hooks/useAuth';
 import { 
   ModernButton, 
   ModernInput, 
@@ -21,16 +19,16 @@ const ModernSignup = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [user, userLoading] = useAuthState(auth);
+  const { user, signup } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { theme } = useTheme();
 
   useEffect(() => {
-    if (user && !userLoading) {
+    if (user) {
       navigate('/dashboard');
     }
-  }, [user, userLoading, navigate]);
+  }, [user, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -68,17 +66,7 @@ const ModernSignup = () => {
     setError('');
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        formData.email, 
-        formData.password
-      );
-
-      // Update user profile with display name
-      await updateProfile(userCredential.user, {
-        displayName: formData.name
-      });
-
+      await signup(formData.email, formData.password, formData.name);
       navigate('/dashboard');
     } catch (error) {
       console.error('Signup error:', error);

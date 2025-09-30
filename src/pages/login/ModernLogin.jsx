@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../../../Firebase/ClientApp.js';
+import { useAuth } from '../../hooks/useAuth';
 import { 
   ModernButton, 
   ModernInput, 
@@ -17,16 +15,16 @@ const ModernLogin = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [user, userLoading] = useAuthState(auth);
+  const { user, login } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { theme } = useTheme();
 
   useEffect(() => {
-    if (user && !userLoading) {
+    if (user) {
       navigate('/dashboard');
     }
-  }, [user, userLoading, navigate]);
+  }, [user, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -39,59 +37,20 @@ const ModernLogin = () => {
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await login(email, password);
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      switch (error.code) {
-        case 'auth/user-not-found':
-          setError('المستخدم غير موجود');
-          break;
-        case 'auth/wrong-password':
-          setError('كلمة المرور غير صحيحة');
-          break;
-        case 'auth/invalid-email':
-          setError('البريد الإلكتروني غير صحيح');
-          break;
-        case 'auth/too-many-requests':
-          setError('محاولات كثيرة. حاول مرة أخرى لاحقاً');
-          break;
-        default:
-          setError('حدث خطأ أثناء تسجيل الدخول');
-      }
+      setError('حدث خطأ أثناء تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      await signInWithPopup(auth, provider);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Google login error:', error);
-      if (error.code !== 'auth/popup-closed-by-user') {
-        setError('حدث خطأ أثناء تسجيل الدخول بـ Google');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (userLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading-pulse w-12 h-12 rounded-full"></div>
-      </div>
-    );
-  }
+  // تم إزالة Google login مؤقتاً
+  // const handleGoogleLogin = async () => {
+  //   // سيتم إضافة Google Auth للـ Appwrite لاحقاً
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">

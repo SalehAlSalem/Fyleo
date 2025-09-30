@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
+import { DatabaseService } from '../../config/DatabaseService';
 import DatabaseService from '../../services/databaseService';
 
 // أيقونات مزود التخزين
