@@ -9,20 +9,15 @@ const MyUploads = () => {
 
   useEffect(() => {
     const fetchUploads = async () => {
-      if (!auth.currentUser) {
+      const { user } = useAuth();
+      if (!user) {
         setLoading(false);
         return;
       }
 
       try {
-        const filesRef = collection(db, 'files');
-        const q = query(
-          filesRef,
-          where('uploadedBy', '==', auth.currentUser.uid),
-          orderBy('createdAt', 'desc')
-        );
-
-        const querySnapshot = await getDocs(q);
+        const files = await DatabaseService.getUserFiles(user.email);
+        setUserFiles(files);
         const uploadsList = [];
         
         querySnapshot.forEach((doc) => {

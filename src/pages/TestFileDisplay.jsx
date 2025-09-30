@@ -62,7 +62,8 @@ const TestFileDisplay = () => {
   };
 
   useEffect(() => {
-    if (auth?.currentUser) {
+    const { user } = useAuth();
+    if (user) {
       fetchAllFiles();
     }
   }, []);

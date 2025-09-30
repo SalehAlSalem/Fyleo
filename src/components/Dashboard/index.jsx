@@ -16,26 +16,18 @@ const Dashboard = () => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const u = auth.currentUser;
+        const { user: u } = useAuth();
         if (!u) return;
-        const userRef = doc(db, 'users', u.uid);
-        const snap = await getDoc(userRef);
-        if (!snap.exists()) {
-          // create minimal user doc
-          await setDoc(userRef, { name: u.displayName || '', email: u.email || '', points: 0, createdAt: new Date().toISOString() });
-          setUserData({ name: u.displayName || '', roll: '', batch: '' });
-        } else {
-          const data = snap.data();
-          setUserData({ name: data.name || (u.displayName || ''), roll: data.roll || '', batch: data.batch || '' });
-          setStats(s => ({ ...s, points: data.points || 0 }));
+        setUser(u);
+        setUserData({ name: u.name || u.email, roll: '', batch: '' });
+        
+        // Get user's upload count
+        try {
+          const files = await DatabaseService.getUserFiles(u.email);
+          setStats(s => ({ ...s, uploads: files.length }));
+        } catch (error) {
+          console.log('Error getting user files:', error);
         }
-
-        // compute uploads count from files collection where uploaderUid == uid
-        const filesQ = query(collection(db, 'files'), where('uploaderUid', '==', u.uid));
-        const countSnap = await getCountFromServer(filesQ);
-        setStats(s => ({ ...s, uploads: countSnap.data().count }));
-
-        // bookmarks/downloads would ideally be stored per-user; keep 0 as default unless available
       } catch (err) {
         console.error('Error loading user dashboard data', err);
       }

@@ -28,8 +28,10 @@ const Upload = ({ open, setOpen }) => {
   };
 
   const handleSubmit = async () => {
+    const { user, isAuthenticated } = useAuth();
+    
     // التحقق من تسجيل الدخول
-    if (!auth || !auth.currentUser) {
+    if (!isAuthenticated || !user) {
       setStatus('❌ يرجى تسجيل الدخول أولاً');
       setLastFailDetails('يجب تسجيل الدخول قبل رفع الملفات');
       return;
@@ -70,7 +72,7 @@ const Upload = ({ open, setOpen }) => {
     try {
       let done = 0;
       const results = [];
-      const user = auth.currentUser;
+      // user already available from useAuth hook above
 
       // رفع الصور
       for (let i = 0; i < imageFiles.length; i++) {

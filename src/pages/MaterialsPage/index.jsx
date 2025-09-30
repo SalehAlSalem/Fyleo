@@ -24,40 +24,40 @@ const MaterialsPage = () => {
 
       const fetchmaterials = async () => {
         try {
-          // Query Firestore for files with matching categorySlug that are approved,
-          // but also include user's own uploads so they appear immediately after upload
+          const { user } = useAuth();
+          const files = await DatabaseService.getAllFiles();
+          
+          // Filter by category
           const catSlug = cardData[categoryid-1].urlparams;
-          const filesRef = collection(db, 'files');
-          let q = query(filesRef, where('categorySlug', '==', catSlug), orderBy('createdAt', 'desc'));
-          const snap = await getDocs(q);
-          const results = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
+          const filteredFiles = files.filter(f => f.category === catSlug);
+          
           // Filter approved OR owned by current user
-          const uid = auth && auth.currentUser ? auth.currentUser.uid : null;
-          const visible = results.filter(r => r.approved === true || (uid && r.uploadedBy === uid));
-          // Map to the MaterialCard expected shape - دعم النظام الهجين
+          const visible = filteredFiles.filter(r => 
+            r.approved === true || (user && r.uploadedBy === user.email)
+          );
+          
+          // Map to the MaterialCard expected shape
           const mapped = visible.map(r => ({
             id: r.id,
-            title: r.name || r.title || r.originalName || 'Untitled',
-            // النظام الهجين: GitHub أو Supabase أو Firebase Storage القديم
-            url: r.downloadURL || r.secure_url || r.image || '',
+            title: r.name || r.title || 'Untitled',
+            url: r.url || '',
             image: r.type?.startsWith('image/') 
-              ? (r.downloadURL || r.secure_url || '/bookmark.svg') 
+              ? (r.url || '/bookmark.svg') 
               : r.type === 'application/pdf' 
               ? '/2.2_Scales.pdf' 
               : '/bookmark.svg',
             resource_type: r.type?.startsWith('image/') ? 'image' : 'raw',
             fields: [
               r.category || '', 
-              r.format || r.type?.split('/')[1] || '',
-              `${((r.size || r.fileSize || 0) / 1024 / 1024).toFixed(1)}MB`, // حجم الملف
-              r.provider === 'github' ? '🐙 GitHub' : r.provider === 'supabase' ? '⚡ Supabase' : '🔥 Firebase', // مصدر التخزين 
-              (r.createdAt && r.createdAt.toDate) ? r.createdAt.toDate().toLocaleDateString('ar-SA') : ''
+              r.type?.split('/')[1] || '',
+              `${((r.size || 0) / 1024 / 1024).toFixed(1)}MB`,
+              '⚡ Appwrite',
+              new Date(r.uploadedAt || Date.now()).toLocaleDateString('ar-SA')
             ]
           }));
           setMaterials(mapped);
         } catch (error) {
-          console.log('Error fetching materials from Firestore', error);
+          console.log('Error fetching materials:', error);
         }
       };
 
