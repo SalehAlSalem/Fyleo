@@ -1,5 +1,25 @@
 # 🎓 Fyleo - Modern Educational File Sharing Platform
-### جامعة البلقاء التطبيقية | AlBalqa Applied University
+### جامعة البلقاء التطبيقية | Al   Required configurations:
+   - 🚀 **Appwrite**: Project ID, Database ID, and Collection IDs
+   - 📁 **Storage**: Bucket ID for file uploads
+   - 🔒 **Authentication**: Enable Email/Password and optional OAuth
+
+4. **Deploy to hosting** (See [HOSTING_ENVIRONMENT_GUIDE.md](HOSTING_ENVIRONMENT_GUIDE.md))
+   - 🔷 **Vercel**: One-click deployment with environment variables
+   - 🐙 **GitHub Pages**: Automatic deployment via Actions
+   - 🟠 **Netlify**: Simple drag-and-drop or Git integration
+   - 🟣 **Railway**: Full-stack deployment
+
+5. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Test the application**
+   - Open `http://localhost:5173`
+   - Test user registration and login
+   - Upload files to verify Appwrite integration
+   - Check all features work correctlyersity
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SalehAlSalem/Fyleo)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://fyleo.vercel.app/)
@@ -114,19 +134,21 @@ A modern, bilingual educational file sharing platform built with React and Fireb
 | Platform | Speed | Ease | Click to Deploy |
 |----------|-------|------|----------------|
 | **Vercel** ⭐ | ⚡⚡⚡ | 🟢 Easiest | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SalehAlSalem/Fyleo) |
-| GitHub Pages | ⚡⚡ | 🟡 Medium | [Setup Guide](./DEPLOYMENT_GUIDE.md) |
+| GitHub Pages | ⚡⚡ | 🟡 Medium | [Setup Guide](./HOSTING_ENVIRONMENT_GUIDE.md) |
 | Netlify | ⚡⚡⚡ | 🟢 Easy | [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/SalehAlSalem/Fyleo) |
+| Railway | ⚡⚡ | 🟡 Medium | [Railway Guide](./HOSTING_ENVIRONMENT_GUIDE.md#4--railway) |
 
 ## 💝 Cost Breakdown
 
 | Service | Free Tier | Usage |
 |---------|-----------|-------|
-| GitHub Storage | Unlimited (files <25MB) | Small files, documents, images |
-| Supabase Storage | 1GB/month | Large files, videos |
-| Firebase Auth | 10,000 users | User authentication |
-| Firestore | 1GB storage | File metadata |
-| GitHub Pages | Unlimited | Website hosting |
+| **Appwrite Cloud** | 75k requests/month | All backend services (DB, Auth, Storage) |
+| **Vercel** | 100GB bandwidth | Website hosting |
+| **GitHub Pages** | Unlimited | Alternative hosting |
+| **Netlify** | 100GB bandwidth | Alternative hosting |
 | **Total Cost** | **$0/month** | **Production ready!** |
+
+> **💡 الميزة الكبيرة:** خدمة واحدة (Appwrite) تحل محل 3-4 خدمات منفصلة!
 
 ## 🤝 Contributing
 
