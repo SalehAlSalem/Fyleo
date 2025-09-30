@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db } from '../../../Firebase/ClientApp.js';
+import { useAuth } from '../../hooks/useAuth';
+import DatabaseService from '../../services/databaseService';
 import { 
   ModernCard, 
   ModernButton, 
@@ -12,7 +11,7 @@ import {
 
 const ModernMaterials = () => {
   const { category } = useParams();
-  const [user] = useAuthState(auth);
+  const { user } = useAuth();
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,26 +37,14 @@ const ModernMaterials = () => {
   const fetchMaterials = async () => {
     setLoading(true);
     try {
-      const materialsRef = collection(db, 'files');
-      let q;
+      const allFiles = await DatabaseService.getAllFiles();
+      let filteredFiles = allFiles;
       
-      if (selectedCategory === 'all') {
-        q = query(
-          materialsRef,
-          orderBy('createdAt', 'desc'),
-          limit(50)
-        );
-      } else {
-        q = query(
-          materialsRef,
-          where('category', '==', selectedCategory),
-          orderBy('createdAt', 'desc'),
-          limit(50)
-        );
+      if (selectedCategory !== 'all') {
+        filteredFiles = allFiles.filter(file => file.category === selectedCategory);
       }
-
-      const querySnapshot = await getDocs(q);
-      const materialsList = [];
+      
+      setMaterials(filteredFiles.slice(0, 50));
       
       querySnapshot.forEach((doc) => {
         materialsList.push({
@@ -66,7 +53,7 @@ const ModernMaterials = () => {
         });
       });
 
-      setMaterials(materialsList);
+      setMaterials(filteredFiles.slice(0, 50));
     } catch (error) {
       console.error('Error fetching materials:', error);
     } finally {

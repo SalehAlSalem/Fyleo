@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { NavBar } from '../../components';
 import Sidepanel from "./sidepanel";
-import { auth, db } from '../../../Firebase/ClientApp.js';
+import { useAuth } from '../../hooks/useAuth';
+import DatabaseService from '../../services/databaseService';
 import { doc, getDoc, setDoc, collection, query, where, getCountFromServer } from 'firebase/firestore';
-import { testHybridStorage, testConnections, showSystemInfo } from '../../utils/testSystem.mjs';
+
 
 const Dashboard = () => {
   const [open, setOpen] = useState(false);

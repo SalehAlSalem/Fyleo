@@ -1,62 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import { Link, Navigate } from "react-router-dom";
-import { useAuthState, useSendPasswordResetEmail } from 'react-firebase-hooks/auth';
-import { auth } from '../../../Firebase/ClientApp.js';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import React from 'react';
+import { Mail, ArrowLeft } from 'lucide-react';
 
-
-function ResetPassword() {
-  const [sendPasswordResetEmail, sending, error] = useSendPasswordResetEmail(auth); 
-  const [emailid, setEmailid] = useState('');
-  const [userr, loadingg, erorrr] = useAuthState(auth);
-  if (userr)
-  {
-    return <Navigate replace to="/" />;
-  }
+const ForgotPasswordContent = () => {
   return (
-    <div className=" h-screen flex items-center justify-center border-black pt-[10vh]" style={{
-      backgroundImage: 'url("/loginpage-background-image.webp")',
-      backgroundSize: 'cover',
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'center',
-      filter: 'blur(0px)'
-    }}>
-      <div className="bg-white rounded-lg shadow-lg w-96 border-double border-4 border-sky-500" >
-        <div className="flex justify-between items-center text-center w-full pl-10 pr-10 pt-5 pb-1">
-          <h1 className="text-2xl font-bold dark:text-[#1A1A1C]" style={{ fontFamily: 'monospace' }}>Reset Password</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="max-w-md w-full space-y-8 p-8">
+        <div className="text-center">
+          <Mail className="mx-auto h-16 w-16 text-blue-600 dark:text-blue-400 mb-6" />
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            نسيت كلمة المرور؟
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">
+            لا تقلق! أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور
+          </p>
+        </div>
 
-                    <div className="flex items-center">
-            <img src="/iiitdmj-logo.webp" alt="شعار الجامعة" className="pr-0 w-8 h-8 iiitdmj-logo mx-1" />
-            جامعة البلقاء التطبيقية
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl">
+          <form className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                البريد الإلكتروني
+              </label>
+              <input
+                type="email"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                placeholder="example@email.com"
+                dir="ltr"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium"
+            >
+              إرسال رابط إعادة التعيين
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <a
+              href="/login"
+              className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              العودة لتسجيل الدخول
+            </a>
           </div>
         </div>
-        <hr className=' ' />
-        <form className="px-6 py-4">
-        <div className={`my-3 text-center text-base bg-red-500 text-white rounded-lg p-1 capitalize ${(error)? 'visible' : 'hidden'}`}>
-              {(error) ? error.message.replaceAll('Firebase: Error (auth/', '').replaceAll(').', '').replaceAll('-', ' ') : null}
-            </div>
-          <div className="mb-6">
-            <label className="text-gray-500">Email id</label>
-            <input type="text" className={`w-full border-b-2 border-gray-300 focus:border-blue-500 outline-none dark:text-[#1A1A1C] ${(error) ? 'border-red-500' : null}`} required onChange={(e) => setEmailid(e.target.value)}/>
-          </div>
-          {sending ? 
-            <div className={`flex items-center justify-center h-10 ${(sending) ? 'visible' : 'hidden'}`}>
-              <img src="/loader.gif" alt="" className='bg-white h-full' />
-            </div> :
-            <input 
-              type="submit" 
-              value="Send email" 
-              className="w-full bg-blue-500 text-white font-bold py-2 rounded-lg cursor-pointer hover:bg-blue-600" 
-              onClick={(e) => {
-                e.preventDefault();
-                sendPasswordResetEmail(emailid)
-              }}
-            />
-          }
-        </form>
       </div>
     </div>
   );
-}
+};
 
-export default ResetPassword;
+export default ForgotPasswordContent;

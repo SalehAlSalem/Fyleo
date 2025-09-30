@@ -1,5 +1,25 @@
 # 🎓 Fyleo - Modern Educational File Sharing Platform
-### جامعة البلقاء التطبيقية | Al   Required configurations:
+### منصة تعليمية حديثة لمشاركة الملفات | Modern Educational Platform
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SalehAlSalem/Fyleo)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://fyleo.appwrite.network/)
+
+منصة تعليمية حديثة ثنائية اللغة لمشاركة الملفات مبنية بتقنية React و Appwrite، تتميز بتصميم جميل ودعم كامل للغة العربية وإدارة شاملة للملفات.
+
+## ✨ المميزات | Features
+
+- 🔐 **نظام مصادقة آمن** - Appwrite Authentication  
+- 📁 **رفع وتنزيل الملفات** - File Upload/Download with Appwrite Storage
+- 🌍 **دعم ثنائي اللغة** - Arabic/English Support with RTL
+- 📱 **تصميم متجاوب** - Responsive Design for all devices
+- 🌙 **الوضع المظلم** - Dark/Light Theme Support
+- 🎨 **واجهة حديثة** - Modern UI with Tailwind CSS
+- 🔒 **أمان محسن** - Enhanced Security with Appwrite
+- ⚡ **أداء سريع** - Fast Performance with Vite
+
+## 🔧 التقنيات المستخدمة | Tech Stack
+
+Required configurations:
    - 🚀 **Appwrite**: Project ID, Database ID, and Collection IDs
    - 📁 **Storage**: Bucket ID for file uploads
    - 🔒 **Authentication**: Enable Email/Password and optional OAuth
@@ -19,14 +39,7 @@
    - Open `http://localhost:5173`
    - Test user registration and login
    - Upload files to verify Appwrite integration
-   - Check all features work correctlyersity
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SalehAlSalem/Fyleo)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://fyleo.vercel.app/)
-
-A modern, bilingual educational file sharing platform built with React and Firebase for AlBalqa Applied University students, featuring beautiful design, RTL support, and comprehensive file management.
-
-## ✨ Features
+   - Check all features work correctly
 
 ### 🎨 Modern Design System
 - **Beautiful UI**: Gradient-based design inspired by the logo colors (Orange → Purple → Blue)
@@ -277,14 +290,15 @@ The script will:
 - scan `files` collection for docs whose `secure_url` used `/image/upload` and appear to be PDFs/DOCs,
 - download each file, re-upload to Cloudinary `raw/upload`, and update the Firestore document with the new `secure_url` and `resource_type: 'raw'`.
 
+## 📞 التواصل | Contact
 
+للاستفسارات والدعم الفني:
+- 📧 **الإيميل**: fyleo.bawa3neh.97@gmail.com
+- 🐙 **GitHub**: https://github.com/SalehAlSalem/Fyleo
+- 🌐 **الموقع الرسمي**: https://fyleo.appwrite.network
 
+### كيفية المساهمة | How to Contribute
+نرحب بمساهماتكم! يمكنكم اختيار إحدى المسائل من قسم Issues وإرسال Pull Request.
 
-
-### Communication
-To discuss about the project the you may reach out the maintainers on the discord or any other social channel.<br>
-Don't hesistate to ask any doubt 😄
-
-### How to Contribute
-Try picking up some `good-first-issue` from the issue section and make [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) for them.
+**Built with ❤️ using Appwrite & React**
 

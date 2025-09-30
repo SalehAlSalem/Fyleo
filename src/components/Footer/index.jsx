@@ -4,16 +4,16 @@ import { Link } from "react-router-dom";
 
 const socials = [
   {
-    name: "Github",
+    name: "GitHub",
     svgPath: "M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z",
     viewBox: "0 0 24 24",
-  link: "https://github.com/SalehAlSalem/Fyleo"
+    link: "https://github.com/SalehAlSalem/Fyleo"
   },
   {
-    name: "LinkedIn",
-    svgPath: "M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z",
-    viewBox: "-80 -50 900 900",
-    link: "https://www.linkedin.com/company/bitbyte-tpc/",
+    name: "Email",
+    svgPath: "M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z",
+    viewBox: "0 0 16 16",
+    link: "mailto:fyleo.bawa3neh.97@gmail.com"
   },
 ]
 
@@ -42,7 +42,7 @@ const Footer = () => {
         <div className="w-[95vw] sm:w-[35rem] mt-4 dark:bg-[#44403C] dark:text-white">
 
           <p className="comfort text-center text-gray-800 font-bold mobile:text-sm dark:bg-[#44403C] dark:text-white">
-            Fyleo is a student-focused resource-sharing platform designed to help learners access and exchange educational materials such as lecture notes, study guides, and past exams. Fyleo encourages collaboration while keeping content moderated and traceable.
+            فايليو هي منصة تعليمية مخصصة لمشاركة الموارد الأكاديمية، تتيح للطلاب الوصول إلى المواد التعليمية وتبادلها مثل الملاحظات والدروس والامتحانات السابقة. تعمل المنصة بتقنية Appwrite المتطورة لضمان الأمان والسرعة.
           </p>
 
           <div className="mt-6 pl-5 w-full flex items-center justify-center gap-4 scale-[0.75]">

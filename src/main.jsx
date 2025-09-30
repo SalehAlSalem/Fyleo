@@ -1,9 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
-import { auth, db } from '../Firebase/ClientApp.js';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ModernThemeProvider } from './components/modern/ModernComponents.jsx';
 import "@fontsource/comfortaa";
 import "@fontsource/comfortaa/400.css";
@@ -65,26 +62,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </ErrorBoundary>
   </React.StrictMode>
 );
-
-// Ensure a minimal users/{uid} document exists when a user signs in.
-if (typeof window !== 'undefined' && auth) {
-  onAuthStateChanged(auth, async (user) => {
-    try {
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        const snap = await getDoc(userRef);
-        if (!snap.exists()) {
-          await setDoc(userRef, {
-            name: user.displayName || '',
-            email: user.email || '',
-            points: 0,
-            createdAt: serverTimestamp()
-          });
-        }
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Error ensuring user doc exists on sign-in:', err);
-    }
-  });
-}

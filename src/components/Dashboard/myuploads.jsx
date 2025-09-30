@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-import { db, auth } from '../../../Firebase/ClientApp.js';
+import { useAuth } from '../../hooks/useAuth';
+import DatabaseService from '../../services/databaseService';
 
 const MyUploads = () => {
   const [uploads, setUploads] = useState([]);

@@ -7,6 +7,7 @@ import ModernLandingPage from './pages/LandingPage/ModernLanding.jsx';
 import ModernMaterials from './pages/MaterialsPage/ModernMaterials.jsx';
 import AppwriteLogin from './pages/login/AppwriteLogin.jsx';
 import AppwriteSignup from './pages/signup/AppwriteSignup.jsx';
+import ProfilePage from './pages/ProfilePage/index.jsx';
 import Layout from './pages/OverviewPage';
 import Modern404 from './pages/404page/Modern404.jsx';
 import PDFViewer from './components/PDFViewer';
@@ -85,10 +86,16 @@ const App = () => {
               <Route path="/details" element={<Layout />} />
               <Route path="/details/:id" element={<Layout />} />
               <Route path="/pdfviewer/:id" element={<PDFViewer />} />
+              <Route path="/forgot-password" element={<ModernForgotPassword />} />
               <Route path="/resetpassword" element={<ModernForgotPassword />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <ModernDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               } />
               <Route path="/uploads" element={

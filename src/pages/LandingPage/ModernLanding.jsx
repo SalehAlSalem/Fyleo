@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../../../Firebase/ClientApp.js';
+import { useAuth } from '../../hooks/useAuth';
 import { 
   ModernButton, 
   ModernCard, 

@@ -30,6 +30,7 @@ const ModernNavbar = () => {
     { name: t('home'), path: '/', icon: '🏠' },
     { name: t('materials'), path: '/materials', icon: '📚' },
     { name: t('dashboard'), path: '/dashboard', icon: '📊', authRequired: true },
+    { name: 'البروفايل', path: '/profile', icon: '👤', authRequired: true },
   ];
 
   const handleLogout = async () => {

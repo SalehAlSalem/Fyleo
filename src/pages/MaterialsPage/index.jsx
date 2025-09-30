@@ -3,7 +3,8 @@ import FileList from '../../components/FileList';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import cardData from '../../config/CardData.mjs';
-import { db, auth } from '../../../Firebase/ClientApp.js';
+import { useAuth } from '../../hooks/useAuth';
+import DatabaseService from '../../services/databaseService';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 

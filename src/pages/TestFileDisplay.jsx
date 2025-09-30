@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { auth, db } from '../../Firebase/ClientApp.js';
+import { useAuth } from '../hooks/useAuth';
+import DatabaseService from '../services/databaseService';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { NavBar } from '../components';
 

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import classNames from "classnames";
 // استخدام النظام الهجين مع fallback محلي
-import { uploadFileHybridFallback } from '../../utils/hybridFallback.js';
-import { auth } from '../../../Firebase/ClientApp.js';
+import StorageService from '../../services/storageService';
+import DatabaseService from '../../services/databaseService';
+import { useAuth } from '../../hooks/useAuth';
 import cardData from '../../config/CardData.mjs';
 
 const Upload = ({ open, setOpen }) => {
@@ -86,25 +87,24 @@ const Upload = ({ open, setOpen }) => {
         };
         
         try {
-          const res = await uploadFileHybridFallback(file, {
-            category: categoryObj ? categoryObj.domain : category,
-            categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
-            description: description.trim(),
-            tags: [category].filter(Boolean),
-            title: title.trim(),
-            uploadedBy: user.uid,
-            uploaderEmail: user.email,
-            uploaderName: user.displayName || 'مستخدم',
-            approved: true,
-            fileType: file.type,
-          }, onFileProgress);
+          const uploadResult = await StorageService.uploadFile(file);
+          const fileData = {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            storageId: uploadResult.id,
+            url: uploadResult.url,
+            category: selectedCategory,
+            uploadedBy: user?.email || 'مجهول',
+            description: title
+          };
+          const res = await DatabaseService.createFile(fileData);
           
           results.push({ 
             file: file.name, 
             result: res,
             success: true,
-            provider: res.storageProvider || res.provider,
-            isSimulation: !!res.isSimulation
+            storageId: uploadResult.id
           });
 
           if (res.isSimulation) {
@@ -144,18 +144,18 @@ const Upload = ({ open, setOpen }) => {
         };
         
         try {
-          const res = await uploadFileHybridFallback(pdfFile, {
-            category: categoryObj ? categoryObj.domain : category,
-            categorySlug: categoryObj ? categoryObj.urlparams : (category || null),
-            description: description.trim(),
-            tags: [category].filter(Boolean),
-            title: title.trim(),
-            uploadedBy: user.uid,
-            uploaderEmail: user.email,
-            uploaderName: user.displayName || 'مستخدم',
-            approved: true,
-            fileType: pdfFile.type,
-          }, onFileProgress);
+          const uploadResult = await StorageService.uploadFile(pdfFile);
+          const fileData = {
+            name: pdfFile.name,
+            size: pdfFile.size,
+            type: pdfFile.type,
+            storageId: uploadResult.id,
+            url: uploadResult.url,
+            category: selectedCategory,
+            uploadedBy: user?.email || 'مجهول',
+            description: title
+          };
+          const res = await DatabaseService.createFile(fileData);
           
           results.push({ 
             file: pdfFile.name, 

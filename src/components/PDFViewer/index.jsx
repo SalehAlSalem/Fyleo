@@ -5,9 +5,7 @@ import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import NavBar from "../NavBar";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../../Firebase/ClientApp.js";
-import { incrementViewCount } from "../../utils/fileCounters.js";
+import DatabaseService from "../../services/databaseService";
 import classNames from "classnames";
 
 export default function PDFViewer(){
