@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { databaseService } from '../../services/databaseService';
+import { DatabaseService } from '../../config/DatabaseService';
 import { storage, STORAGE_BUCKET_ID } from '../../config/appwrite';
 import { ID } from 'appwrite';
 import { 
@@ -137,7 +137,7 @@ const AppwriteUploadForm = () => {
         viewUrl: storage.getFileView(STORAGE_BUCKET_ID, uploadedFile.$id)
       };
 
-      const savedMaterial = await databaseService.createMaterial(materialData);
+      const savedMaterial = await DatabaseService.createFile(materialData);
       
       setUploadStatus('✅ تم الرفع بنجاح!');
       

@@ -19,7 +19,7 @@ const ModernSignup = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { user, signup } = useAuth();
+  const { user, signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -70,19 +70,7 @@ const ModernSignup = () => {
       navigate('/dashboard');
     } catch (error) {
       console.error('Signup error:', error);
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          setError('البريد الإلكتروني مستخدم بالفعل');
-          break;
-        case 'auth/invalid-email':
-          setError('البريد الإلكتروني غير صحيح');
-          break;
-        case 'auth/weak-password':
-          setError('كلمة المرور ضعيفة جداً');
-          break;
-        default:
-          setError('حدث خطأ أثناء إنشاء الحساب');
-      }
+      setError('حدث خطأ أثناء إنشاء الحساب. تحقق من البيانات وحاول مرة أخرى');
     } finally {
       setLoading(false);
     }
@@ -93,11 +81,7 @@ const ModernSignup = () => {
     setError('');
 
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      await signInWithPopup(auth, provider);
+      await loginWithGoogle();
       navigate('/dashboard');
     } catch (error) {
       console.error('Google signup error:', error);
@@ -108,14 +92,6 @@ const ModernSignup = () => {
       setLoading(false);
     }
   };
-
-  if (userLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading-pulse w-12 h-12 rounded-full"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">

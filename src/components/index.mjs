@@ -4,6 +4,7 @@ import HeroSection from "./HeroSection";
 import SearchBar from "./SearchBar";
 import Dashboard from "./Dashboard";
 import BackToTop from "./backtotop";
+import PDFViewer from "./PDFViewer/index.jsx";
 import { CategoryCards, MaterialCard, MaterialIntro } from "./cards";
 
 
@@ -16,5 +17,6 @@ export {
     CategoryCards,
     MaterialCard,
     MaterialIntro,
-    BackToTop
+    BackToTop,
+    PDFViewer
 }

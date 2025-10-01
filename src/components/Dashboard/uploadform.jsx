@@ -2,14 +2,19 @@ import React, { useState } from "react";
 import classNames from "classnames";
 // استخدام النظام الهجين مع fallback محلي
 import StorageService from '../../services/storageService';
-import DatabaseService from '../../services/databaseService';
+import { DatabaseService } from '../../config/DatabaseService';
 import { useAuth } from '../../hooks/useAuth';
-import cardData from '../../config/CardData.mjs';
+import { CategoryService } from '../../config/CategoryService';
 
 const Upload = ({ open, setOpen }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
+  
+  // النظام الهرمي الجديد
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedFileType, setSelectedFileType] = useState("");
+  
   const [imageFiles, setImageFiles] = useState([]);
   const [pdfFile, setPdfFile] = useState(null);
   const [status, setStatus] = useState("");
@@ -17,6 +22,31 @@ const Upload = ({ open, setOpen }) => {
   const [lastFailDetails, setLastFailDetails] = useState(null);
   const [simulationNotice, setSimulationNotice] = useState(false);
   const [fileDiagnostics, setFileDiagnostics] = useState([]); // [{name,status,progress,provider,isSimulation,error}]
+
+  // الحصول على البيانات للقوائم المنسدلة
+  const categories = CategoryService.MAIN_CATEGORIES || [];
+  const subjects = selectedCategory 
+    ? categories.find(cat => cat.id === selectedCategory)?.subjects || []
+    : [];
+  const fileTypes = CategoryService.INITIAL_FILE_TYPES || [];
+  
+  const { user, isAuthenticated } = useAuth();
+
+  // دوال التحكم في القوائم المنسدلة الهرمية
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
+    setSelectedSubject(""); // إعادة تعيين المادة عند تغيير التصنيف
+    setSelectedFileType(""); // إعادة تعيين نوع الملف
+  };
+
+  const handleSubjectChange = (subject) => {
+    setSelectedSubject(subject);
+    setSelectedFileType(""); // إعادة تعيين نوع الملف عند تغيير المادة
+  };
+
+  const handleFileTypeChange = (fileTypeId) => {
+    setSelectedFileType(fileTypeId);
+  };
 
   const handleImageChange = (e) => {
     setImageFiles(Array.from(e.target.files));
@@ -52,9 +82,21 @@ const Upload = ({ open, setOpen }) => {
       return;
     }
 
-    if (!category) {
-      setStatus('❌ يرجى اختيار الفئة');
-      setLastFailDetails('الفئة مطلوبة');
+    if (!selectedCategory) {
+      setStatus('❌ يرجى اختيار التصنيف الرئيسي');
+      setLastFailDetails('التصنيف الرئيسي مطلوب');
+      return;
+    }
+
+    if (!selectedSubject) {
+      setStatus('❌ يرجى اختيار المادة');
+      setLastFailDetails('المادة مطلوبة');
+      return;
+    }
+
+    if (!selectedFileType) {
+      setStatus('❌ يرجى اختيار نوع الملف');
+      setLastFailDetails('نوع الملف مطلوب');
       return;
     }
 
@@ -77,7 +119,6 @@ const Upload = ({ open, setOpen }) => {
       // رفع الصور
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
-        const categoryObj = cardData.find(c => c.domain === category) || null;
         const fileSize = (file.size / 1024 / 1024).toFixed(2);
         setStatus(`📤 رفع صورة: ${file.name} (${fileSize}MB)...`);
         setFileDiagnostics(prev => [...prev, { name: file.name, status: 'بدء', progress: 0, provider: null, isSimulation: false, error: null }]);
@@ -96,9 +137,14 @@ const Upload = ({ open, setOpen }) => {
             type: file.type,
             storageId: uploadResult.id,
             url: uploadResult.url,
+            // النظام الهرمي الجديد
             category: selectedCategory,
+            subject: selectedSubject,
+            fileType: selectedFileType,
             uploadedBy: user?.email || 'مجهول',
-            description: title
+            description: description || title,
+            title: title,
+            downloads: 0 // إضافة عداد التحميلات
           };
           const res = await DatabaseService.createFile(fileData);
           
@@ -133,7 +179,6 @@ const Upload = ({ open, setOpen }) => {
 
       // رفع PDF إذا كان موجود
       if (pdfFile) {
-        const categoryObj = cardData.find(c => c.domain === category) || null;
         const fileSize = (pdfFile.size / 1024 / 1024).toFixed(2);
         
         setStatus(`📄 رفع PDF: ${pdfFile.name} (${fileSize}MB)...`);
@@ -153,9 +198,14 @@ const Upload = ({ open, setOpen }) => {
             type: pdfFile.type,
             storageId: uploadResult.id,
             url: uploadResult.url,
+            // النظام الهرمي الجديد
             category: selectedCategory,
+            subject: selectedSubject,
+            fileType: selectedFileType,
             uploadedBy: user?.email || 'مجهول',
-            description: title
+            description: description || title,
+            title: title,
+            downloads: 0 // إضافة عداد التحميلات
           };
           const res = await DatabaseService.createFile(fileData);
           
@@ -235,11 +285,16 @@ const Upload = ({ open, setOpen }) => {
   const resetForm = () => {
     setTitle('');
     setDescription('');
-    setCategory('');
+    setSelectedCategory('');
+    setSelectedSubject('');
+    setSelectedFileType('');
     setImageFiles([]);
     setPdfFile(null);
     setProgress(0);
     setStatus('');
+    setLastFailDetails(null);
+    setFileDiagnostics([]);
+    setSimulationNotice(false);
   };
 
   return (
@@ -254,13 +309,80 @@ const Upload = ({ open, setOpen }) => {
         <label className="text-xl mb-2 w-[85%]">PDF:</label>
         <input type="file" onChange={handlePdfChange} className="w-[85%] h-12 rounded-lg border border-gray-400 text-100 py-2 pl-4 mb-2" accept="application/pdf" />
 
-        <label className="text-gray-500 w-[85%]">Category / Subject</label>
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-[85%] h-10 rounded-lg border border-gray-400 text-100 py-2 pl-4 m-2">
-          <option value="">Select a category</option>
-          {cardData.map(c => (
-            <option key={c.id} value={c.domain}>{c.domain}</option>
-          ))}
-        </select>
+        {/* النظام الهرمي الجديد - القوائم المنسدلة المتتالية */}
+        
+        {/* 1. التصنيف الرئيسي */}
+        <div className="w-[85%] mb-4">
+          <label className="text-gray-500 block mb-2">🗂️ التصنيف الرئيسي</label>
+          <select 
+            value={selectedCategory} 
+            onChange={(e) => handleCategoryChange(e.target.value)} 
+            className="w-full h-12 rounded-lg border border-gray-400 text-gray-700 py-2 px-4 bg-white focus:border-blue-500 focus:outline-none"
+          >
+            <option value="">اختر التصنيف الرئيسي</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.id}>
+                {category.icon} {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 2. المادة (تظهر فقط بعد اختيار التصنيف) */}
+        {selectedCategory && (
+          <div className="w-[85%] mb-4">
+            <label className="text-gray-500 block mb-2">📚 المادة</label>
+            <select 
+              value={selectedSubject} 
+              onChange={(e) => handleSubjectChange(e.target.value)} 
+              className="w-full h-12 rounded-lg border border-gray-400 text-gray-700 py-2 px-4 bg-white focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">اختر المادة</option>
+              {subjects.map((subject, index) => (
+                <option key={index} value={subject}>
+                  {subject}
+                </option>
+              ))}
+            </select>
+            <div className="text-xs text-gray-500 mt-1">
+              {subjects.length} مادة متاحة في هذا التصنيف
+            </div>
+          </div>
+        )}
+
+        {/* 3. نوع الملف (تظهر فقط بعد اختيار المادة) */}
+        {selectedSubject && (
+          <div className="w-[85%] mb-4">
+            <label className="text-gray-500 block mb-2">📁 نوع الملف</label>
+            <select 
+              value={selectedFileType} 
+              onChange={(e) => handleFileTypeChange(e.target.value)} 
+              className="w-full h-12 rounded-lg border border-gray-400 text-gray-700 py-2 px-4 bg-white focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">اختر نوع الملف</option>
+              {fileTypes.map((fileType, index) => (
+                <option key={index} value={fileType.name}>
+                  {fileType.icon} {fileType.name}
+                </option>
+              ))}
+            </select>
+            <div className="text-xs text-gray-500 mt-1">
+              {fileTypes.length} نوع ملف متاح
+            </div>
+          </div>
+        )}
+
+        {/* معاينة الاختيار */}
+        {selectedCategory && selectedSubject && selectedFileType && (
+          <div className="w-[85%] mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="text-sm font-medium text-green-800 mb-2">✅ تم اختيار المسار:</div>
+            <div className="text-xs text-green-700">
+              <div>📂 {categories.find(c => c.id === selectedCategory)?.name}</div>
+              <div className="ml-4">📚 {selectedSubject}</div>
+              <div className="ml-8">📁 {selectedFileType}</div>
+            </div>
+          </div>
+        )}
 
         {/* Progress Bar */}
         {progress > 0 && (

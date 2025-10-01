@@ -3,8 +3,47 @@ import { DatabaseService } from '../../config/DatabaseService.js';
 import { useAuth } from '../../hooks/useAuth';
 
 const MyUploads = () => {
+  const { user } = useAuth();
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // وظيفة تحميل الملف مع تسجيل في Downloads Collection
+  const handleDownload = async (file) => {
+    console.log('🔍 MyUploads - Download started for:', file.name);
+    try {
+      // تسجيل التحميل في Downloads Collection
+      if (user) {
+        await DatabaseService.createDownload({
+          userId: user.$id,
+          fileId: file.$id
+          // أزلنا fileName لأنه غير موجود في Collection
+        });
+        console.log('✅ Download recorded in downloads collection');
+      }
+      
+      // تحديث إحصائيات التحميل في الملف
+      await DatabaseService.incrementDownloadCount(file.$id);
+      console.log('✅ Download count incremented');
+      
+      // تحميل الملف بطرق متعددة
+      if (file.downloadURL) {
+        const link = document.createElement('a');
+        link.href = file.downloadURL;
+        link.download = file.name || file.title || 'file';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        console.log('✅ MyUploads - Download triggered');
+      }
+    } catch (err) {
+      console.error('Error in MyUploads download:', err);
+      // حتى لو فشل التسجيل، استمر بالتحميل
+      if (file.downloadURL) {
+        window.open(file.downloadURL, '_blank');
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchUploads = async () => {
@@ -47,14 +86,12 @@ const MyUploads = () => {
           <div key={file.id} className="border rounded p-4">
             <h3 className="font-semibold">{file.name}</h3>
             <p className="text-sm text-gray-600">{file.category}</p>
-            <a 
-              href={file.downloadURL} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline"
+            <button 
+              onClick={() => handleDownload(file)}
+              className="text-blue-500 hover:underline cursor-pointer bg-transparent border-none"
             >
               View File
-            </a>
+            </button>
           </div>
         ))}
       </div>

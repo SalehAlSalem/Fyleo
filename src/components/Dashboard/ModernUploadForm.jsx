@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { DatabaseService } from '../../config/DatabaseService';
-import { StorageService } from '../../config/StorageService';
+import { DatabaseService } from '../../config/DatabaseService.js';
+import { StorageService } from '../../config/StorageService.js';
 import { 
   ModernCard, 
   ModernButton, 
@@ -46,16 +46,22 @@ const ModernUploadForm = ({ onUploadSuccess }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setError('حجم الملف يجب أن يكون أقل من 10 ميجابايت');
+      // استخدام StorageService للتحقق من صحة الملف
+      if (!StorageService.isValidFileType(file.type)) {
+        setError('نوع الملف غير مدعوم. يرجى اختيار ملف PDF، Word، PowerPoint، Excel، أو صورة');
+        return;
+      }
+
+      if (!StorageService.isValidFileSize(file.size)) {
+        setError('حجم الملف كبير جداً (الحد الأقصى 100 ميجابايت)');
         return;
       }
 
       setUploadData(prev => ({
         ...prev,
         file,
-        name: prev.name || file.name
+        name: prev.name || file.name.replace(/\.[^/.]+$/, ''), // إزالة الامتداد من الاسم
+        category: prev.category || StorageService.getFileCategory(file.type)
       }));
       setError('');
     }
@@ -194,13 +200,42 @@ const ModernUploadForm = ({ onUploadSuccess }) => {
                 <div className="text-center">
                   {uploadData.file ? (
                     <>
-                      <div className="text-4xl mb-2">✅</div>
-                      <p className="text-lg font-medium text-green-600 dark:text-green-400 mb-1">
-                        {uploadData.file.name}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {formatFileSize(uploadData.file.size)}
-                      </p>
+                      <div className="text-4xl mb-3">✅</div>
+                      <div className="text-right bg-white dark:bg-gray-800 rounded-lg p-4 border border-green-200 dark:border-green-700">
+                        <p className="text-lg font-medium text-green-600 dark:text-green-400 mb-2">
+                          {uploadData.file.name}
+                        </p>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">الحجم:</span>
+                            <span className="font-medium text-gray-700 dark:text-gray-300 mr-2">
+                              {formatFileSize(uploadData.file.size)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">النوع:</span>
+                            <span className="font-medium text-gray-700 dark:text-gray-300 mr-2">
+                              {uploadData.file.type || 'غير محدد'}
+                            </span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-gray-500 dark:text-gray-400">الفئة:</span>
+                            <span className="font-medium text-purple-600 dark:text-purple-400 mr-2">
+                              {uploadData.category}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUploadData(prev => ({ ...prev, file: null, name: '', category: 'محاضرات' }));
+                            document.getElementById('file-input').value = '';
+                          }}
+                          className="mt-3 text-red-500 hover:text-red-700 text-sm font-medium"
+                        >
+                          إزالة الملف
+                        </button>
+                      </div>
                     </>
                   ) : (
                     <>
@@ -209,7 +244,7 @@ const ModernUploadForm = ({ onUploadSuccess }) => {
                         اضغط لاختيار ملف
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-500">
-                        PDF, DOC, PPT, الصور، أو ملفات مضغوطة (حد أقصى 10MB)
+                        PDF, DOC, PPT, الصور، أو ملفات مضغوطة (حد أقصى 100MB)
                       </p>
                     </>
                   )}

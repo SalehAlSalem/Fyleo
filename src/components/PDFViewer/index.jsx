@@ -5,7 +5,7 @@ import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import NavBar from "../NavBar";
-import DatabaseService from "../../services/databaseService";
+import { DatabaseService } from "../../config/DatabaseService";
 import classNames from "classnames";
 
 export default function PDFViewer(){

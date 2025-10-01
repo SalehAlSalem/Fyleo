@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useTheme } from './components/modern/ModernComponents.jsx';
 import { AuthProvider } from './hooks/useAuth.jsx';
-import ModernNavbar from './components/modern/ModernNavbar.jsx';
 import ModernLandingPage from './pages/LandingPage/ModernLanding.jsx';
+import ModernNavbar from './components/modern/ModernNavbar.jsx';
 import ModernMaterials from './pages/MaterialsPage/ModernMaterials.jsx';
 import AppwriteLogin from './pages/login/AppwriteLogin.jsx';
 import AppwriteSignup from './pages/signup/AppwriteSignup.jsx';
@@ -18,9 +18,14 @@ import Downloads from './components/Dashboard/downloads';
 import Bookmarks from './components/Dashboard/bookmarks';
 import Upload from './components/Dashboard/uploadform';
 import LoadingScreen from './components/LoadingScreen.jsx';
-import TestUploadSystem from './pages/TestUpload.jsx';
-import TestFileDisplay from './pages/TestFileDisplay.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+
+// النظام الهرمي الجديد - المكونات المُحدّثة
+import CategoriesPage from './pages/CategoriesPage/index.jsx';
+import SubjectsPage from './pages/SubjectsPage/index.jsx';
+import HierarchicalMaterialsPage from './pages/HierarchicalMaterialsPage/index.jsx';
+import SubjectsList from './pages/SubjectsList/index.jsx';
+import FilesPage from './pages/FilesPage/index.jsx';
 
 const App = () => {
   const { theme } = useTheme();
@@ -79,8 +84,17 @@ const App = () => {
           <main className="min-h-screen">
             <Routes>
               <Route path="/" element={<ModernLandingPage />} />
+              
+              {/* النظام الهرمي الجديد - المسارات المحدثة */}
               <Route path="/materials" element={<ModernMaterials />} />
-              <Route path="/materials/:category" element={<ModernMaterials />} />
+              <Route path="/materials/:categoryId" element={<SubjectsList />} />
+              <Route path="/materials/:categoryId/:subjectName" element={<FilesPage />} />
+              
+              {/* النظام الهرمي القديم - للتوافق العكسي */}
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/subjects/:categoryId" element={<SubjectsPage />} />
+              <Route path="/hierarchical/:categoryId/:subjectId" element={<HierarchicalMaterialsPage />} />
+              
               <Route path="/login" element={<AppwriteLogin />} />
               <Route path="/signup" element={<AppwriteSignup />} />
               <Route path="/details" element={<Layout />} />
@@ -113,8 +127,6 @@ const App = () => {
                   <Bookmarks />
                 </ProtectedRoute>
               } />
-              <Route path="/test-upload" element={<TestUploadSystem />} />
-              <Route path="/test-files" element={<TestFileDisplay />} />
               <Route path="*" element={<Modern404 />} />
             </Routes>
           </main>

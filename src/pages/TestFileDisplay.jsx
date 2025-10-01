@@ -4,9 +4,48 @@ import { DatabaseService } from '../config/DatabaseService.js';
 import { NavBar } from '../components';
 
 const TestFileDisplay = () => {
+  const { user } = useAuth();
   const [filesByCategory, setFilesByCategory] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // وظيفة تحميل الملف مع تسجيل في Downloads Collection
+  const handleDownload = async (file) => {
+    console.log('🔍 TestFileDisplay - Download started for:', file.name);
+    try {
+      // تسجيل التحميل في Downloads Collection
+      if (user) {
+        await DatabaseService.createDownload({
+          userId: user.$id,
+          fileId: file.$id
+          // أزلنا fileName لأنه غير موجود في Collection
+        });
+        console.log('✅ Download recorded in downloads collection');
+      }
+      
+      // تحديث إحصائيات التحميل في الملف
+      await DatabaseService.incrementDownloadCount(file.$id);
+      console.log('✅ Download count incremented');
+      
+      // تحميل الملف بطرق متعددة
+      if (file.downloadURL) {
+        const link = document.createElement('a');
+        link.href = file.downloadURL;
+        link.download = file.name || file.title || 'file';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        console.log('✅ TestFileDisplay - Download triggered');
+      }
+    } catch (err) {
+      console.error('Error in TestFileDisplay download:', err);
+      // حتى لو فشل التسجيل، استمر بالتحميل
+      if (file.downloadURL) {
+        window.open(file.downloadURL, '_blank');
+      }
+    }
+  };
 
   const categories = [
     { slug: 'programming', name: 'البرمجة', domain: 'Programming' },
@@ -20,7 +59,8 @@ const TestFileDisplay = () => {
   const fetchAllFiles = async () => {
     setLoading(true);
     try {
-      const allFiles = await DatabaseService.getAllFiles();
+      const allFilesResponse = await DatabaseService.getAllFiles();
+      const allFiles = allFilesResponse.documents || [];
 
       // تجميع الملفات حسب الفئة
       const grouped = {};
@@ -86,14 +126,12 @@ const TestFileDisplay = () => {
       
       <div className="flex gap-2">
         {file.downloadURL && (
-          <a
-            href={file.downloadURL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+          <button
+            onClick={() => handleDownload(file)}
+            className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors cursor-pointer"
           >
             🔗 فتح الملف
-          </a>
+          </button>
         )}
         
         <div className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded">

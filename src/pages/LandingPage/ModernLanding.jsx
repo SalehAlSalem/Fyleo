@@ -8,18 +8,123 @@ import {
   useTheme 
 } from '../../components/modern/ModernComponents';
 import ModernFooter from '../../components/modern/ModernFooter';
+import { DatabaseService } from '../../config/DatabaseService';
+import { StatsService } from '../../services/StatsService.js';
 
 const ModernLandingPage = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const [scrollY, setScrollY] = useState(0);
+  const [realStats, setRealStats] = useState({
+    users: { number: 'تحميل...', label: 'مستخدم مسجل' },
+    files: { number: 'تحميل...', label: 'ملف مرفوع' },
+    uptime: { number: '99.9%', label: 'وقت التشغيل' },
+    support: { number: '24/7', label: 'دعم فني' }
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        console.log('Loading stats once on page load...');
+        setStatsLoading(true);
+        const stats = await StatsService.getFormattedStatsWithCache();
+        console.log('Stats loaded successfully:', stats);
+        setRealStats(stats);
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        // في حالة الفشل، نحاول الحصول على آخر بيانات ناجحة
+        const lastData = StatsService.getLastSuccessfulData();
+        if (lastData) {
+          console.log('Using last successful data:', lastData);
+          setRealStats(lastData);
+        } else {
+          console.log('Using fallback data');
+          setRealStats({
+            users: { number: '0', label: 'مستخدم مسجل' },
+            files: { number: '0', label: 'ملف مرفوع' },
+            uptime: { number: '99.9%', label: 'وقت التشغيل' },
+            support: { number: '24/7', label: 'دعم فني' }
+          });
+        }
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    // تحميل مرة واحدة فقط عند فتح الموقع
+    loadStats();
+    
+    // بدون تحديث تلقائي - فقط مرة واحدة
+  }, []);
+
+  // جلب الإحصائيات الحقيقية مع التحديث التلقائي - معطل مؤقتاً
+  /*
+  useEffect(() => {
+    let isMounted = true;
+    let intervalId = null;
+
+    const loadRealStats = async () => {
+      if (!isMounted) return;
+      
+      try {
+        setStatsLoading(true);
+        const stats = await StatsService.getFormattedStatsWithCache();
+        if (isMounted && stats) {
+          setRealStats(stats);
+          console.log('✅ تم تحديث الإحصائيات:', stats);
+        }
+      } catch (error) {
+        console.error('❌ خطأ في جلب الإحصائيات:', error);
+        // استخدام القيم الافتراضية في حالة الخطأ
+        if (isMounted) {
+          setRealStats({
+            users: { number: '1+', label: 'مستخدم مسجل' },
+            files: { number: '0', label: 'ملف مرفوع' },
+            uptime: { number: '99.8%', label: 'وقت التشغيل' },
+            support: { number: '24/7', label: 'دعم فني' }
+          });
+        }
+      } finally {
+        if (isMounted) {
+          setStatsLoading(false);
+        }
+      }
+    };
+
+    // تحميل الإحصائيات عند التحميل الأول
+    loadRealStats();
+
+    // تحديث الإحصائيات كل 3 دقائق (أقل تكراراً لتوفير الموارد)
+    intervalId = setInterval(() => {
+      if (isMounted) {
+        loadRealStats();
+      }
+    }, 180000); // كل 3 دقائق
+
+    // تنظيف عند إلغاء التركيب
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, []);
+  */
 
   const features = [
     {
@@ -48,9 +153,15 @@ const ModernLandingPage = () => {
     }
   ];
 
-  const stats = [
-    { number: '1000+', label: t('users') },
-    { number: '5000+', label: t('files') },
+  // استخدام الإحصائيات الحقيقية أو الافتراضية
+  const stats = realStats ? [
+    { number: realStats.users.number, label: realStats.users.label },
+    { number: realStats.files.number, label: realStats.files.label },
+    { number: realStats.uptime.number, label: realStats.uptime.label },
+    { number: realStats.support.number, label: realStats.support.label }
+  ] : [
+    { number: statsLoading ? '...' : '1+', label: t('users') },
+    { number: statsLoading ? '...' : '0', label: t('files') },
     { number: '99.9%', label: t('uptime') },
     { number: '24/7', label: t('support') }
   ];
@@ -184,7 +295,7 @@ const ModernLandingPage = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats Section - إحصائيات حقيقية */}
       <section className="py-20">
         <div className="container-modern">
           <div className="text-center mb-16">
@@ -207,6 +318,60 @@ const ModernLandingPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* مؤشر التحديث (مخفي) */}
+          {statsLoading && (
+            <div className="text-center mt-4">
+              <div className="text-sm text-gray-500">
+                <span className="animate-pulse">🔄 جاري تحديث الإحصائيات...</span>
+              </div>
+            </div>
+          )}
+
+          {/* زر اختبار مؤقت */}
+          <div className="text-center mt-8">
+            <button 
+              onClick={async () => {
+                console.log('🧪 اختبار Collections...');
+                try {
+                  // اختبار المستخدمين
+                  console.log('📊 جاري فحص المستخدمين...');
+                  const usersCount = await DatabaseService.getTotalUsersCount();
+                  console.log('عدد المستخدمين الحالي:', usersCount);
+                  
+                  // اختبار الملفات
+                  console.log('📊 جاري فحص الملفات...');
+                  const filesCount = await DatabaseService.getTotalFilesCount();
+                  console.log('عدد الملفات الحالي:', filesCount);
+                  
+                  // محاولة إضافة مستخدم
+                  console.log('➕ محاولة إضافة مستخدم جديد...');
+                  try {
+                    const testUser = await DatabaseService.createUser({
+                      name: 'مستخدم تجريبي',
+                      email: `test${Date.now()}@example.com`,
+                      university: 'جامعة تجريبية',
+                      department: 'قسم تجريبي'
+                    });
+                    console.log('✅ تم إنشاء مستخدم بنجاح:', testUser.$id);
+                    
+                    // إعادة تحميل الإحصائيات
+                    loadStats();
+                  } catch (err) {
+                    console.error('❌ فشل إنشاء المستخدم:', err);
+                  }
+                } catch (error) {
+                  console.error('❌ خطأ في الاختبار:', error);
+                }
+              }}
+              className="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-lg font-bold transition-colors shadow-lg"
+            >
+              🧪 اختبار البيانات في Collections
+            </button>
+            <p className="text-sm text-gray-500 mt-2">
+              افتح Console (F12) لمشاهدة النتائج
+            </p>
           </div>
         </div>
       </section>

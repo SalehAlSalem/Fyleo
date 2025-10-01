@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import cardData from '../../config/CardData.mjs';
 import { useAuth } from '../../hooks/useAuth';
-import DatabaseService from '../../services/databaseService';
 import { DatabaseService } from '../../config/DatabaseService';
 
 
@@ -25,7 +24,8 @@ const MaterialsPage = () => {
       const fetchmaterials = async () => {
         try {
           const { user } = useAuth();
-          const files = await DatabaseService.getAllFiles();
+          const filesResponse = await DatabaseService.getAllFiles();
+          const files = filesResponse.documents || [];
           
           // Filter by category
           const catSlug = cardData[categoryid-1].urlparams;

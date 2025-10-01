@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import DatabaseService from '../../services/databaseService';
+import { DatabaseService } from '../../config/DatabaseService';
 import { 
   ModernCard, 
   ModernButton, 
@@ -22,7 +22,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   
-  const databaseService = new DatabaseService();
+  // استخدام DatabaseService مباشرة بدون constructor
 
   useEffect(() => {
     if (user) {
@@ -36,12 +36,16 @@ const ProfilePage = () => {
     setLoading(true);
     try {
       // جلب ملفات المستخدم لحساب الإحصائيات
-      const files = await databaseService.getUserMaterials(user.$id);
+      const filesResponse = await DatabaseService.getUserFiles(user.$id);
+      const files = filesResponse.documents || []; // استخراج documents من الاستجابة
+      
+      // حساب التحميلات = كم مرة حملت أنا ملفات من النظام
+      const totalDownloads = await DatabaseService.getUserDownloadedFilesCount(user.$id);
       
       const stats = {
         totalFiles: files.length,
-        totalDownloads: files.reduce((sum, file) => sum + (file.downloadCount || 0), 0),
-        totalSize: files.reduce((sum, file) => sum + (file.size || 0), 0),
+        totalDownloads: totalDownloads,
+        totalSize: files.reduce((sum, file) => sum + (file.fileSize || 0), 0),
         joinedDate: user.$createdAt
       };
       

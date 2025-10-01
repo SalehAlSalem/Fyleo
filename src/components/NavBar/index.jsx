@@ -44,16 +44,35 @@ const NavBar = () => {
         })}>
           {!user && (
             <>
-              <Link to='/login' className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white font-normal mobile:text-xs">Login</Link>
-              <Link to='/signup' className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white font-normal mobile:text-xs">Sign Up</Link>
+              <Link to='/categories' className="px-4 py-2 monu text-sm text-gray-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                🗂️ التصنيفات
+              </Link>
+              <Link to='/login' className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white font-normal mobile:text-xs hover:bg-blue-700 transition-colors">
+                🔑 تسجيل دخول
+              </Link>
+              <Link to='/signup' className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white font-normal mobile:text-xs hover:bg-green-700 transition-colors">
+                📝 تسجيل جديد
+              </Link>
             </>
           )}
 
           {user && (
             <>
-              <Link to='/dashboard' className="px-4 py-2 monu text-sm text-gray-800 dark:text-white">{user.name || user.email}</Link>
-              <Link to='/uploads' className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white">Upload</Link>
-              <button onClick={() => logout()} className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white">Logout</button>
+              <Link to='/categories' className="px-4 py-2 monu text-sm text-gray-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                🗂️ التصنيفات
+              </Link>
+              <Link to='/dashboard' className="px-4 py-2 monu text-sm text-gray-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                📊 لوحة التحكم
+              </Link>
+              <Link to='/uploads' className="theme-btn-shadow rounded-xl bg-[#10B981] px-4 py-2 monu text-sm text-white hover:bg-green-600 transition-colors">
+                📤 رفع ملف
+              </Link>
+              <span className="px-4 py-2 monu text-sm text-gray-600 dark:text-gray-400">
+                👤 {user.name || user.email}
+              </span>
+              <button onClick={() => logout()} className="theme-btn-shadow rounded-xl bg-[#3B82F6] px-4 py-2 monu text-sm text-white hover:bg-blue-700 transition-colors">
+                🚪 خروج
+              </button>
             </>
           )}
           <DarkMode />
