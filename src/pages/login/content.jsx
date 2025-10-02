@@ -1,45 +1,60 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate } from "react-router-dom";
-import { useAuthState, useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
-import { auth } from '../../../Firebase/ClientApp.js';
-import { browserLocalPersistence, browserSessionPersistence, setPersistence } from 'firebase/auth';
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from '../../hooks/useAuth';
 
 
 function LoginForm() {
-  const [signInWithEmailAndPassword, user, loading, error] = useSignInWithEmailAndPassword(auth);
-  const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
+  const { user, login, loginWithGoogle, loading } = useAuth();
+  const navigate = useNavigate();
   const [emailid, setEmailid] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberme, setRememberMe]=useState(false);
-  const [userr, loadingg, erorr] = useAuthState(auth);
+  const [rememberme, setRememberMe] = useState(false);
+  const [error, setError] = useState(null);
+  const [gLoading, setGLoading] = useState(false);
   const [errorcause, setErrorcause] = useState('');
   useEffect(() => {
-    if (rememberme)
-    {
-      setPersistence(auth, browserLocalPersistence);
-    }
-    else
-    {
-      setPersistence(auth, browserSessionPersistence);
-    }
-  }, [rememberme]);
-  useEffect(()=>{
-    if (error)
-    {
-      if (error.message.toLowerCase().includes('password'))
-      {
+    if (error) {
+      if (error.toLowerCase().includes('password')) {
         setErrorcause('password');
       }
-      else if (error.message.toLowerCase().includes('email'))
-      {
+      else if (error.toLowerCase().includes('email')) {
         setErrorcause('email');
       }
     }
-  }, [error])
-  if (user || userr)
-  {
-    return <Navigate replace to="/" />;
+  }, [error]);
+  
+  if (user) {
+    return <Navigate replace to="/dashboard" />;
   }
+  
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setErrorcause('');
+    
+    const result = await login(emailid, password);
+    if (!result.success) {
+      setError(result.error);
+    }
+  };
+  
+  const handleGoogleLogin = async (e) => {
+    e.preventDefault();
+    setGLoading(true);
+    setError(null);
+    setErrorcause('');
+    
+    try {
+      const result = await loginWithGoogle();
+      if (!result.success) {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGLoading(false);
+    }
+  };
   return (
     <div className="h-screen flex items-center justify-center border-black pt-[10vh]" dir="rtl" style={{
       backgroundImage: 'url("/loginpage-background-image.webp")',
@@ -65,16 +80,7 @@ function LoginForm() {
           <div className="mb-4 flex justify-center">
             <button
               type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                setErrorcause('');
-                console.log('Google Sign In clicked');
-                signInWithGoogle().then((result) => {
-                  console.log('Google sign in successful:', result);
-                }).catch((error) => {
-                  console.error('Google sign in error:', error);
-                });
-              }}
+              onClick={handleGoogleLogin}
               className="w-full bg-white border border-gray-300 text-gray-800 font-semibold py-2 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-all duration-200"
               disabled={gLoading}
             >
@@ -93,8 +99,8 @@ function LoginForm() {
               )}
             </button>
           </div>
-        <div className={`my-3 text-center text-base bg-red-500 text-white rounded-lg p-1 capitalize ${(error)? 'visible' : 'hidden'}`}>
-              {(error) ? error.message.replaceAll('Firebase: Error (auth/', '').replaceAll(').', '').replaceAll('-', ' ') : null}
+        <div className={`my-3 text-center text-base bg-red-500 text-white rounded-lg p-1 ${(error)? 'visible' : 'hidden'}`}>
+              {error || ''}
             </div>
           <div className="mb-6">
             <label className="text-gray-500 block text-right">البريد الإلكتروني</label>
@@ -135,11 +141,7 @@ function LoginForm() {
               type="submit" 
               value="تسجيل الدخول" 
               className="w-full bg-blue-500 text-white font-bold py-2 rounded-lg cursor-pointer hover:bg-blue-600 transition-colors duration-200" 
-              onClick={(e) => {
-                e.preventDefault();
-                setErrorcause('');
-                signInWithEmailAndPassword(emailid, password)
-              }}
+              onClick={handleEmailLogin}
             />
           }
           <div className="mt-6 text-center text-base text-gray-600">

@@ -17,7 +17,7 @@ const AppwriteLogin = () => {
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   
-  const { user, login } = useAuth();
+  const { user, login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -70,10 +70,13 @@ const AppwriteLogin = () => {
     setError('');
     
     try {
-      // Google OAuth with Appwrite
-      // TODO: Implement Google OAuth
-      setError('تسجيل الدخول بـ Google قريباً...');
+      const result = await loginWithGoogle();
+      if (!result.success) {
+        setError(result.error || 'فشل تسجيل الدخول بـ Google');
+      }
+      // في حالة النجاح، سيتم redirect تلقائياً
     } catch (error) {
+      console.error('Google login error:', error);
       setError('فشل تسجيل الدخول بـ Google');
     } finally {
       setLoading(false);

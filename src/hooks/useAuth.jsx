@@ -15,8 +15,49 @@ export const AuthProvider = ({ children }) => {
   const checkUserSession = async () => {
     try {
       const session = await account.get();
+      console.log('🔍 User session retrieved:', session);
       setUser(session);
+      
+      // إذا كان المستخدم مسجل، احفظه في Database
+      if (session && session.email) {
+        try {
+          console.log('🔍 Checking if user exists in database:', session.email);
+          
+          // تحقق إذا كان المستخدم موجود في Database
+          const existingUser = await DatabaseService.getUserByEmail(session.email);
+          console.log('🔍 Existing user check result:', existingUser);
+          
+          if (!existingUser) {
+            // إذا لم يكن موجود، أنشئ سجل جديد
+            console.log('💾 Creating new user in database...');
+            console.log('💾 User data to save:', {
+              name: session.name || session.email,
+              email: session.email
+            });
+            
+            const newUser = await DatabaseService.createUser({
+              name: session.name || session.email,
+              email: session.email
+            });
+            
+            console.log('✅ User saved to database:', newUser);
+          } else {
+            console.log('✅ User already exists in database');
+          }
+        } catch (dbError) {
+          console.error('❌ Database operation failed:', dbError);
+          console.error('❌ Error details:', {
+            name: dbError.name,
+            message: dbError.message,
+            code: dbError.code,
+            type: dbError.type
+          });
+        }
+      } else {
+        console.log('⚠️ No session or email found');
+      }
     } catch (error) {
+      console.error('❌ Session check failed:', error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -74,9 +115,12 @@ export const AuthProvider = ({ children }) => {
         `${window.location.origin}/dashboard`, // success redirect
         `${window.location.origin}/login?error=oauth_failed` // failure redirect
       );
-      // ملاحظة: الـ redirect سيحدث تلقائياً، لذا لن نصل لهذا الجزء
+      
+      // بعد النجاح، الـ redirect سيحدث تلقائياً
+      // وسيتم استدعاء checkUserSession في useEffect
       return { success: true };
     } catch (error) {
+      console.error('Google OAuth error:', error);
       return { success: false, error: error.message };
     }
   };
