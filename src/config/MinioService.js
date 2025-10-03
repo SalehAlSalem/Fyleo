@@ -18,17 +18,18 @@ class MinioStorageService {
         if ((isProduction || isLiveDeployment) && !productionUrl) {
             // في Production بدون URL مخصص - استخدم proxy
             this.baseUrl = '/minio-proxy';
+            this.bucketUrl = `/minio-proxy/${this.bucketName}`;
         } else if (isProduction && productionUrl) {
             // في Production مع URL مخصص
             this.baseUrl = productionUrl;
+            this.bucketUrl = `${productionUrl}/${this.bucketName}`;
         } else {
             // في Development - استخدم MinIO مباشرة
             const protocol = this.useSSL ? 'https' : 'http';
             const portPart = (this.port === 80 || this.port === 443) ? '' : `:${this.port}`;
             this.baseUrl = `${protocol}://${this.endpoint}${portPart}`;
+            this.bucketUrl = `${this.baseUrl}/${this.bucketName}`;
         }
-        
-        this.bucketUrl = `${this.baseUrl}/${this.bucketName}`;
 
         console.log('🗄️ MinIO Service initialized (Pure MinIO - No Appwrite Storage):', {
             endpoint: this.endpoint,
