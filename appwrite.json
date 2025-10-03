@@ -1,0 +1,21 @@
+{
+  "projectId": "68d9740b0012416cb71b",
+  "projectName": "Fyleo",
+  "settings": {
+    "services": {
+      "databases": true,
+      "functions": false,
+      "storage": true,
+      "messaging": false
+    }
+  },
+  "functions": [],
+  "databases": [
+    {
+      "databaseId": "68d97982002b686c7151",
+      "name": "Fyleo_Database"
+    }
+  ],
+  "collections": [],
+  "buckets": []
+}
