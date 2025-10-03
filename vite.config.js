@@ -29,7 +29,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'appwrite']
+    include: ['react', 'react-dom']
   },
   define: {
     global: 'globalThis',
