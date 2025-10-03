@@ -1,5 +1,7 @@
 .env
 .env.local
+.env.production
+.env.staging
 *.env.*
 # Prevent accidental secret exposure
 !env_example.txt
