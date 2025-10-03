@@ -18,7 +18,15 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: true
+    host: true,
+    proxy: {
+      '/minio-proxy': {
+        target: 'http://79.76.119.182:9000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/minio-proxy/, ''),
+        secure: false
+      }
+    }
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'appwrite']
