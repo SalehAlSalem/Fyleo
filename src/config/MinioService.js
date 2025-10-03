@@ -13,9 +13,13 @@ class MinioStorageService {
         // بناء Base URL - حل مشكلة Mixed Content في Production
         const isProduction = import.meta.env.PROD;
         const productionUrl = import.meta.env.VITE_MINIO_PRODUCTION_URL;
+        const isLiveDeployment = window.location.hostname === 'fyleo.dev';
         
-        if (isProduction && productionUrl) {
-            // في Production - استخدم URL آمن
+        if ((isProduction || isLiveDeployment) && !productionUrl) {
+            // في Production بدون URL مخصص - استخدم proxy
+            this.baseUrl = '/minio-proxy';
+        } else if (isProduction && productionUrl) {
+            // في Production مع URL مخصص
             this.baseUrl = productionUrl;
         } else {
             // في Development - استخدم MinIO مباشرة
