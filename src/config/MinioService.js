@@ -10,10 +10,20 @@ class MinioStorageService {
         this.secretKey = import.meta.env.VITE_MINIO_SECRET_KEY;
         this.bucketName = import.meta.env.VITE_MINIO_BUCKET_NAME || 'appwrite-storage';
         
-        // بناء Base URL
-        const protocol = this.useSSL ? 'https' : 'http';
-        const portPart = (this.port === 80 || this.port === 443) ? '' : `:${this.port}`;
-        this.baseUrl = `${protocol}://${this.endpoint}${portPart}`;
+        // بناء Base URL - حل مشكلة Mixed Content في Production
+        const isProduction = import.meta.env.PROD;
+        const productionUrl = import.meta.env.VITE_MINIO_PRODUCTION_URL;
+        
+        if (isProduction && productionUrl) {
+            // في Production - استخدم URL آمن
+            this.baseUrl = productionUrl;
+        } else {
+            // في Development - استخدم MinIO مباشرة
+            const protocol = this.useSSL ? 'https' : 'http';
+            const portPart = (this.port === 80 || this.port === 443) ? '' : `:${this.port}`;
+            this.baseUrl = `${protocol}://${this.endpoint}${portPart}`;
+        }
+        
         this.bucketUrl = `${this.baseUrl}/${this.bucketName}`;
 
         console.log('🗄️ MinIO Service initialized (Pure MinIO - No Appwrite Storage):', {
