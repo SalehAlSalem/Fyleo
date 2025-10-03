@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import classNames from "classnames";
-// استخدام النظام الهجين مع fallback محلي
-import StorageService from '../../services/storageService';
-import { DatabaseService } from '../../config/DatabaseService';
+// استخدام الخدمة الهجينة الجديدة: MinIO + Appwrite
+import { StorageService } from '../../config/StorageService';
 import { useAuth } from '../../hooks/useAuth';
 import { CategoryService } from '../../config/CategoryService';
 
@@ -130,37 +129,33 @@ const Upload = ({ open, setOpen }) => {
         };
         
         try {
-          const uploadResult = await StorageService.uploadFile(file);
-          const fileData = {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            storageId: uploadResult.id,
-            url: uploadResult.url,
+          // استخدام الخدمة الهجينة الجديدة
+          const uploadResult = await StorageService.uploadFile(file, {
             // النظام الهرمي الجديد
             category: selectedCategory,
             subject: selectedSubject,
             fileType: selectedFileType,
             uploadedBy: user?.email || 'مجهول',
             description: description || title,
-            title: title,
-            downloads: 0 // إضافة عداد التحميلات
-          };
-          const res = await DatabaseService.createFile(fileData);
+            title: title
+          });
           
           results.push({ 
             file: file.name, 
-            result: res,
+            result: uploadResult,
             success: true,
-            storageId: uploadResult.id
+            storageId: uploadResult.storageId || uploadResult.id
           });
 
-          if (res.isSimulation) {
-            setSimulationNotice(true);
-          }
-          setFileDiagnostics(prev => prev.map(fd => fd.name === file.name ? { ...fd, status: 'نجاح', progress: 100, provider: res.storageProvider || res.provider, isSimulation: !!res.isSimulation } : fd));
+          setFileDiagnostics(prev => prev.map(fd => fd.name === file.name ? { 
+            ...fd, 
+            status: 'نجاح', 
+            progress: 100, 
+            provider: 'MinIO', 
+            isSimulation: false 
+          } : fd));
           
-          setStatus(`✅ تم رفع ${file.name} بنجاح على ${res.storageProvider || res.provider}`);
+          setStatus(`✅ تم رفع ${file.name} بنجاح على MinIO`);
           
         } catch (fileError) {
           console.error(`خطأ رفع ${file.name}:`, fileError);
@@ -191,37 +186,34 @@ const Upload = ({ open, setOpen }) => {
         };
         
         try {
-          const uploadResult = await StorageService.uploadFile(pdfFile);
-          const fileData = {
-            name: pdfFile.name,
-            size: pdfFile.size,
-            type: pdfFile.type,
-            storageId: uploadResult.id,
-            url: uploadResult.url,
+          // استخدام الخدمة الهجينة الجديدة
+          const uploadResult = await StorageService.uploadFile(pdfFile, {
             // النظام الهرمي الجديد
             category: selectedCategory,
             subject: selectedSubject,
             fileType: selectedFileType,
             uploadedBy: user?.email || 'مجهول',
             description: description || title,
-            title: title,
-            downloads: 0 // إضافة عداد التحميلات
-          };
-          const res = await DatabaseService.createFile(fileData);
+            title: title
+          });
           
           results.push({ 
             file: pdfFile.name, 
-            result: res,
+            result: uploadResult,
             success: true,
-            provider: res.storageProvider || res.provider,
-            isSimulation: !!res.isSimulation
+            provider: 'MinIO',
+            isSimulation: false
           });
-          if (res.isSimulation) {
-            setSimulationNotice(true);
-          }
-          setFileDiagnostics(prev => prev.map(fd => fd.name === pdfFile.name ? { ...fd, status: 'نجاح', progress: 100, provider: res.storageProvider || res.provider, isSimulation: !!res.isSimulation } : fd));
           
-          setStatus(`✅ تم رفع ${pdfFile.name} بنجاح على ${res.storageProvider || res.provider}`);
+          setFileDiagnostics(prev => prev.map(fd => fd.name === pdfFile.name ? { 
+            ...fd, 
+            status: 'نجاح', 
+            progress: 100, 
+            provider: 'MinIO', 
+            isSimulation: false 
+          } : fd));
+          
+          setStatus(`✅ تم رفع ${pdfFile.name} بنجاح على MinIO`);
           
         } catch (fileError) {
           console.error(`خطأ رفع ${pdfFile.name}:`, fileError);

@@ -1,4 +1,5 @@
 import { Client, Databases, Query, ID } from 'appwrite';
+import minioStorage from './MinioService.js';
 import { 
   DATABASE_ID, 
   USERS_COLLECTION_ID, 

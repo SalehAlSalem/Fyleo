@@ -196,46 +196,20 @@ const ModernDashboard = () => {
     setUploadMessage('');
 
     try {
-      // رفع الملف إلى التخزين
-      console.log('🚀 Starting upload process...');
+      // رفع الملف إلى MinIO باستخدام الخدمة الهجينة
+      console.log('🚀 Starting MinIO upload process...');
       const fileData = await StorageService.uploadFile(uploadFile, {
-        onProgress: (progress) => setUploadProgress(progress)
-      });
-      console.log('✅ File uploaded to storage:', fileData);
-
-      // حفظ بيانات الملف في قاعدة البيانات
-      const materialData = {
-        // معرف الملف في Storage
-        fileId: fileData.fileId,
-        
-        // معلومات الملف الأساسية
+        // معلومات النظام الهرمي
+        category: selectedCategory,
+        subject: selectedSubject,
+        fileType: selectedFileType,
+        uploadedBy: user.$id,
         title: uploadTitle,
-        description: uploadDescription,
-        
-        // النظام الهرمي - بناءً على هيكل قاعدة البيانات
-        category: selectedCategory,        // حقل category الموجود
-        categoryId: selectedCategory,      // حقل categoryId الموجود
-        subject: selectedSubject,          // حقل subject الموجود  
-        subjectId: selectedSubject,        // حقل subjectId الموجود
-        fileTypeId: selectedFileType,      // حقل fileTypeId الموجود
-        
-        // بيانات الملف
-        uploadedBy: user.$id,              // حقل uploadedBy
-        fileName: uploadFile.name,         // حقل fileName
-        fileSize: uploadFile.size,         // حقل fileSize
-        mimeType: uploadFile.type,         // حقل mimeType
-        downloadURL: fileData.downloadURL, // حقل downloadURL
-        viewURL: fileData.viewURL || fileData.downloadURL, // حقل viewURL
-        
-        // حقول إضافية (اختيارية)
-        tags: null,
-        semester: null,
-        year: null
-      };
+        description: uploadDescription
+      });
+      console.log('✅ File uploaded to MinIO:', fileData);
 
-      console.log('💾 Saving to database:', materialData);
-      const dbResponse = await DatabaseService.createFile(materialData);
-      console.log('✅ File saved to database:', dbResponse);
+      // الخدمة الهجينة تحفظ البيانات تلقائياً، لا نحتاج لحفظ منفصل
       
       // إعادة تعيين النموذج
       setUploadFile(null);
@@ -244,7 +218,7 @@ const ModernDashboard = () => {
       setSelectedCategory('');
       setSelectedSubject('');
       setSelectedFileType('');
-      setUploadMessage('✅ تم رفع الملف بنجاح!');
+      setUploadMessage('✅ تم رفع الملف بنجاح إلى MinIO!');
       
       // إعادة تحميل البيانات
       console.log('🔄 Refreshing user data...');
@@ -264,23 +238,17 @@ const ModernDashboard = () => {
     if (!confirm(`هل أنت متأكد من حذف الملف "${fileName}"؟`)) return;
     
     try {
-      // أولاً احصل على بيانات الملف من Database
-      const fileData = await DatabaseService.getFileById(fileId);
+      console.log('🗑️ بدء حذف الملف:', fileId, fileName);
       
-      // احذف من Database
-      await DatabaseService.deleteFile(fileId);
-      
-      // احذف من Storage باستخدام fileId المحفوظ في Database
-      if (fileData.fileId) {
-        await StorageService.deleteFile(fileData.fileId);
-        console.log('✅ File deleted from Storage:', fileData.fileId);
-      }
+      // استخدام StorageService الذي يحذف من MinIO وقاعدة البيانات معاً
+      await StorageService.deleteFile(fileId);
+      console.log('✅ تم حذف الملف بالكامل:', fileId);
       
       await fetchUserData(); // إعادة تحميل البيانات
-      setUploadMessage('✅ تم حذف الملف بنجاح من Database و Storage');
+      setUploadMessage('✅ تم حذف الملف بنجاح من MinIO وقاعدة البيانات');
     } catch (error) {
-      console.error('❌ Delete error:', error);
-      setUploadMessage('❌ حدث خطأ أثناء حذف الملف');
+      console.error('❌ خطأ في حذف الملف:', error);
+      setUploadMessage(`❌ حدث خطأ أثناء حذف الملف: ${error.message}`);
     }
   };
 

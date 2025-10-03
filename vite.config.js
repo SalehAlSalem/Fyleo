@@ -22,6 +22,15 @@ export default defineConfig({
     host: true
   },
   optimizeDeps: {
-  include: ['react', 'react-dom', 'firebase/app', 'firebase/auth', 'firebase/firestore']
+    include: ['react', 'react-dom', 'firebase/app', 'firebase/auth', 'firebase/firestore']
+  },
+  define: {
+    global: 'globalThis',
+  },
+  resolve: {
+    alias: {
+      stream: 'stream-browserify',
+      buffer: 'buffer'
+    }
   }
 })

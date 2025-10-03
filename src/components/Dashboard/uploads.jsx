@@ -43,25 +43,20 @@ const Uploads = () => {
         if (!confirm('هل أنت متأكد من حذف هذا الملف؟')) return;
         
         try {
-            // أولاً احصل على بيانات الملف من Database
-            const fileData = await DatabaseService.getFileById(fileId);
+            console.log('🗑️ بدء حذف الملف:', fileId);
             
-            // احذف من Database
-            await DatabaseService.deleteFile(fileId);
+            // استخدام StorageService الذي يحذف من MinIO وقاعدة البيانات معاً
+            await StorageService.deleteFile(fileId);
+            console.log('✅ تم حذف الملف بالكامل:', fileId);
             
-            // احذف من Storage باستخدام fileId المحفوظ في Database
-            if (fileData.fileId) {
-                await StorageService.deleteFile(fileData.fileId);
-                console.log('✅ File deleted from Storage:', fileData.fileId);
-            }
-            
+            // تحديث القائمة المحلية
             setUserUploads(prev => ({
                 ...prev,
                 documents: prev.documents?.filter(file => file.$id !== fileId) || []
             }));
         } catch (err) {
-            setError('حدث خطأ في حذف الملف');
-            console.error('Error deleting file:', err);
+            setError(`حدث خطأ في حذف الملف: ${err.message}`);
+            console.error('❌ خطأ في حذف الملف:', err);
         }
     };
 
