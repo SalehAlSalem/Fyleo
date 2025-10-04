@@ -16,6 +16,14 @@ VITE_APP_NAME="Fyleo"
 VITE_APP_VERSION="3.0.0"
 VITE_AUTO_APPROVE="true"
 
+# 🚀 MinIO Configuration
+VITE_MINIO_ENDPOINT="https://minio97.chickenkiller.com:9001"
+VITE_MINIO_PORT="9001"
+VITE_MINIO_USE_SSL="true"
+VITE_MINIO_ACCESS_KEY="minioadmin"
+VITE_MINIO_SECRET_KEY="minioadmin123"
+VITE_MINIO_BUCKET_NAME="mybucket"
+
 # OAuth Configuration (اختياري - سيتم إضافة التفاصيل في دليل الإعداد)
 # VITE_GOOGLE_CLIENT_ID="your_google_client_id"
 

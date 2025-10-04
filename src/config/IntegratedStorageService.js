@@ -128,14 +128,29 @@ export const IntegratedStorageService = {
       
       console.log('📋 معلومات الملف من قاعدة البيانات:', {
         documentId: dbInfo.$id,
-        fileId: dbInfo.fileId, // هذا يحتوي الآن على الاسم الكامل في MinIO
+        fileId: dbInfo.fileId,
         fileName: dbInfo.fileName,
-        title: dbInfo.title
+        title: dbInfo.title,
+        downloadURL: dbInfo.downloadURL
       });
       
-      // حذف الملف من MinIO باستخدام fileId (يحتوي على الاسم الكامل)
-      await minioStorage.deleteFile(dbInfo.fileId, dbInfo.fileId);
-      console.log('✅ تم حذف الملف من MinIO');
+      // التحقق من نوع التخزين المستخدم
+      const isOldAppwriteStorage = dbInfo.downloadURL && dbInfo.downloadURL.includes('fyleo.dev/minio-proxy/appwrite-storage/');
+      
+      if (isOldAppwriteStorage) {
+        console.log('📁 ملف قديم من Appwrite Storage - سيتم حذفه من قاعدة البيانات فقط');
+        // للملفات القديمة، نحذف من قاعدة البيانات فقط
+        // لأن الملفات محفوظة في Appwrite Storage وليس MinIO
+      } else {
+        console.log('📁 ملف جديد من MinIO - سيتم حذفه من MinIO وقاعدة البيانات');
+        // حذف الملف من MinIO باستخدام fileId (يحتوي على الاسم الكامل)
+        try {
+          await minioStorage.deleteFile(dbInfo.fileId, dbInfo.fileId);
+          console.log('✅ تم حذف الملف من MinIO');
+        } catch (minioError) {
+          console.warn('⚠️ تحذير: فشل حذف الملف من MinIO، لكن سيتم حذفه من قاعدة البيانات:', minioError.message);
+        }
+      }
       
       // حذف البيانات من قاعدة البيانات
       await databases.deleteDocument(
@@ -145,7 +160,7 @@ export const IntegratedStorageService = {
       );
       console.log('✅ تم حذف البيانات من قاعدة البيانات');
       
-      console.log('✅ تم حذف الملف بالكامل من MinIO وقاعدة البيانات');
+      console.log('✅ تم حذف الملف بالكامل');
       return { success: true, message: 'تم حذف الملف بنجاح' };
     } catch (error) {
       console.error('❌ خطأ في حذف الملف:', error);

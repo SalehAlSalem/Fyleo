@@ -10,20 +10,10 @@ class MinioStorageService {
         this.secretKey = import.meta.env.VITE_MINIO_SECRET_KEY;
         this.bucketName = import.meta.env.VITE_MINIO_BUCKET_NAME || 'appwrite-storage';
         
-        // بناء Base URL - استخدام IP الأصلي مع إعداد CORS
-        const isProduction = import.meta.env.PROD;
-        const productionUrl = import.meta.env.VITE_MINIO_PRODUCTION_URL;
-        const isLiveDeployment = window.location.hostname === 'fyleo.dev';
-        
-        if (isLiveDeployment) {
-            // في Production - استخدم الدومين الجديد مع HTTPS
-            this.baseUrl = 'https://minmin.chickenkiller.com:9001';
-            this.bucketUrl = `https://minmin.chickenkiller.com:9001/${this.bucketName}`;
-        } else {
-            // في Development - استخدم IP الأصلي
-            this.baseUrl = 'http://79.76.119.182:9000';
-            this.bucketUrl = `http://79.76.119.182:9000/${this.bucketName}`;
-        }
+        // بناء Base URL - استخدام متغيرات البيئة
+        const protocol = this.useSSL ? 'https' : 'http';
+        this.baseUrl = `${protocol}://minio97.chickenkiller.com:${this.port}`;
+        this.bucketUrl = `${protocol}://minio97.chickenkiller.com:${this.port}/${this.bucketName}`;
 
         console.log('🗄️ MinIO Service initialized (Pure MinIO - No Appwrite Storage):', {
             endpoint: this.endpoint,
@@ -50,13 +40,17 @@ class MinioStorageService {
             // رابط الرفع
             const uploadUrl = `${this.bucketUrl}/${uniqueFileName}`;
             
-            // رفع الملف باستخدام PUT
+            // رفع الملف باستخدام PUT مع إعدادات CORS
             const response = await fetch(uploadUrl, {
                 method: 'PUT',
                 body: file,
                 headers: {
-                    'Content-Type': file.type
-                }
+                    'Content-Type': file.type,
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'PUT, POST, GET, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+                },
+                mode: 'cors'
             });
 
             if (!response.ok) {
