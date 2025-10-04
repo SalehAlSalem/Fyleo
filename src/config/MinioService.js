@@ -10,25 +10,19 @@ class MinioStorageService {
         this.secretKey = import.meta.env.VITE_MINIO_SECRET_KEY;
         this.bucketName = import.meta.env.VITE_MINIO_BUCKET_NAME || 'appwrite-storage';
         
-        // بناء Base URL - حل مشكلة Mixed Content في Production
+        // بناء Base URL - استخدام IP الأصلي مع إعداد CORS
         const isProduction = import.meta.env.PROD;
         const productionUrl = import.meta.env.VITE_MINIO_PRODUCTION_URL;
         const isLiveDeployment = window.location.hostname === 'fyleo.dev';
         
-        if ((isProduction || isLiveDeployment) && !productionUrl) {
-            // في Production بدون URL مخصص - استخدم proxy
-            this.baseUrl = '/minio-proxy';
-            this.bucketUrl = `/minio-proxy/${this.bucketName}`;
-        } else if (isProduction && productionUrl) {
-            // في Production مع URL مخصص
-            this.baseUrl = productionUrl;
-            this.bucketUrl = `${productionUrl}/${this.bucketName}`;
+        if (isLiveDeployment) {
+            // في Production - استخدم الدومين الجديد مع HTTPS
+            this.baseUrl = 'https://minmin.chickenkiller.com:9001';
+            this.bucketUrl = `https://minmin.chickenkiller.com:9001/${this.bucketName}`;
         } else {
-            // في Development - استخدم MinIO مباشرة
-            const protocol = this.useSSL ? 'https' : 'http';
-            const portPart = (this.port === 80 || this.port === 443) ? '' : `:${this.port}`;
-            this.baseUrl = `${protocol}://${this.endpoint}${portPart}`;
-            this.bucketUrl = `${this.baseUrl}/${this.bucketName}`;
+            // في Development - استخدم IP الأصلي
+            this.baseUrl = 'http://79.76.119.182:9000';
+            this.bucketUrl = `http://79.76.119.182:9000/${this.bucketName}`;
         }
 
         console.log('🗄️ MinIO Service initialized (Pure MinIO - No Appwrite Storage):', {
