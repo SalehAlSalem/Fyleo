@@ -246,13 +246,7 @@ const Upload = ({ open, setOpen }) => {
         setLastFailDetails(null);
         
   // مسح النموذج عند النجاح
-        setTitle('');
-        setDescription('');
-        setCategory('');
-        setImageFiles([]);
-        setPdfFile(null);
-        setProgress(0);
-  setFileDiagnostics([]);
+        resetForm();
         
         // تسجيل تفاصيل الرفع
         console.log('✅ الملفات المرفوعة بنجاح:', successfulUploads.map(r => ({
@@ -433,33 +427,12 @@ const Upload = ({ open, setOpen }) => {
           </div>
         )}
 
-        {/* حالة النظام الهجين + وضع المحاكاة */}
-        <div className="w-[85%] mt-2 p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-slate-700 dark:to-slate-600 rounded-lg border border-blue-200 dark:border-slate-500">
-          <div className="text-sm text-gray-800 dark:text-gray-100 font-semibold mb-2">🌀 حالة التخزين الهجين:</div>
-          {simulationNotice && (
-            <div className="mb-2 text-xs font-bold text-yellow-800 bg-yellow-100 px-2 py-1 rounded">
-              ⚠️ يعمل حالياً في وضع المحاكاة (لن تُحفظ الملفات فعلياً في GitHub أو Supabase)
-            </div>
-          )}
+        {/* حالة النظام */}
+        <div className="w-[85%] mt-2 p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-slate-700 dark:to-slate-600 rounded-lg border border-blue-200 dark:border-slate-500 text-gray-800 dark:text-gray-100">
+          <div className="text-sm font-semibold mb-2">🌀 حالة النظام:</div>
           <div className="grid grid-cols-1 gap-2 text-xs">
             <div className="flex items-center justify-between">
-              <span>📁 GitHub (ملفات &lt; 25MB)</span>
-              <span className={`px-2 py-1 rounded text-xs ${
-                import.meta.env.VITE_GITHUB_TOKEN ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {import.meta.env.VITE_GITHUB_TOKEN ? '✅ متاح' : '❌ غير متاح'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>⚡ Supabase (ملفات 25-100MB)</span>
-              <span className={`px-2 py-1 rounded text-xs ${
-                (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) ? '✅ متاح' : '❌ غير متاح'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>🔥 Firebase (البيانات)</span>
+              <span>📡 Appwrite (البيانات والمصادقة)</span>
               <span className={`px-2 py-1 rounded text-xs ${
                 isAuthenticated ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
@@ -467,11 +440,19 @@ const Upload = ({ open, setOpen }) => {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span>🪣 Bucket</span>
+              <span>🗄️ MinIO (تخزين الملفات)</span>
               <span className={`px-2 py-1 rounded text-xs ${
-                import.meta.env.VITE_SUPABASE_BUCKET ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                (import.meta.env.VITE_MINIO_ENDPOINT && import.meta.env.VITE_MINIO_ACCESS_KEY) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {import.meta.env.VITE_SUPABASE_BUCKET || 'غير مضبوط'}
+                {(import.meta.env.VITE_MINIO_ENDPOINT && import.meta.env.VITE_MINIO_ACCESS_KEY) ? '✅ متاح' : '❌ غير مُعد'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>🪣 MinIO Bucket</span>
+              <span className={`px-2 py-1 rounded text-xs ${
+                import.meta.env.VITE_MINIO_BUCKET_NAME ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {import.meta.env.VITE_MINIO_BUCKET_NAME || 'غير مُحدد'}
               </span>
             </div>
           </div>
