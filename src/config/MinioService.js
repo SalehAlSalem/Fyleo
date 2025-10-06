@@ -109,7 +109,7 @@ class MinioStorageService {
         }
     }
 
-    // �️ معاينة ملف - رابط مباشر
+    // ️ معاينة ملف - رابط مباشر
     async getFilePreview(fileId, width = 400, height = 400, gravity = 'center', quality = 100, fileName = null) {
         try {
             // إنشاء رابط المعاينة المباشر
@@ -141,7 +141,7 @@ class MinioStorageService {
         }
     }
 
-    // �️ حذف ملف
+    // ️ حذف ملف
     async deleteFile(fileId, fileName = null) {
         try {
             console.log('🗑️ حذف الملف من MinIO:', { fileId, fileName });
@@ -182,7 +182,7 @@ class MinioStorageService {
         }
     }
 
-    // � معلومات الملف
+    //  معلومات الملف
     async getFile(fileId, fileName = null) {
         try {
             const actualFileName = fileName || `${fileId}.${this.guessExtension(fileId)}`;
@@ -274,8 +274,5 @@ class MinioStorageService {
     }
 }
 
-// إنشاء مثيل واحد من الخدمة
 const minioStorage = new MinioStorageService();
-
 export default minioStorage;
-export { MinioStorageService };
