@@ -16,31 +16,23 @@
 
 ---
 
-## ⚙️ خطوات الإعداد
+## ⚙️ خطوات الإعداد (بعد إعداد Appwrite)
 
-### 1️⃣ Firebase (للمصادقة والبيانات فقط)
-
-1. اذهب إلى [Firebase Console](https://console.firebase.google.com/)
-2. أنشئ مشروع جديد
-3. فعل **Authentication** → **Google Sign-In**
-4. فعل **Firestore Database**
-5. انسخ إعدادات المشروع إلى `.env`
-
-### 2️⃣ GitHub Token (للملفات الصغيرة)
+### 1️⃣ GitHub Token (للملفات الصغيرة)
 
 1. اذهب إلى [GitHub Settings](https://github.com/settings/tokens)
 2. اضغط **Generate new token (classic)**
 3. أعطه صلاحية **repo**
 4. انسخ التوكن إلى `.env`
 
-### 3️⃣ Supabase (للملفات الكبيرة)
+### 2️⃣ Supabase (للملفات الكبيرة)
 
 1. اذهب إلى [Supabase Dashboard](https://app.supabase.com/projects)
 2. أنشئ مشروع جديد
 3. اذهب إلى **Storage** → أنشئ bucket اسمه **fyleo-files**
 4. انسخ **URL** و **anon key** إلى `.env`
 
-### 4️⃣ تشغيل المشروع
+### 3️⃣ تشغيل المشروع
 
 ```bash
 # انسخ ملف الإعدادات
@@ -69,12 +61,6 @@ npm run dev
 ---
 
 ## 🛠️ استكشاف الأخطاء
-
-### خطأ في Firebase
-```
-Error: Firebase configuration missing
-```
-**الحل**: تأكد من إعدادات Firebase في `.env`
 
 ### خطأ في GitHub
 ```

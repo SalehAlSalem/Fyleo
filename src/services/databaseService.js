@@ -1,4 +1,4 @@
-import { databases, account, DATABASE_ID, USERS_COLLECTION_ID, MATERIALS_COLLECTION_ID, Query } from '../config/appwrite';
+import { databases, account, DATABASE_ID, PROFILES_COLLECTION_ID, MATERIALS_COLLECTION_ID, DOWNLOADS_COLLECTION_ID, Query } from '../config/appwrite';
 import { ID } from 'appwrite';
 
 // 📊 Database Service for Appwrite
@@ -20,9 +20,9 @@ class DatabaseService {
         lastActive: new Date().toISOString()
       };
       
-      return await databases.createDocument(
+            return await databases.createDocument(
         DATABASE_ID,
-        USERS_COLLECTION_ID,
+        PROFILES_COLLECTION_ID,
         user.$id,
         userDoc
       );
@@ -34,9 +34,9 @@ class DatabaseService {
 
   async getUser(userId) {
     try {
-      return await databases.getDocument(
+            return await databases.getDocument(
         DATABASE_ID,
-        USERS_COLLECTION_ID,
+        PROFILES_COLLECTION_ID,
         userId
       );
     } catch (error) {
@@ -47,9 +47,9 @@ class DatabaseService {
 
   async updateUser(userId, updates) {
     try {
-      return await databases.updateDocument(
+            return await databases.updateDocument(
         DATABASE_ID,
-        USERS_COLLECTION_ID,
+        PROFILES_COLLECTION_ID,
         userId,
         updates
       );
@@ -240,11 +240,18 @@ class DatabaseService {
     }
   }
 
-  async getUserDownloads(userId, limit = 50) {
+    async getUserDownloads(userId, limit = 50) {
     try {
-      // Note: This would require a separate downloads collection to track user downloads
-      // For now, we'll return empty array and implement this later
-      return { documents: [] };
+      // Fetches download records for the user
+      return await databases.listDocuments(
+        DATABASE_ID,
+        DOWNLOADS_COLLECTION_ID,
+        [
+          Query.equal('userId', userId),
+          Query.orderDesc('$createdAt'),
+          Query.limit(limit)
+        ]
+      );
     } catch (error) {
       console.error('❌ Error getting user downloads:', error);
       throw error;
@@ -264,15 +271,27 @@ class DatabaseService {
     }
   }
 
-  async incrementMaterialDownloadCount(materialId, userId) {
+    async incrementMaterialDownloadCount(materialId, userId) {
     try {
       const material = await this.getMaterial(materialId);
       await this.updateMaterial(materialId, {
         downloadCount: (material.downloadCount || 0) + 1
       });
 
-      // Update user download count
+      // Log the download event in the downloads collection
       if (userId) {
+        await databases.createDocument(
+          DATABASE_ID,
+          DOWNLOADS_COLLECTION_ID,
+          ID.unique(),
+          {
+            userId: userId,
+            fileId: materialId,
+            downloadDate: new Date().toISOString()
+          }
+        );
+
+        // Update user's total download count in their profile
         await this.incrementUserDownloadCount(userId);
       }
       

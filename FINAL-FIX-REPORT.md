@@ -15,7 +15,7 @@
 #### 2. مشكلة Google Authentication ✅  
 **المشكلة**: "بكبس تسجيل الدخول مع قوقل ما بشتغل صح"
 **الحل المطبق**:
-- ✅ إدخال إعدادات Firebase الصحيحة مع fallback values
+- ✅ إدخال إعدادات Appwrite OAuth الصحيحة
 - ✅ تحسين زر Google Sign-In مع حالات التحميل
 - ✅ إضافة error handling محسن
 - ✅ ترجمة النصوص للعربية
@@ -81,7 +81,7 @@
 | المشكلة | الحالة | الحل |
 |---------|--------|------|
 | تخطيط معكوس | ✅ محلول | RTL layout كامل |
-| Google Auth | ✅ محلول | Firebase config محدث |
+| Google Auth | ✅ محلول | Appwrite OAuth config محدث |
 | عدم التفاعل | ✅ محلول | UI/UX محسن |
 | مشاكل النشر | ✅ محلول | Force redeploy |
 

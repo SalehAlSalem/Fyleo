@@ -32,16 +32,6 @@ vercel --prod
 
 في dashboard > Settings > Environment Variables:
 
-### Firebase Configuration:
-```
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
-```
-
 ### Hybrid Storage Configuration:
 ```
 VITE_GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx

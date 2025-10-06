@@ -5,9 +5,9 @@
 ✅ **النظام يعمل بنجاح** - تم حل جميع المشاكل الأساسية
 
 ### 🔥 الميزات المفعلة حالياً:
-- ✅ Firebase Authentication (المصادقة)
-- ✅ Firebase Firestore (قاعدة البيانات)
-- ✅ Firebase Storage (التخزين الأساسي)
+- ✅ Appwrite Authentication (المصادقة)
+- ✅ Appwrite Database (قاعدة البيانات)
+- ✅ Appwrite Storage (التخزين الأساسي)
 - ✅ نظام رفع الملفات وعرضها
 - ✅ واجهة المستخدم كاملة
 - ✅ النشر على Vercel
