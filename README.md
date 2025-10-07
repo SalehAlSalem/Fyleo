@@ -260,10 +260,6 @@ src/
    - Click "🚀 اختبار النظام الهجين" to test storage
    - Upload files to verify GitHub/Supabase integration
 
-## 🌐 Live Demo
-
-**Primary (Vercel)**: https://fyleo.vercel.app ⚡  
-**Backup (GitHub Pages)**: https://salehalsalem.github.io/Fyleo/
 
 ## 🚀 Quick Deploy
 
@@ -418,7 +414,7 @@ The script will:
 للاستفسارات والدعم الفني:
 - 📧 **الإيميل**: fyleo.bawa3neh.97@gmail.com
 - 🐙 **GitHub**: https://github.com/SalehAlSalem/Fyleo
-- 🌐 **الموقع الرسمي**: https://fyleo.appwrite.network
+- 🌐 **الموقع الرسمي**: https://fyleo.dev
 
 ### كيفية المساهمة | How to Contribute
 نرحب بمساهماتكم! يمكنكم اختيار إحدى المسائل من قسم Issues وإرسال Pull Request.
