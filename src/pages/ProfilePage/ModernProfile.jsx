@@ -16,6 +16,7 @@ const ModernProfile = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const [sendingVerification, setSendingVerification] = useState(false);
   
   const [userStats, setUserStats] = useState({
     totalFiles: 0,
@@ -90,6 +91,19 @@ const ModernProfile = () => {
       } catch (error) {
         console.error('Logout error:', error);
       }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      setSendingVerification(true);
+      await account.createVerification(`${window.location.origin}/verify-email`);
+      showMessage(`✅ ${t('profile.verificationSent')}`, 'success');
+    } catch (error) {
+      console.error('Error sending verification:', error);
+      showMessage(`❌ ${t('profile.verificationError')}`, 'error');
+    } finally {
+      setSendingVerification(false);
     }
   };
 
@@ -309,15 +323,30 @@ const ModernProfile = () => {
                   <span className="text-gray-600 dark:text-gray-400">{t('profile.emailAddress')}</span>
                   <span className="text-gray-900 dark:text-white">{user.email}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <span className="text-gray-600 dark:text-gray-400">{t('profile.verificationStatus')}</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    user.emailVerification 
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                      : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                  }`}>
-                    {user.emailVerification ? `✅ ${t('profile.verified')}` : `⏳ ${t('profile.notVerified')}`}
-                  </span>
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-600 dark:text-gray-400">{t('profile.verificationStatus')}</span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      user.emailVerification 
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                        : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                    }`}>
+                      {user.emailVerification ? `✅ ${t('profile.verified')}` : `⏳ ${t('profile.notVerified')}`}
+                    </span>
+                  </div>
+                  
+                  {/* Resend Verification Button */}
+                  {!user.emailVerification && (
+                    <ModernButton
+                      onClick={handleResendVerification}
+                      loading={sendingVerification}
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-2 text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    >
+                      📧 {t('profile.resendVerification')}
+                    </ModernButton>
+                  )}
                 </div>
               </div>
             </ModernCard>

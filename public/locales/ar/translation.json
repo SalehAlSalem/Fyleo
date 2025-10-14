@@ -105,18 +105,21 @@
   },
   "profile": {
     "title": "الملف الشخصي",
-    "myProfile": "ملفي الشخصي",
+    "myProfile": "إدارة حسابك ومعلوماتك الشخصية",
     "editName": "تعديل الاسم",
-    "accountInfo": "معلومات الحساب",
+    "updateSuccess": "تم تحديث الاسم بنجاح",
+    "updateError": "حدث خطأ في تحديث الاسم",
+    "joinedOn": "انضم في",
     "quickLinks": "روابط سريعة",
+    "accountInfo": "معلومات الحساب",
     "userId": "معرف المستخدم",
     "emailAddress": "البريد الإلكتروني",
     "verificationStatus": "حالة التحقق",
     "verified": "موثق",
     "notVerified": "غير موثق",
-    "joinedOn": "انضم في",
-    "updateSuccess": "تم تحديث الملف الشخصي بنجاح",
-    "updateError": "حدث خطأ في تحديث الملف الشخصي"
+    "resendVerification": "إعادة إرسال بريد التحقق",
+    "verificationSent": "تم إرسال بريد التحقق بنجاح! تحقق من بريدك الإلكتروني",
+    "verificationError": "فشل إرسال بريد التحقق. حاول مرة أخرى"
   },
   "admin": {
     "title": "لوحة الإدارة",

@@ -261,6 +261,18 @@ const ModernNavbar = () => {
                     </p>
                   </div>
                 </div>
+                
+                {/* Profile Link */}
+                <Link
+                  to="/profile"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center space-x-2 rtl:space-x-reverse px-3 py-2 mb-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <span>👤</span>
+                  <span>{t('nav.profile')}</span>
+                </Link>
+                
+                {/* Logout Button */}
                 <button
                   onClick={() => {
                     handleLogout();
@@ -269,7 +281,7 @@ const ModernNavbar = () => {
                   className="w-full flex items-center space-x-2 rtl:space-x-reverse px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                 >
                   <span>🚪</span>
-                  <span>{t('logout')}</span>
+                  <span>{t('nav.logout')}</span>
                 </button>
               </div>
             )}
