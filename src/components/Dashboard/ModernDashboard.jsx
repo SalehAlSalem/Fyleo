@@ -2,19 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { DatabaseService } from '../../config/DatabaseService';
 import { StorageService } from '../../config/StorageService';
-import { CategoryService, INITIAL_CATEGORIES } from '../../config/CategoryService';
 import { DATABASE_ID, FILES_COLLECTION_ID } from '../../config/appwrite';
+import { 
+  categoriesService, 
+  subjectsService, 
+  fileTypesService,
+  bookmarksService 
+} from '../../services/appwriteService';
 import { 
   ModernCard, 
   ModernButton, 
   ModernInput,
-  ModernAlert,
-  useTranslation 
+  ModernAlert
 } from '../modern/ModernComponents';
+import { useTranslation } from 'react-i18next';
+import { useLocalizedContent } from '../../hooks/useLocalizedContent';
 
 const ModernDashboard = () => {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
+  const { getLocalizedValue } = useLocalizedContent();
   
   // State للملفات والإحصائيات
   const [userFiles, setUserFiles] = useState([]);
@@ -25,6 +32,8 @@ const ModernDashboard = () => {
   });
   const [loadingFiles, setLoadingFiles] = useState(true);
   const [downloadCounts, setDownloadCounts] = useState({}); // عدادات التحميل لكل ملف
+  const [bookmarkedFiles, setBookmarkedFiles] = useState([]); // الملفات المفضلة
+  const [userBookmarks, setUserBookmarks] = useState(new Set()); // معرفات الملفات المفضلة
   
   // State لرفع الملفات
   const [uploadFile, setUploadFile] = useState(null);
@@ -50,6 +59,13 @@ const ModernDashboard = () => {
   // State للفلترة
   const [filterCategory, setFilterCategory] = useState(''); // فلتر حسب التصنيف
   
+  // البيانات الديناميكية من قاعدة البيانات
+  const [categories, setCategories] = useState([]);
+  const [allSubjects, setAllSubjects] = useState([]);
+  const [fileTypes, setFileTypes] = useState([]);
+  const [filteredSubjects, setFilteredSubjects] = useState([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+  
   // استخدام DatabaseService مباشرة بدون constructor
   // استخدام StorageService مباشرة بدون constructor
 
@@ -58,6 +74,13 @@ const ModernDashboard = () => {
       fetchUserData();
     }
   }, [user]);
+
+  // جلب bookmarks بعد تحميل الملفات
+  useEffect(() => {
+    if (user && userFiles.length > 0) {
+      fetchUserBookmarks();
+    }
+  }, [user, userFiles]);
 
   const fetchUserData = async () => {
     if (!user) return;
@@ -155,18 +178,52 @@ const ModernDashboard = () => {
     setSelectedFileType(fileType);
   };
 
-  // الحصول على البيانات للقوائم المنسدلة
-  const categories = CategoryService.MAIN_CATEGORIES || [];
-  const subjects = selectedCategory 
-    ? categories.find(cat => cat.id === selectedCategory)?.subjects || []
-    : [];
-  const fileTypes = CategoryService.INITIAL_FILE_TYPES || [];
+  // تحميل البيانات الديناميكية من قاعدة البيانات
+  useEffect(() => {
+    loadDropdownData();
+  }, []);
+
+  // فلترة المواد حسب التصنيف المختار
+  useEffect(() => {
+    if (selectedCategory) {
+      const filtered = allSubjects.filter(s => s.categoryId === selectedCategory);
+      setFilteredSubjects(filtered);
+    } else {
+      setFilteredSubjects([]);
+    }
+  }, [selectedCategory, allSubjects]);
+
+  const loadDropdownData = async () => {
+    try {
+      setLoadingDropdowns(true);
+      const [categoriesData, subjectsData, fileTypesData] = await Promise.all([
+        categoriesService.getAll(),
+        subjectsService.getAll(),
+        fileTypesService.getAll()
+      ]);
+      
+      console.log('✅ Dropdowns loaded:', {
+        categories: categoriesData.length,
+        subjects: subjectsData.length,
+        fileTypes: fileTypesData.length
+      });
+      
+      setCategories(categoriesData);
+      setAllSubjects(subjectsData);
+      setFileTypes(fileTypesData);
+    } catch (err) {
+      console.error('❌ Error loading dropdown data:', err);
+      setUploadMessage(t('common.error'));
+    } finally {
+      setLoadingDropdowns(false);
+    }
+  };
 
   // إضافة console.log للتطوير
   console.log('📊 Debug data:', {
     categoriesCount: categories.length,
     selectedCategory,
-    subjectsCount: subjects.length,
+    subjectsCount: filteredSubjects.length,
     selectedSubject,
     fileTypesCount: fileTypes.length,
     selectedFileType,
@@ -187,7 +244,7 @@ const ModernDashboard = () => {
     e.preventDefault();
     
     if (!uploadFile || !uploadTitle || !selectedCategory || !selectedSubject || !selectedFileType) {
-      setUploadMessage('يرجى ملء جميع الحقول المطلوبة واختيار التصنيف والمادة ونوع الملف');
+      setUploadMessage(t('common.error'));
       return;
     }
 
@@ -205,7 +262,12 @@ const ModernDashboard = () => {
         fileType: selectedFileType,
         uploadedBy: user.$id,
         title: uploadTitle,
-        description: uploadDescription
+        description: uploadDescription,
+        // Progress callback
+        onProgress: (progress) => {
+          setUploadProgress(progress);
+          console.log(`📊 Upload progress: ${progress}%`);
+        }
       });
       console.log('✅ File uploaded to MinIO:', fileData);
 
@@ -218,7 +280,7 @@ const ModernDashboard = () => {
       setSelectedCategory('');
       setSelectedSubject('');
       setSelectedFileType('');
-      setUploadMessage('✅ تم رفع الملف بنجاح إلى MinIO!');
+      setUploadMessage(`✅ ${t('upload.uploadSuccess')}`);
       
       // إعادة تحميل البيانات
       console.log('🔄 Refreshing user data...');
@@ -227,7 +289,7 @@ const ModernDashboard = () => {
       
     } catch (error) {
       console.error('❌ Upload error:', error);
-      setUploadMessage(`❌ حدث خطأ أثناء رفع الملف: ${error.message || error}`);
+      setUploadMessage(`❌ ${t('upload.uploadError')}: ${error.message || error}`);
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -235,7 +297,7 @@ const ModernDashboard = () => {
   };
 
   const handleDeleteFile = async (fileId, fileName) => {
-    if (!confirm(`هل أنت متأكد من حذف الملف "${fileName}"؟`)) return;
+    if (!confirm(`${t('messages.deleteConfirm')} "${fileName}"?`)) return;
     
     try {
       console.log('🗑️ بدء حذف الملف:', fileId, fileName);
@@ -245,10 +307,59 @@ const ModernDashboard = () => {
       console.log('✅ تم حذف الملف بالكامل:', fileId);
       
       await fetchUserData(); // إعادة تحميل البيانات
-      setUploadMessage('✅ تم حذف الملف بنجاح من MinIO وقاعدة البيانات');
+      setUploadMessage(`✅ ${t('messages.deleteSuccess')}`);
     } catch (error) {
       console.error('❌ خطأ في حذف الملف:', error);
-      setUploadMessage(`❌ حدث خطأ أثناء حذف الملف: ${error.message}`);
+      setUploadMessage(`❌ ${t('messages.deleteError')}: ${error.message}`);
+    }
+  };
+
+  // دالة لجلب Bookmarks المستخدم
+  const fetchUserBookmarks = async () => {
+    if (!user?.$id) return;
+    
+    try {
+      console.log('🔖 Fetching user bookmarks...');
+      const bookmarks = await bookmarksService.getByUser(user.$id);
+      const bookmarkIds = new Set(bookmarks.map(b => b.fileId));
+      setUserBookmarks(bookmarkIds);
+      
+      // جلب بيانات الملفات المفضلة
+      const bookmarkedFilesData = userFiles.filter(file => bookmarkIds.has(file.$id));
+      setBookmarkedFiles(bookmarkedFilesData);
+      
+      console.log('✅ Bookmarks loaded:', bookmarkIds.size);
+    } catch (error) {
+      console.error('❌ Error fetching bookmarks:', error);
+    }
+  };
+
+  // دالة لإضافة/إزالة من المفضلة
+  const handleToggleBookmark = async (fileId) => {
+    try {
+      const result = await bookmarksService.toggle(fileId);
+      
+      if (result.bookmarked) {
+        setUserBookmarks(prev => new Set([...prev, fileId]));
+        // إضافة الملف إلى قائمة المفضلة
+        const file = userFiles.find(f => f.$id === fileId);
+        if (file) setBookmarkedFiles(prev => [...prev, file]);
+        setUploadMessage(`✅ ${t('messages.addedToBookmarks')}`);
+      } else {
+        setUserBookmarks(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(fileId);
+          return newSet;
+        });
+        // إزالة الملف من قائمة المفضلة
+        setBookmarkedFiles(prev => prev.filter(f => f.$id !== fileId));
+        setUploadMessage(`✅ ${t('messages.removedFromBookmarks')}`);
+      }
+      
+      setTimeout(() => setUploadMessage(''), 3000);
+    } catch (error) {
+      console.error('❌ Error toggling bookmark:', error);
+      setUploadMessage('❌ حدث خطأ في تحديث المفضلة');
     }
   };
 
@@ -269,11 +380,19 @@ const ModernDashboard = () => {
   };
 
   // الحصول على البيانات للقوائم المنسدلة في نموذج التعديل
-  const editCategories = CategoryService.MAIN_CATEGORIES || [];
-  const editSubjects = editCategory 
-    ? editCategories.find(cat => cat.id === editCategory)?.subjects || []
-    : [];
-  const editFileTypes = CategoryService.INITIAL_FILE_TYPES || [];
+  const editCategories = categories; // نفس البيانات المحملة
+  const [editFilteredSubjects, setEditFilteredSubjects] = useState([]);
+  const editFileTypes = fileTypes; // نفس البيانات المحملة
+  
+  // فلترة المواد لنموذج التعديل
+  useEffect(() => {
+    if (editCategory) {
+      const filtered = allSubjects.filter(s => s.categoryId === editCategory);
+      setEditFilteredSubjects(filtered);
+    } else {
+      setEditFilteredSubjects([]);
+    }
+  }, [editCategory, allSubjects]);
 
   // دوال التحكم في نموذج التعديل
   const handleEditCategoryChange = (categoryId) => {
@@ -297,8 +416,8 @@ const ModernDashboard = () => {
     editCategories: editCategories.length,
     editCategoriesFirst: editCategories[0],
     editCategory,
-    editSubjects: editSubjects.length,
-    editSubjectsFirst: editSubjects[0],
+    editSubjects: editFilteredSubjects.length,
+    editSubjectsFirst: editFilteredSubjects[0],
     editSubject,
     editFileTypes: editFileTypes.length,
     editFileTypesFirst: editFileTypes[0],
@@ -375,10 +494,10 @@ const ModernDashboard = () => {
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              مرحباً، {user.name || user.email}
+              {t('dashboard.welcome')}, {user.name || user.email}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              لوحة التحكم الشاملة - رفع وإدارة ملفاتك
+              {t('dashboard.subtitle')}
             </p>
           </div>
           <ModernButton 
@@ -386,12 +505,12 @@ const ModernDashboard = () => {
             variant="outline"
             className="text-red-600 border-red-200 hover:bg-red-50"
           >
-            تسجيل الخروج
+            {t('nav.logout')}
           </ModernButton>
         </div>
 
         {/* الإحصائيات */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <ModernCard className="p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -401,10 +520,28 @@ const ModernDashboard = () => {
               </div>
               <div className="mr-5">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  إجمالي الملفات
+                  {t('dashboard.filesUploaded')}
                 </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white">
                   {userStats.totalFiles}
+                </p>
+              </div>
+            </div>
+          </ModernCard>
+
+          <ModernCard className="p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">⭐</span>
+                </div>
+              </div>
+              <div className="mr-5">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  {t('dashboard.bookmarkedFiles')}
+                </p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {userBookmarks.size}
                 </p>
               </div>
             </div>
@@ -419,7 +556,7 @@ const ModernDashboard = () => {
               </div>
               <div className="mr-5">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  إجمالي التحميلات
+                  {t('dashboard.totalDownloads')}
                 </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white">
                   {userStats.totalDownloads}
@@ -437,7 +574,7 @@ const ModernDashboard = () => {
               </div>
               <div className="mr-5">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  حجم البيانات
+                  {t('dashboard.storageUsed')}
                 </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white">
                   {formatFileSize(userStats.totalSize)}
@@ -452,7 +589,7 @@ const ModernDashboard = () => {
           {/* قسم رفع الملفات */}
           <ModernCard className="p-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-              <span>📤</span> رفع ملف جديد
+              <span>📤</span> {t('dashboard.uploadNewFile')}
             </h2>
             
             {uploadMessage && (
@@ -498,9 +635,9 @@ const ModernDashboard = () => {
                 />
               </div>
 
-              {/* النظام الهرمي للتصنيف - ثلاث مستويات */}
+              {/* النظام الهرمي للتصنيف - ثلاث مستويات - من قاعدة البيانات */}
               <div className="space-y-4">
-                {/* المستوى الأول: التصنيف الرئيسي */}
+                {/* المستوى الأول: التصنيف الرئيسي - من قاعدة البيانات */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     التصنيف الرئيسي *
@@ -512,21 +649,25 @@ const ModernDashboard = () => {
                              bg-white dark:bg-gray-800 text-gray-900 dark:text-white
                              focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
+                    disabled={loadingDropdowns}
                   >
-                    <option value="">اختر التصنيف الرئيسي</option>
+                    <option value="">{loadingDropdowns ? t('common.loading') : t('upload.selectCategory')}</option>
                     {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
+                      <option key={cat.$id} value={cat.$id}>
+                        {cat.icon} {getLocalizedValue(cat, 'name')}
                       </option>
                     ))}
                   </select>
+                  {!loadingDropdowns && categories.length === 0 && (
+                    <p className="text-xs text-red-500 mt-1">{t('materials.noCategoriesAvailable')}</p>
+                  )}
                 </div>
 
-                {/* المستوى الثاني: المادة (تظهر فقط بعد اختيار التصنيف) */}
+                {/* المستوى الثاني: المادة - مفلترة حسب التصنيف من قاعدة البيانات */}
                 {selectedCategory && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      المادة *
+                      {t('upload.selectSubject')} *
                     </label>
                     <select
                       value={selectedSubject}
@@ -536,21 +677,24 @@ const ModernDashboard = () => {
                                focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
-                      <option value="">اختر المادة</option>
-                      {subjects.map((subject, index) => (
-                        <option key={index} value={subject}>
-                          {subject}
+                      <option value="">{t('upload.selectSubject')}</option>
+                      {filteredSubjects.map((subject) => (
+                        <option key={subject.$id} value={subject.$id}>
+                          {getLocalizedValue(subject, 'name')}
                         </option>
                       ))}
                     </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {filteredSubjects.length} {t('materials.subjects')}
+                    </p>
                   </div>
                 )}
 
-                {/* المستوى الثالث: نوع الملف (يظهر فقط بعد اختيار المادة) */}
+                {/* المستوى الثالث: نوع الملف - من قاعدة البيانات */}
                 {selectedSubject && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      نوع الملف *
+                      {t('upload.selectFileType')} *
                     </label>
                     <select
                       value={selectedFileType}
@@ -560,25 +704,28 @@ const ModernDashboard = () => {
                                focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
-                      <option value="">اختر نوع الملف</option>
+                      <option value="">{t('upload.selectFileType')}</option>
                       {fileTypes.map((fileType) => (
-                        <option key={fileType.id} value={fileType.id}>
-                          {fileType.name}
+                        <option key={fileType.$id} value={fileType.$id}>
+                          {fileType.icon} {getLocalizedValue(fileType, 'name')}
                         </option>
                       ))}
                     </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {fileTypes.length} {t('materials.fileTypes')}
+                    </p>
                   </div>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  الوصف (اختياري)
+                  {t('upload.fileDescription')}
                 </label>
                 <textarea
                   value={uploadDescription}
                   onChange={(e) => setUploadDescription(e.target.value)}
-                  placeholder="أدخل وصف للملف"
+                  placeholder={t('upload.fileDescription')}
                   rows={3}
                   className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg 
                            bg-white dark:bg-gray-800 text-gray-900 dark:text-white
@@ -603,7 +750,7 @@ const ModernDashboard = () => {
                 disabled={uploading || !uploadFile}
                 className="w-full"
               >
-                {uploading ? '🔄 جاري الرفع...' : '📤 رفع الملف'}
+                {uploading ? `🔄 ${t('common.loading')}` : `📤 ${t('common.upload')}`}
               </ModernButton>
             </form>
           </ModernCard>
@@ -613,18 +760,17 @@ const ModernDashboard = () => {
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <span>📁</span> ملفاتي ({filteredFiles.length} من {userFiles.length})
+                  <span>📁</span> {t('dashboard.myFiles')} ({filteredFiles.length} {t('dashboard.filesCount')} {userFiles.length})
                 </h2>
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
                   className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 >
-                  <option value="">جميع التصنيفات</option>
-                  {editCategories && editCategories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.icon && typeof category.icon === 'string' ? category.icon + ' ' : ''}
-                      {category.name && typeof category.name === 'string' ? category.name : 'تصنيف غير معروف'}
+                  <option value="">{t('dashboard.allCategories')}</option>
+                  {categories && categories.map((category) => (
+                    <option key={category.$id} value={category.$id}>
+                      {category.icon} {getLocalizedValue(category, 'name')}
                     </option>
                   ))}
                 </select>
@@ -670,6 +816,17 @@ const ModernDashboard = () => {
                         <ModernButton
                           variant="outline"
                           size="sm"
+                          onClick={() => handleToggleBookmark(file.$id)}
+                          className={userBookmarks.has(file.$id) 
+                            ? "text-yellow-600 border-yellow-200 hover:bg-yellow-50" 
+                            : "text-gray-600 border-gray-200 hover:bg-gray-50"}
+                          title={userBookmarks.has(file.$id) ? t('messages.removedFromBookmarks') : t('messages.addedToBookmarks')}
+                        >
+                          {userBookmarks.has(file.$id) ? '⭐' : '☆'}
+                        </ModernButton>
+                        <ModernButton
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleEditFile(file)}
                           className="text-blue-600 border-blue-200 hover:bg-blue-50"
                         >
@@ -692,19 +849,88 @@ const ModernDashboard = () => {
                   <span className="text-4xl mb-4 block">📁</span>
                   {filterCategory ? (
                     <>
-                      <p className="text-gray-500 dark:text-gray-400 mb-4">لا توجد ملفات في هذا التصنيف</p>
-                      <p className="text-sm text-gray-400">جرب تصنيف آخر أو ارفع ملفات جديدة!</p>
+                      <p className="text-gray-500 dark:text-gray-400 mb-4">{t('dashboard.noFiles')}</p>
+                      <p className="text-sm text-gray-400">{t('dashboard.noFilesDesc')}</p>
                     </>
                   ) : (
                     <>
-                      <p className="text-gray-500 dark:text-gray-400 mb-4">لا توجد ملفات حتى الآن</p>
-                      <p className="text-sm text-gray-400">ابدأ برفع أول ملف لك!</p>
+                      <p className="text-gray-500 dark:text-gray-400 mb-4">{t('dashboard.noFiles')}</p>
+                      <p className="text-sm text-gray-400">{t('dashboard.noFilesDesc')}</p>
                       {/* رسالة تصحيح */}
                       <div className="mt-4 p-2 bg-yellow-100 dark:bg-yellow-900 rounded text-xs">
                         تصحيح: عدد الملفات = {userFiles.length} | معرف المستخدم = {user?.$id}
                       </div>
                     </>
                   )}
+                </div>
+              )}
+            </div>
+          </ModernCard>
+
+          {/* قسم الملفات المفضلة */}
+          <ModernCard className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                <span className="text-2xl">⭐</span>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  الملفات المفضلة
+                </h2>
+                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                  {userBookmarks.size}
+                </span>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              {loadingFiles ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
+                </div>
+              ) : bookmarkedFiles.length > 0 ? (
+                bookmarkedFiles.map((file) => (
+                  <div key={file.$id} className="border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <span className="text-2xl">📄</span>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {file.title}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatFileSize(file.fileSize || file.size)} • {formatDate(file.$createdAt || file.uploadedAt)}
+                          </p>
+                          <p className="text-xs text-blue-600 dark:text-blue-400">
+                            {downloadCounts[file.$id] || 0} تحميل
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <ModernButton
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleBookmark(file.$id)}
+                          className="text-yellow-600 border-yellow-200 hover:bg-yellow-100"
+                          title="إزالة من المفضلة"
+                        >
+                          ⭐
+                        </ModernButton>
+                        <ModernButton
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(file.downloadURL || file.viewURL, '_blank')}
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                        >
+                          📥
+                        </ModernButton>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <span className="text-4xl mb-4 block">⭐</span>
+                  <p className="text-gray-500 dark:text-gray-400 mb-2">لا توجد ملفات مفضلة</p>
+                  <p className="text-sm text-gray-400">اضغط على ⭐ بجانب أي ملف لإضافته إلى المفضلة</p>
                 </div>
               )}
             </div>
@@ -742,15 +968,14 @@ const ModernDashboard = () => {
                     >
                       <option value="">اختر التصنيف</option>
                       {editCategories && editCategories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.icon && typeof category.icon === 'string' ? category.icon + ' ' : ''}
-                          {category.name && typeof category.name === 'string' ? category.name : 'تصنيف غير معروف'}
+                        <option key={category.$id} value={category.$id}>
+                          {category.icon} {category.nameAr}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  {/* المادة */}
+                  {/* المادة - مفلترة من قاعدة البيانات */}
                   {editCategory && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -763,12 +988,15 @@ const ModernDashboard = () => {
                         required
                       >
                         <option value="">اختر المادة</option>
-                        {editSubjects && editSubjects.map((subject, index) => (
-                          <option key={index} value={subject}>
-                            {typeof subject === 'string' ? subject : 'مادة غير معروفة'}
+                        {editFilteredSubjects && editFilteredSubjects.map((subject) => (
+                          <option key={subject.$id} value={subject.$id}>
+                            {subject.nameAr}
                           </option>
                         ))}
                       </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {editFilteredSubjects.length} مادة متاحة
+                      </p>
                     </div>
                   )}
 
@@ -786,11 +1014,14 @@ const ModernDashboard = () => {
                       >
                         <option value="">اختر نوع الملف</option>
                         {editFileTypes && editFileTypes.map((fileType) => (
-                          <option key={fileType.id} value={fileType.id}>
-                            {fileType.name}
+                          <option key={fileType.$id} value={fileType.$id}>
+                            {fileType.icon} {fileType.nameAr}
                           </option>
                         ))}
                       </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {editFileTypes.length} نوع ملف متاح
+                      </p>
                     </div>
                   )}
 

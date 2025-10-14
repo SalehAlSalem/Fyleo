@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
+import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import { 
   ModernButton, 
-  ThemeToggle, 
-  LanguageToggle, 
-  useTranslation 
+  ThemeToggle
 } from '../modern/ModernComponents';
 
 const ModernNavbar = () => {
   const { user, loading, logout } = useAuth();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { t } = useTranslation();
 
   // Handle scroll effect
   useEffect(() => {
@@ -25,12 +25,15 @@ const ModernNavbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Check if user is admin
+  const isAdmin = user?.labels?.includes('admin');
+
   // Navigation items
   const navItems = [
-    { name: t('home'), path: '/', icon: '🏠' },
-    { name: t('materials'), path: '/materials', icon: '📚' },
-    { name: t('dashboard'), path: '/dashboard', icon: '📊', authRequired: true },
-    { name: 'البروفايل', path: '/profile', icon: '👤', authRequired: true },
+    { name: t('nav.home'), path: '/', icon: '🏠' },
+    { name: t('nav.materials'), path: '/materials', icon: '📚' },
+    { name: t('nav.dashboard'), path: '/dashboard', icon: '📊', authRequired: true },
+    { name: t('nav.admin'), path: '/admin', icon: '⚙️', authRequired: true, adminOnly: true },
   ];
 
   const handleLogout = async () => {
@@ -75,6 +78,7 @@ const ModernNavbar = () => {
           <div className="hidden md:flex items-center space-x-8 rtl:space-x-reverse">
             {navItems.map((item) => {
               if (item.authRequired && !user) return null;
+              if (item.adminOnly && !isAdmin) return null;
               
               const isActive = location.pathname === item.path;
               return (
@@ -102,7 +106,7 @@ const ModernNavbar = () => {
           {/* Right Section */}
           <div className="hidden md:flex items-center space-x-4 rtl:space-x-reverse">
             <ThemeToggle />
-            <LanguageToggle />
+            <LanguageSwitcher />
             
             {loading ? (
               <div className="w-8 h-8 rounded-full loading-pulse"></div>
@@ -129,22 +133,31 @@ const ModernNavbar = () => {
                         className="flex items-center space-x-2 rtl:space-x-reverse w-full px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       >
                         <span>📊</span>
-                        <span>{t('dashboard')}</span>
+                        <span>{t('nav.dashboard')}</span>
                       </Link>
                       <Link
                         to="/profile"
                         className="flex items-center space-x-2 rtl:space-x-reverse w-full px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       >
                         <span>👤</span>
-                        <span>{t('profile')}</span>
+                        <span>{t('nav.profile')}</span>
                       </Link>
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          className="flex items-center space-x-2 rtl:space-x-reverse w-full px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <span>⚙️</span>
+                          <span>{t('nav.admin')}</span>
+                        </Link>
+                      )}
                       <hr className="my-2 border-gray-200 dark:border-gray-700" />
                       <button
                         onClick={handleLogout}
                         className="flex items-center space-x-2 rtl:space-x-reverse w-full px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                       >
                         <span>🚪</span>
-                        <span>{t('logout')}</span>
+                        <span>{t('nav.logout')}</span>
                       </button>
                     </div>
                   </div>
@@ -191,6 +204,7 @@ const ModernNavbar = () => {
           <div className="py-4 space-y-2 border-t border-gray-200 dark:border-gray-700 mt-4">
             {navItems.map((item) => {
               if (item.authRequired && !user) return null;
+              if (item.adminOnly && !isAdmin) return null;
               
               const isActive = location.pathname === item.path;
               return (
@@ -213,19 +227,19 @@ const ModernNavbar = () => {
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center space-x-3 rtl:space-x-reverse">
                 <ThemeToggle />
-                <LanguageToggle />
+                <LanguageSwitcher />
               </div>
               
               {!loading && !user && (
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                   <Link to="/login" onClick={() => setIsOpen(false)}>
                     <ModernButton variant="ghost" size="sm">
-                      {t('login')}
+                      {t('nav.login')}
                     </ModernButton>
                   </Link>
                   <Link to="/signup" onClick={() => setIsOpen(false)}>
                     <ModernButton variant="primary" size="sm">
-                      {t('signup')}
+                      {t('nav.signup')}
                     </ModernButton>
                   </Link>
                 </div>

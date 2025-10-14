@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import { 
   ModernButton, 
   ModernInput, 
   ModernCard,
   ModernAlert,
-  useTranslation,
   useTheme 
 } from '../../components/modern/ModernComponents';
 
@@ -31,7 +31,7 @@ const AppwriteLogin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('يرجى ملء جميع الحقول المطلوبة');
+      setError(t('common.error'));
       return;
     }
 
@@ -45,21 +45,21 @@ const AppwriteLogin = () => {
       } else {
         switch (result.error) {
           case 'user_invalid_credentials':
-            setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+            setError(t('common.error'));
             break;
           case 'user_not_found':
-            setError('المستخدم غير موجود');
+            setError(t('common.error'));
             break;
           case 'user_blocked':
-            setError('تم حظر هذا الحساب');
+            setError(t('common.error'));
             break;
           default:
-            setError('حدث خطأ أثناء تسجيل الدخول');
+            setError(t('common.error'));
         }
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('حدث خطأ غير متوقع');
+      setError(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -72,12 +72,12 @@ const AppwriteLogin = () => {
     try {
       const result = await loginWithGoogle();
       if (!result.success) {
-        setError(result.error || 'فشل تسجيل الدخول بـ Google');
+        setError(result.error || t('common.error'));
       }
       // في حالة النجاح، سيتم redirect تلقائياً
     } catch (error) {
       console.error('Google login error:', error);
-      setError('فشل تسجيل الدخول بـ Google');
+      setError(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -88,38 +88,40 @@ const AppwriteLogin = () => {
       <ModernCard className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            مرحباً بك في Fyleo
+            {t('auth.welcomeBack')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            سجل دخولك للوصول إلى حسابك
+            {t('landing.heroSubtitle')}
           </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              البريد الإلكتروني
+              {t('auth.email')}
             </label>
             <ModernInput
               type="email"
-              placeholder="أدخل بريدك الإلكتروني"
+              placeholder={t('auth.email')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="username"
               className="w-full"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              كلمة المرور
+              {t('auth.password')}
             </label>
             <ModernInput
               type="password"
-              placeholder="أدخل كلمة المرور"
+              placeholder={t('auth.password')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
               className="w-full"
             />
           </div>
@@ -133,14 +135,14 @@ const AppwriteLogin = () => {
                 onChange={(e) => setRememberMe(e.target.checked)}
               />
               <span className="mr-2 text-sm text-gray-600 dark:text-gray-400">
-                تذكرني
+                {t('auth.rememberMe')}
               </span>
             </label>
             <Link 
               to="/forgot-password" 
               className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
             >
-              نسيت كلمة المرور؟
+              {t('auth.forgotPassword')}
             </Link>
           </div>
 
@@ -155,7 +157,7 @@ const AppwriteLogin = () => {
             className="w-full"
             loading={loading}
           >
-            تسجيل الدخول
+            {t('nav.login')}
           </ModernButton>
 
           <div className="relative">
@@ -163,7 +165,7 @@ const AppwriteLogin = () => {
               <div className="w-full border-t border-gray-300 dark:border-gray-600" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">أو</span>
+              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">{t('common.or') || 'أو'}</span>
             </div>
           </div>
 
@@ -180,18 +182,18 @@ const AppwriteLogin = () => {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            المتابعة مع Google
+            {t('auth.signInWithGoogle')}
           </ModernButton>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            ليس لديك حساب؟{' '}
+            {t('auth.dontHaveAccount')}{' '}
             <Link 
               to="/signup" 
               className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
             >
-              إنشاء حساب جديد
+              {t('nav.signup')}
             </Link>
           </p>
         </div>

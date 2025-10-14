@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import { 
   ModernButton, 
   ModernInput, 
   ModernCard,
   ModernAlert,
-  useTranslation,
   useTheme 
 } from '../../components/modern/ModernComponents';
 
@@ -33,17 +33,17 @@ const AppwriteSignup = () => {
 
   const validateForm = () => {
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('يرجى ملء جميع الحقول المطلوبة');
+      setError(t('common.error'));
       return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('كلمات المرور غير متطابقة');
+      setError(t('common.error'));
       return false;
     }
 
     if (formData.password.length < 8) {
-      setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+      setError(t('common.error'));
       return false;
     }
 
@@ -137,22 +137,22 @@ const AppwriteSignup = () => {
       <ModernCard className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            إنشاء حساب جديد
+            {t('auth.createAccount')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            انضم إلى مجتمع Fyleo التعليمي
+            {t('auth.getStarted')}
           </p>
         </div>
 
         <form onSubmit={handleSignup} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              الاسم الكامل
+              {t('auth.name')}
             </label>
             <ModernInput
               type="text"
               name="name"
-              placeholder="أدخل اسمك الكامل"
+              placeholder={t('auth.name')}
               value={formData.name}
               onChange={handleInputChange}
               required
@@ -162,12 +162,12 @@ const AppwriteSignup = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              البريد الإلكتروني
+              {t('auth.email')}
             </label>
             <ModernInput
               type="email"
               name="email"
-              placeholder="أدخل بريدك الإلكتروني"
+              placeholder={t('auth.email')}
               value={formData.email}
               onChange={handleInputChange}
               required
@@ -177,12 +177,12 @@ const AppwriteSignup = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              كلمة المرور
+              {t('auth.password')}
             </label>
             <ModernInput
               type="password"
               name="password"
-              placeholder="أدخل كلمة مرور قوية"
+              placeholder={t('auth.password')}
               value={formData.password}
               onChange={handleInputChange}
               required
@@ -207,12 +207,12 @@ const AppwriteSignup = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              تأكيد كلمة المرور
+              {t('auth.password')}
             </label>
             <ModernInput
               type="password"
               name="confirmPassword"
-              placeholder="أعد كتابة كلمة المرور"
+              placeholder={t('auth.password')}
               value={formData.confirmPassword}
               onChange={handleInputChange}
               required
@@ -236,7 +236,7 @@ const AppwriteSignup = () => {
             className="w-full"
             loading={loading}
           >
-            إنشاء الحساب
+            {t('auth.createAccount')}
           </ModernButton>
 
           <div className="relative">
@@ -244,7 +244,7 @@ const AppwriteSignup = () => {
               <div className="w-full border-t border-gray-300 dark:border-gray-600" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">أو</span>
+              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">{t('common.or')}</span>
             </div>
           </div>
 
@@ -261,18 +261,18 @@ const AppwriteSignup = () => {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            المتابعة مع Google
+            {t('auth.signUpWithGoogle')}
           </ModernButton>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            لديك حساب بالفعل؟{' '}
+            {t('auth.alreadyHaveAccount')}{' '}
             <Link 
               to="/login" 
               className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
             >
-              تسجيل الدخول
+              {t('nav.login')}
             </Link>
           </p>
         </div>

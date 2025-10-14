@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import classNames from "classnames";
 // استخدام الخدمة الهجينة الجديدة: MinIO + Appwrite
 import { StorageService } from '../../config/StorageService';
 import { useAuth } from '../../hooks/useAuth';
-import { CategoryService } from '../../config/CategoryService';
+import { 
+  categoriesService, 
+  subjectsService, 
+  fileTypesService 
+} from '../../services/appwriteService';
 
 const Upload = ({ open, setOpen }) => {
   const [title, setTitle] = useState("");
@@ -22,14 +26,49 @@ const Upload = ({ open, setOpen }) => {
   const [simulationNotice, setSimulationNotice] = useState(false);
   const [fileDiagnostics, setFileDiagnostics] = useState([]); // [{name,status,progress,provider,isSimulation,error}]
 
-  // الحصول على البيانات للقوائم المنسدلة
-  const categories = CategoryService.MAIN_CATEGORIES || [];
-  const subjects = selectedCategory 
-    ? categories.find(cat => cat.id === selectedCategory)?.subjects || []
-    : [];
-  const fileTypes = CategoryService.INITIAL_FILE_TYPES || [];
+  // البيانات الديناميكية من قاعدة البيانات
+  const [categories, setCategories] = useState([]);
+  const [allSubjects, setAllSubjects] = useState([]);
+  const [fileTypes, setFileTypes] = useState([]);
+  const [filteredSubjects, setFilteredSubjects] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
   
   const { user, isAuthenticated } = useAuth();
+
+  // تحميل البيانات من قاعدة البيانات
+  useEffect(() => {
+    loadDropdownData();
+  }, []);
+
+  // فلترة المواد حسب التصنيف المختار
+  useEffect(() => {
+    if (selectedCategory) {
+      const filtered = allSubjects.filter(s => s.categoryId === selectedCategory);
+      setFilteredSubjects(filtered);
+    } else {
+      setFilteredSubjects([]);
+    }
+  }, [selectedCategory, allSubjects]);
+
+  const loadDropdownData = async () => {
+    try {
+      setLoadingData(true);
+      const [categoriesData, subjectsData, fileTypesData] = await Promise.all([
+        categoriesService.getAll(),
+        subjectsService.getAll(),
+        fileTypesService.getAll()
+      ]);
+      
+      setCategories(categoriesData);
+      setAllSubjects(subjectsData);
+      setFileTypes(fileTypesData);
+    } catch (err) {
+      console.error('Error loading dropdown data:', err);
+      setStatus('❌ فشل تحميل البيانات');
+    } finally {
+      setLoadingData(false);
+    }
+  };
 
   // دوال التحكم في القوائم المنسدلة الهرمية
   const handleCategoryChange = (categoryId) => {
@@ -297,24 +336,28 @@ const Upload = ({ open, setOpen }) => {
 
         {/* النظام الهرمي الجديد - القوائم المنسدلة المتتالية */}
         
-        {/* 1. التصنيف الرئيسي */}
+        {/* 1. التصنيف الرئيسي - من قاعدة البيانات */}
         <div className="w-[85%] mb-4">
           <label className="text-gray-500 block mb-2">🗂️ التصنيف الرئيسي</label>
           <select 
             value={selectedCategory} 
             onChange={(e) => handleCategoryChange(e.target.value)} 
             className="w-full h-12 rounded-lg border border-gray-400 text-gray-700 py-2 px-4 bg-white focus:border-blue-500 focus:outline-none"
+            disabled={loadingData}
           >
-            <option value="">اختر التصنيف الرئيسي</option>
+            <option value="">{loadingData ? 'جاري التحميل...' : 'اختر التصنيف الرئيسي'}</option>
             {categories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.icon} {category.name}
+              <option key={category.$id} value={category.$id}>
+                {category.icon} {category.nameAr}
               </option>
             ))}
           </select>
+          {!loadingData && categories.length === 0 && (
+            <div className="text-xs text-red-500 mt-1">لا توجد تصنيفات متاحة</div>
+          )}
         </div>
 
-        {/* 2. المادة (تظهر فقط بعد اختيار التصنيف) */}
+        {/* 2. المادة - مفلترة حسب التصنيف من قاعدة البيانات */}
         {selectedCategory && (
           <div className="w-[85%] mb-4">
             <label className="text-gray-500 block mb-2">📚 المادة</label>
@@ -324,19 +367,19 @@ const Upload = ({ open, setOpen }) => {
               className="w-full h-12 rounded-lg border border-gray-400 text-gray-700 py-2 px-4 bg-white focus:border-blue-500 focus:outline-none"
             >
               <option value="">اختر المادة</option>
-              {subjects.map((subject, index) => (
-                <option key={index} value={subject}>
-                  {subject}
+              {filteredSubjects.map(subject => (
+                <option key={subject.$id} value={subject.$id}>
+                  {subject.nameAr}
                 </option>
               ))}
             </select>
             <div className="text-xs text-gray-500 mt-1">
-              {subjects.length} مادة متاحة في هذا التصنيف
+              {filteredSubjects.length} مادة متاحة في هذا التصنيف
             </div>
           </div>
         )}
 
-        {/* 3. نوع الملف (تظهر فقط بعد اختيار المادة) */}
+        {/* 3. نوع الملف - من قاعدة البيانات */}
         {selectedSubject && (
           <div className="w-[85%] mb-4">
             <label className="text-gray-500 block mb-2">📁 نوع الملف</label>
@@ -346,9 +389,9 @@ const Upload = ({ open, setOpen }) => {
               className="w-full h-12 rounded-lg border border-gray-400 text-gray-700 py-2 px-4 bg-white focus:border-blue-500 focus:outline-none"
             >
               <option value="">اختر نوع الملف</option>
-              {fileTypes.map((fileType, index) => (
-                <option key={index} value={fileType.name}>
-                  {fileType.icon} {fileType.name}
+              {fileTypes.map(fileType => (
+                <option key={fileType.$id} value={fileType.$id}>
+                  {fileType.icon} {fileType.nameAr}
                 </option>
               ))}
             </select>

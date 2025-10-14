@@ -8,6 +8,7 @@ import {
   ModernAlert,
   useTranslation 
 } from '../../components/modern/ModernComponents';
+import ModernProfile from './ModernProfile';
 
 const ProfilePage = () => {
   const { user, logout } = useAuth();
@@ -341,4 +342,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default ModernProfile;

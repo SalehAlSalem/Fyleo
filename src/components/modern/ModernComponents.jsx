@@ -2,25 +2,22 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Theme Context for modern design system
 const ThemeContext = createContext();
-const LanguageContext = createContext();
+
+// Import LanguageContext from the new system
+import { LanguageProvider, useLanguage as useLanguageContext } from '../../contexts/LanguageContext';
 
 // Modern Theme Provider
 export const ModernThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState('light');
-  const [language, setLanguage] = useState('ar');
 
   useEffect(() => {
     // Load saved theme
     const savedTheme = localStorage.getItem('fyleo-theme') || 'light';
-    const savedLanguage = localStorage.getItem('fyleo-language') || 'ar';
     
     setTheme(savedTheme);
-    setLanguage(savedLanguage);
     
     // Apply theme to document
     document.documentElement.setAttribute('data-theme', savedTheme);
-    document.documentElement.setAttribute('dir', savedLanguage === 'ar' ? 'rtl' : 'ltr');
-    document.documentElement.setAttribute('lang', savedLanguage);
   }, []);
 
   const toggleTheme = () => {
@@ -30,19 +27,11 @@ export const ModernThemeProvider = ({ children }) => {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  const toggleLanguage = () => {
-    const newLanguage = language === 'ar' ? 'en' : 'ar';
-    setLanguage(newLanguage);
-    localStorage.setItem('fyleo-language', newLanguage);
-    document.documentElement.setAttribute('dir', newLanguage === 'ar' ? 'rtl' : 'ltr');
-    document.documentElement.setAttribute('lang', newLanguage);
-  };
-
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <LanguageContext.Provider value={{ language, toggleLanguage }}>
+      <LanguageProvider>
         {children}
-      </LanguageContext.Provider>
+      </LanguageProvider>
     </ThemeContext.Provider>
   );
 };
@@ -115,7 +104,7 @@ export const ModernInput = ({
   icon,
   ...props 
 }) => {
-  const { language } = useContext(LanguageContext);
+  const { language } = useLanguageContext();
   
   return (
     <div className="form-group-modern">
@@ -234,7 +223,7 @@ export const ThemeToggle = () => {
 
 // Language Toggle Component
 export const LanguageToggle = () => {
-  const { language, toggleLanguage } = useContext(LanguageContext);
+  const { language, toggleLanguage } = useLanguageContext();
   
   return (
     <button
@@ -256,13 +245,7 @@ export const useTheme = () => {
   return context;
 };
 
-export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within a ModernThemeProvider');
-  }
-  return context;
-};
+export { useLanguage } from '../../contexts/LanguageContext';
 
 // Translations Helper
 export const translations = {

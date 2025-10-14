@@ -6,11 +6,36 @@ export const StorageService = {
     try {
       console.log('بدء رفع الملف عبر MinIO:', file.name);
       
-      // استخدام الخدمة المتكاملة (MinIO + Database)
-      const result = await IntegratedStorageService.uploadFile(file, options);
-      
-      console.log('تم رفع الملف بنجاح عبر MinIO:', result);
-      return result;
+      // محاكاة progress للتجربة البصرية
+      if (options.onProgress) {
+        const simulateProgress = () => {
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += 10;
+            if (progress <= 90) {
+              options.onProgress(progress);
+            } else {
+              clearInterval(interval);
+            }
+          }, 200);
+          return interval;
+        };
+        const progressInterval = simulateProgress();
+        
+        // استخدام الخدمة المتكاملة (MinIO + Database)
+        const result = await IntegratedStorageService.uploadFile(file, options);
+        
+        clearInterval(progressInterval);
+        options.onProgress(100);
+        
+        console.log('تم رفع الملف بنجاح عبر MinIO:', result);
+        return result;
+      } else {
+        // استخدام الخدمة المتكاملة (MinIO + Database)
+        const result = await IntegratedStorageService.uploadFile(file, options);
+        console.log('تم رفع الملف بنجاح عبر MinIO:', result);
+        return result;
+      }
     } catch (error) {
       console.error('خطأ في رفع الملف عبر MinIO:', error);
       throw new Error(`فشل في رفع الملف: ${error.message}`);

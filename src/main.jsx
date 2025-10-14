@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { ModernThemeProvider } from './components/modern/ModernComponents.jsx';
+import './i18n/config'; // Initialize i18n
 import "@fontsource/comfortaa";
 import "@fontsource/comfortaa/400.css";
 import "@fontsource/comfortaa/500.css";

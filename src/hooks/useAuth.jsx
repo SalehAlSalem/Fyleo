@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import { account, ID, OAuthProvider } from '../config/appwrite';
-import { DatabaseService } from '../config/DatabaseService';
+import { authService } from '../services/authService';
+import { usersService } from '../services/appwriteService';
 
 const AuthContext = createContext();
 
@@ -14,47 +14,32 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserSession = async () => {
     try {
-      const session = await account.get();
-      console.log('🔍 User session retrieved:', session);
-      setUser(session);
+      const result = await authService.getCurrentUser();
       
-      // إذا كان المستخدم مسجل، احفظه في Database
-      if (session && session.email) {
-        try {
-          console.log('🔍 Checking if user exists in database:', session.email);
-          
-          // تحقق إذا كان المستخدم موجود في Database
-          const existingUser = await DatabaseService.getUserByEmail(session.email);
-          console.log('🔍 Existing user check result:', existingUser);
-          
-          if (!existingUser) {
-            // إذا لم يكن موجود، أنشئ سجل جديد
-            console.log('💾 Creating new user in database...');
-            console.log('💾 User data to save:', {
-              name: session.name || session.email,
-              email: session.email
-            });
+      if (result.success) {
+        console.log('✅ User session retrieved:', result.user);
+        setUser(result.user);
+        
+        // Ensure user exists in database
+        if (result.user && result.user.email) {
+          try {
+            const existingUser = await usersService.getByEmail(result.user.email);
             
-            const newUser = await DatabaseService.createUser({
-              name: session.name || session.email,
-              email: session.email
-            });
-            
-            console.log('✅ User saved to database:', newUser);
-          } else {
-            console.log('✅ User already exists in database');
+            if (!existingUser) {
+              console.log('💾 Creating user record in database...');
+              await usersService.create({
+                name: result.user.name || result.user.email,
+                email: result.user.email
+              });
+              console.log('✅ User record created');
+            }
+          } catch (dbError) {
+            console.error('⚠️ Database operation failed:', dbError);
           }
-        } catch (dbError) {
-          console.error('❌ Database operation failed:', dbError);
-          console.error('❌ Error details:', {
-            name: dbError.name,
-            message: dbError.message,
-            code: dbError.code,
-            type: dbError.type
-          });
         }
       } else {
-        console.log('⚠️ No session or email found');
+        console.log('ℹ️ No active session');
+        setUser(null);
       }
     } catch (error) {
       console.error('❌ Session check failed:', error);
@@ -66,112 +51,91 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      await account.createEmailSession(email, password);
-      const session = await account.get();
-      setUser(session);
-      return { success: true, user: session };
+      const result = await authService.login(email, password);
+      
+      if (result.success) {
+        setUser(result.user);
+      }
+      
+      return result;
     } catch (error) {
-      return { success: false, error: error.message };
+      console.error('❌ Login error:', error);
+      return { success: false, error: 'login_failed', message: error.message };
     }
   };
 
   const signup = async (email, password, name) => {
     try {
-      // إنشاء المستخدم في Appwrite Auth
-      const authUser = await account.create(ID.unique(), email, password, name);
+      const result = await authService.register(email, password, name);
       
-      // تسجيل الدخول بعد التسجيل
-      const loginResult = await login(email, password);
-      
-      if (loginResult.success) {
-        try {
-          // حفظ بيانات المستخدم في Database Collection
-          console.log('💾 Saving user to database...');
-          const userDocument = await DatabaseService.createUser({
-            name: name,
-            email: email
-            // بس الـ attributes الموجودة في Collection
-          });
-          
-          console.log('✅ User saved to database:', userDocument);
-        } catch (dbError) {
-          console.error('❌ Failed to save user to database:', dbError);
-          // لا نوقف التسجيل إذا فشل حفظ البيانات في القاعدة
-        }
+      if (result.success) {
+        setUser(result.user);
       }
       
-      return loginResult;
+      return result;
     } catch (error) {
       console.error('❌ Signup error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: 'signup_failed', message: error.message };
     }
   };
 
   const loginWithGoogle = async () => {
     try {
-      // إنشاء Google OAuth session
-      await account.createOAuth2Session(
-        OAuthProvider.Google,
-        `${window.location.origin}/dashboard`, // success redirect
-        `${window.location.origin}/login?error=oauth_failed` // failure redirect
-      );
-      
-      // بعد النجاح، الـ redirect سيحدث تلقائياً
-      // وسيتم استدعاء checkUserSession في useEffect
-      return { success: true };
+      const result = await authService.loginWithGoogle();
+      return result;
     } catch (error) {
-      console.error('Google OAuth error:', error);
-      return { success: false, error: error.message };
+      console.error('❌ Google login error:', error);
+      return { success: false, error: 'oauth_failed', message: error.message };
     }
   };
 
   const logout = async () => {
     try {
-      await account.deleteSession('current');
-      setUser(null);
-      return { success: true };
+      const result = await authService.logout();
+      
+      if (result.success) {
+        setUser(null);
+      }
+      
+      return result;
     } catch (error) {
-      return { success: false, error: error.message };
+      console.error('❌ Logout error:', error);
+      return { success: false, error: 'logout_failed', message: error.message };
     }
   };
 
   const resetPassword = async (email) => {
     try {
-      await account.createRecovery(
-        email,
-        `${window.location.origin}/reset-password`
-      );
-      return { success: true };
+      const result = await authService.sendPasswordRecovery(email);
+      return result;
     } catch (error) {
-      return { success: false, error: error.message };
+      console.error('❌ Password reset error:', error);
+      return { success: false, error: 'reset_failed', message: error.message };
     }
   };
 
   const updateProfile = async (updates) => {
     try {
-      const updatedUser = await account.updateName(updates.name);
-      setUser(updatedUser);
-      return { success: true, user: updatedUser };
+      const result = await authService.updateName(updates.name);
+      
+      if (result.success) {
+        setUser(result.user);
+      }
+      
+      return result;
     } catch (error) {
-      return { success: false, error: error.message };
+      console.error('❌ Update profile error:', error);
+      return { success: false, error: 'update_failed', message: error.message };
     }
   };
 
   const changePassword = async (newPassword, oldPassword) => {
     try {
-      await account.updatePassword(newPassword, oldPassword);
-      return { success: true };
+      const result = await authService.updatePassword(newPassword, oldPassword);
+      return result;
     } catch (error) {
-      return { success: false, error: error.message };
-    }
-  };
-
-  const getCurrentSession = async () => {
-    try {
-      const session = await account.getSession('current');
-      return { success: true, session };
-    } catch (error) {
-      return { success: false, error: error.message };
+      console.error('❌ Change password error:', error);
+      return { success: false, error: 'password_change_failed', message: error.message };
     }
   };
 
@@ -185,7 +149,6 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     updateProfile,
     changePassword,
-    getCurrentSession,
     checkUserSession
   };
 
