@@ -552,6 +552,7 @@ export const usersService = {
    */
   async create(userData) {
     try {
+      console.log('📝 Creating user in database:', userData.email);
       const response = await databases.createDocument(
         DATABASE_ID,
         USERS_COLLECTION_ID,
@@ -561,9 +562,21 @@ export const usersService = {
           email: userData.email
         }
       );
+      console.log('✅ User created in database:', response.$id);
       return response;
     } catch (error) {
-      console.error('❌ Error creating user:', error);
+      console.error('❌ Error creating user:', {
+        message: error.message,
+        code: error.code,
+        type: error.type
+      });
+      
+      // If user already exists (duplicate email), try to fetch and return
+      if (error.code === 409 || error.message?.includes('unique')) {
+        console.log('⚠️ User already exists, fetching existing user...');
+        return await this.getByEmail(userData.email);
+      }
+      
       throw error;
     }
   },
@@ -581,7 +594,8 @@ export const usersService = {
       return response.documents.length > 0 ? response.documents[0] : null;
     } catch (error) {
       console.error('❌ Error fetching user by email:', error);
-      throw error;
+      // Return null instead of throwing to allow user creation
+      return null;
     }
   },
 

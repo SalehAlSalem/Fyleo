@@ -20,21 +20,26 @@ export const AuthProvider = ({ children }) => {
         console.log('✅ User session retrieved:', result.user);
         setUser(result.user);
         
-        // Ensure user exists in database
+        // Ensure user exists in database (important for OAuth users)
         if (result.user && result.user.email) {
           try {
+            console.log('🔍 Checking if user exists in database...');
             const existingUser = await usersService.getByEmail(result.user.email);
             
             if (!existingUser) {
-              console.log('💾 Creating user record in database...');
+              console.log('💾 Creating user record in database for OAuth user...');
               await usersService.create({
-                name: result.user.name || result.user.email,
+                name: result.user.name || result.user.email.split('@')[0],
                 email: result.user.email
               });
-              console.log('✅ User record created');
+              console.log('✅ User record created successfully');
+            } else {
+              console.log('✅ User already exists in database');
             }
           } catch (dbError) {
             console.error('⚠️ Database operation failed:', dbError);
+            // Don't fail the session check if database operation fails
+            // User can still use the app with auth session
           }
         }
       } else {
