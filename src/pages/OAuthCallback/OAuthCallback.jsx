@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { usersService } from '../../services/appwriteService';
+import { account } from '../../config/appwrite';
 
 /**
  * OAuth Callback Handler
  * هذه الصفحة تتعامل مع الـ redirect بعد OAuth من Google
- * المشكلة على الموبايل: الـ session بتاخد وقت عشان تتنشأ
+ * تستخدم createOAuth2Token لحل مشكلة Safari iOS مع third-party cookies
  */
 const OAuthCallback = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [status, setStatus] = useState('checking'); // checking, success, error
   
   // اكتشاف Safari على iOS
@@ -35,15 +37,23 @@ const OAuthCallback = () => {
     isProcessingRef.current = true;
     
     try {
-      console.log(`🔄 OAuth Callback - Attempt ${retryCountRef.current + 1}/${MAX_RETRIES}`);
-      if (isSafariIOS && retryCountRef.current === 0) {
-        console.log('📱 Safari iOS detected - using extended retry settings');
+      console.log(`🔄 OAuth Callback - Processing OAuth2 token...`);
+      
+      // جيب userId و secret من URL parameters
+      const userId = searchParams.get('userId');
+      const secret = searchParams.get('secret');
+      
+      console.log('🔑 OAuth params:', { userId: userId ? 'present' : 'missing', secret: secret ? 'present' : 'missing' });
+      
+      if (!userId || !secret) {
+        throw new Error('Missing OAuth parameters (userId or secret)');
       }
       
-      // انتظر شوية عشان الـ session تتنشأ (مهم للموبايل، خاصة Safari iOS)
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      // إنشاء session باستخدام الـ token
+      console.log('🔐 Creating session with OAuth2 token...');
+      await account.createSession(userId, secret);
       
-      // حاول تجيب الـ session مباشرة من authService
+      // الحين جيب بيانات المستخدم
       const sessionResult = await authService.getCurrentUser();
       console.log('📊 Session result:', sessionResult);
       
@@ -75,46 +85,25 @@ const OAuthCallback = () => {
         }, 1000);
         
       } else {
-        // لو ما لقينا session، حاول مرة ثانية
-        if (retryCountRef.current < MAX_RETRIES) {
-          console.log(`⏳ No session yet, retry ${retryCountRef.current + 1}/${MAX_RETRIES}...`);
-          retryCountRef.current += 1;
-          setMessage(`جاري التحقق... (محاولة ${retryCountRef.current}/${MAX_RETRIES})`);
-          isProcessingRef.current = false;
-          
-          setTimeout(() => {
-            handleOAuthCallback();
-          }, RETRY_DELAY); // انتظر بين كل محاولة (3 ثواني لـ Safari iOS)
-        } else {
-          // فشلت كل المحاولات
-          console.error('❌ OAuth failed after all retries');
-          setStatus('error');
-          setMessage('فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.');
-          
-          setTimeout(() => {
-            navigate('/login?error=oauth_failed', { replace: true });
-          }, 2000);
-        }
+        // لو ما لقينا session
+        console.error('❌ No session found after token creation');
+        setStatus('error');
+        setMessage('فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.');
+        
+        setTimeout(() => {
+          navigate('/login?error=oauth_failed', { replace: true });
+        }, 2000);
       }
       
     } catch (error) {
       console.error('❌ OAuth Callback Error:', error);
+      setStatus('error');
+      setMessage(`حدث خطأ: ${error.message || 'يرجى المحاولة مرة أخرى'}`);
+      isProcessingRef.current = false;
       
-      // حاول مرة ثانية
-      if (retryCountRef.current < MAX_RETRIES) {
-        retryCountRef.current += 1;
-        isProcessingRef.current = false;
-        setTimeout(() => {
-          handleOAuthCallback();
-        }, RETRY_DELAY);
-      } else {
-        setStatus('error');
-        setMessage('حدث خطأ أثناء تسجيل الدخول');
-        isProcessingRef.current = false;
-        setTimeout(() => {
-          navigate('/login?error=oauth_error', { replace: true });
-        }, 2000);
-      }
+      setTimeout(() => {
+        navigate('/login?error=oauth_error', { replace: true });
+      }, 3000);
     }
   };
 
