@@ -71,13 +71,15 @@ const AppwriteLogin = () => {
     
     try {
       const result = await loginWithGoogle();
-      if (!result.success) {
+      if (result.success) {
+        // نجح تسجيل الدخول - روح للـ dashboard
+        navigate('/dashboard');
+      } else {
         setError(result.error || t('common.error'));
       }
-      // في حالة النجاح، سيتم redirect تلقائياً
     } catch (error) {
       console.error('Google login error:', error);
-      setError(t('common.error'));
+      setError(error.message || t('common.error'));
     } finally {
       setLoading(false);
     }
