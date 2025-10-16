@@ -66,15 +66,28 @@ const AppwriteLogin = () => {
   };
 
   const handleGoogleLogin = async () => {
+    console.log('🔵 Google login button clicked');
+    alert('🔵 زر Google تم الضغط عليه'); // DEBUG
     setLoading(true);
     setError('');
     
     try {
-      await loginWithGoogle();
-      // الـ redirect سيحصل تلقائياً إلى /oauth-callback
-      // لا نحتاج navigate هنا
+      console.log('🔵 Calling loginWithGoogle...');
+      alert('🔵 جاري استدعاء loginWithGoogle...'); // DEBUG
+      const result = await loginWithGoogle();
+      console.log('🔵 loginWithGoogle result:', result);
+      alert(`🔵 النتيجة: ${JSON.stringify(result)}`); // DEBUG
+      
+      if (!result.success) {
+        console.error('❌ Login failed:', result.error);
+        alert(`❌ فشل: ${result.error}`); // DEBUG
+        setError(result.message || t('common.error'));
+        setLoading(false);
+      }
+      // إذا نجح، الـ redirect سيحصل تلقائياً
     } catch (error) {
-      console.error('Google login error:', error);
+      console.error('❌ Google login error:', error);
+      alert(`❌ خطأ: ${error.message}`); // DEBUG
       setError(error.message || t('common.error'));
       setLoading(false);
     }
