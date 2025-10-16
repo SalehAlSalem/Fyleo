@@ -19,9 +19,18 @@ import { useTranslation } from 'react-i18next';
 import { useLocalizedContent } from '../../hooks/useLocalizedContent';
 
 const ModernDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, checkUserSession } = useAuth();
   const { t } = useTranslation();
   const { getLocalizedValue } = useLocalizedContent();
+  
+  // Handle OAuth redirect - check session on mount
+  useEffect(() => {
+    // If no user but we're on dashboard (OAuth redirect scenario)
+    if (!user) {
+      console.log('🔄 Dashboard loaded without user - checking for OAuth session...');
+      checkUserSession();
+    }
+  }, []);
   
   // State للملفات والإحصائيات
   const [userFiles, setUserFiles] = useState([]);

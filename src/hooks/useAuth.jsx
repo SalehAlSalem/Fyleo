@@ -12,8 +12,12 @@ export const AuthProvider = ({ children }) => {
     checkUserSession();
   }, []);
 
-  const checkUserSession = async () => {
+  const checkUserSession = async (retryCount = 0) => {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000; // 1 second
+    
     try {
+      console.log(`🔍 Checking user session (attempt ${retryCount + 1}/${MAX_RETRIES + 1})...`);
       const result = await authService.getCurrentUser();
       
       if (result.success) {
@@ -38,19 +42,50 @@ export const AuthProvider = ({ children }) => {
             }
           } catch (dbError) {
             console.error('⚠️ Database operation failed:', dbError);
-            // Don't fail the session check if database operation fails
-            // User can still use the app with auth session
+            // Retry database operation for OAuth users
+            if (retryCount < MAX_RETRIES) {
+              console.log(`🔄 Retrying database operation in ${RETRY_DELAY}ms...`);
+              await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+              try {
+                await usersService.create({
+                  name: result.user.name || result.user.email.split('@')[0],
+                  email: result.user.email
+                });
+                console.log('✅ User record created on retry');
+              } catch (retryError) {
+                console.error('⚠️ Retry failed:', retryError);
+              }
+            }
           }
         }
       } else {
-        console.log('ℹ️ No active session');
+        // If no session found and we haven't exhausted retries, try again
+        // This is crucial for mobile OAuth where session might take time to establish
+        if (retryCount < MAX_RETRIES) {
+          console.log(`⏳ No session found, retrying in ${RETRY_DELAY}ms...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          return checkUserSession(retryCount + 1);
+        }
+        
+        console.log('ℹ️ No active session after all retries');
         setUser(null);
       }
     } catch (error) {
       console.error('❌ Session check failed:', error);
+      
+      // Retry on error for mobile OAuth compatibility
+      if (retryCount < MAX_RETRIES) {
+        console.log(`🔄 Retrying after error in ${RETRY_DELAY}ms...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return checkUserSession(retryCount + 1);
+      }
+      
       setUser(null);
     } finally {
-      setLoading(false);
+      // Only set loading to false after all retries are exhausted
+      if (retryCount >= MAX_RETRIES || user) {
+        setLoading(false);
+      }
     }
   };
 
