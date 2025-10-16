@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { authService } from '../../services/authService';
 import { usersService } from '../../services/appwriteService';
 
 /**
@@ -10,27 +10,44 @@ import { usersService } from '../../services/appwriteService';
  */
 const OAuthCallback = () => {
   const navigate = useNavigate();
-  const { checkUserSession } = useAuth();
   const [status, setStatus] = useState('checking'); // checking, success, error
-  const [message, setMessage] = useState('جاري التحقق من تسجيل الدخول...');
-  const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 5;
-
-  useEffect(() => {
-    handleOAuthCallback();
-  }, []);
+  
+  // اكتشاف Safari على iOS
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isSafariIOS = isSafari && isIOS;
+  
+  const [message, setMessage] = useState(
+    isSafariIOS 
+      ? 'جاري التحقق من تسجيل الدخول... (قد يستغرق وقتاً أطول على iPhone)'
+      : 'جاري التحقق من تسجيل الدخول...'
+  );
+  const retryCountRef = useRef(0);
+  const isProcessingRef = useRef(false);
+  
+  // Safari على iOS يحتاج وقت أطول ومحاولات أكثر
+  const MAX_RETRIES = isSafariIOS ? 8 : 5;
+  const RETRY_DELAY = isSafariIOS ? 3000 : 2000; // 3 ثواني لـ Safari iOS
 
   const handleOAuthCallback = async () => {
+    if (isProcessingRef.current) return; // منع التنفيذ المتعدد
+    
+    isProcessingRef.current = true;
+    
     try {
-      console.log('🔄 OAuth Callback - Starting session check...');
+      console.log(`🔄 OAuth Callback - Attempt ${retryCountRef.current + 1}/${MAX_RETRIES}`);
+      if (isSafariIOS && retryCountRef.current === 0) {
+        console.log('📱 Safari iOS detected - using extended retry settings');
+      }
       
-      // انتظر شوية عشان الـ session تتنشأ (مهم للموبايل)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // انتظر شوية عشان الـ session تتنشأ (مهم للموبايل، خاصة Safari iOS)
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
       
-      // حاول تجيب الـ session
-      const sessionResult = await checkUserSession();
+      // حاول تجيب الـ session مباشرة من authService
+      const sessionResult = await authService.getCurrentUser();
+      console.log('📊 Session result:', sessionResult);
       
-      if (sessionResult && sessionResult.user) {
+      if (sessionResult && sessionResult.success && sessionResult.user) {
         console.log('✅ OAuth Success - User session found:', sessionResult.user);
         setStatus('success');
         setMessage('تم تسجيل الدخول بنجاح! جاري التحويل...');
@@ -59,14 +76,15 @@ const OAuthCallback = () => {
         
       } else {
         // لو ما لقينا session، حاول مرة ثانية
-        if (retryCount < MAX_RETRIES) {
-          console.log(`⏳ No session yet, retry ${retryCount + 1}/${MAX_RETRIES}...`);
-          setRetryCount(prev => prev + 1);
-          setMessage(`جاري التحقق... (محاولة ${retryCount + 1}/${MAX_RETRIES})`);
+        if (retryCountRef.current < MAX_RETRIES) {
+          console.log(`⏳ No session yet, retry ${retryCountRef.current + 1}/${MAX_RETRIES}...`);
+          retryCountRef.current += 1;
+          setMessage(`جاري التحقق... (محاولة ${retryCountRef.current}/${MAX_RETRIES})`);
+          isProcessingRef.current = false;
           
           setTimeout(() => {
             handleOAuthCallback();
-          }, 1500); // انتظر 1.5 ثانية بين كل محاولة
+          }, RETRY_DELAY); // انتظر بين كل محاولة (3 ثواني لـ Safari iOS)
         } else {
           // فشلت كل المحاولات
           console.error('❌ OAuth failed after all retries');
@@ -83,20 +101,28 @@ const OAuthCallback = () => {
       console.error('❌ OAuth Callback Error:', error);
       
       // حاول مرة ثانية
-      if (retryCount < MAX_RETRIES) {
-        setRetryCount(prev => prev + 1);
+      if (retryCountRef.current < MAX_RETRIES) {
+        retryCountRef.current += 1;
+        isProcessingRef.current = false;
         setTimeout(() => {
           handleOAuthCallback();
-        }, 1500);
+        }, RETRY_DELAY);
       } else {
         setStatus('error');
         setMessage('حدث خطأ أثناء تسجيل الدخول');
+        isProcessingRef.current = false;
         setTimeout(() => {
           navigate('/login?error=oauth_error', { replace: true });
         }, 2000);
       }
     }
   };
+
+  useEffect(() => {
+    // تنفيذ مرة واحدة عند تحميل الصفحة
+    handleOAuthCallback();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
@@ -132,7 +158,7 @@ const OAuthCallback = () => {
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
             <div 
               className="bg-purple-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${(retryCount / MAX_RETRIES) * 100}%` }}
+              style={{ width: `${(retryCountRef.current / MAX_RETRIES) * 100}%` }}
             ></div>
           </div>
         )}
