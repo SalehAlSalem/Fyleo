@@ -70,17 +70,12 @@ const AppwriteLogin = () => {
     setError('');
     
     try {
-      const result = await loginWithGoogle();
-      if (result.success) {
-        // نجح تسجيل الدخول - روح للـ dashboard
-        navigate('/dashboard');
-      } else {
-        setError(result.error || t('common.error'));
-      }
+      await loginWithGoogle();
+      // الـ redirect سيحصل تلقائياً إلى /oauth-callback
+      // لا نحتاج navigate هنا
     } catch (error) {
       console.error('Google login error:', error);
       setError(error.message || t('common.error'));
-    } finally {
       setLoading(false);
     }
   };

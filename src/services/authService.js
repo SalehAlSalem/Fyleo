@@ -120,98 +120,35 @@ export const authService = {
   },
 
   /**
-   * Login with Google OAuth using Popup (Safari ITP workaround)
+   * Login with Google OAuth
+   * استخدام redirect بسيط - يشتغل على كل الأجهزة
    */
   async loginWithGoogle() {
-    return new Promise((resolve, reject) => {
-      try {
-        console.log('🔐 Starting Google OAuth with popup...');
-        
-        const projectId = import.meta.env.VITE_APPWRITE_PROJECT_ID || '68d9740b0012416cb71b';
-        const endpoint = import.meta.env.VITE_APPWRITE_URL || 'https://cloud.appwrite.io/v1';
-        
-        // بناء OAuth URL يدوياً
-        const successUrl = `${window.location.origin}/oauth-callback`;
-        const failureUrl = `${window.location.origin}/login?error=oauth_failed`;
-        
-        const oauthUrl = `${endpoint}/account/sessions/oauth2/google?` +
-          `project=${projectId}&` +
-          `success=${encodeURIComponent(successUrl)}&` +
-          `failure=${encodeURIComponent(failureUrl)}`;
-        
-        console.log('📍 Opening popup:', oauthUrl);
-        
-        // فتح popup window
-        const popup = window.open(
-          oauthUrl,
-          'Google Sign In',
-          'width=500,height=600,scrollbars=yes'
-        );
-        
-        if (!popup) {
-          throw new Error('Popup blocked. Please allow popups for this site.');
-        }
-        
-        // الاستماع لرسالة من الـ popup
-        const messageHandler = async (event) => {
-          // تحقق من المصدر
-          if (event.origin !== window.location.origin) {
-            return;
-          }
-          
-          if (event.data && event.data.type === 'OAUTH_SUCCESS') {
-            console.log('✅ OAuth popup success signal received');
-            
-            // إزالة المستمع
-            window.removeEventListener('message', messageHandler);
-            
-            // إغلاق الـ popup
-            if (popup && !popup.closed) {
-              popup.close();
-            }
-            
-            // انتظر شوية عشان الـ session تتنشأ
-            await new Promise(r => setTimeout(r, 1000));
-            
-            // جيب بيانات المستخدم
-            try {
-              const user = await account.get();
-              console.log('✅ User session retrieved:', user);
-              resolve({ success: true, user });
-            } catch (sessionError) {
-              console.error('❌ Failed to get session:', sessionError);
-              reject({ success: false, error: 'session_failed', message: sessionError.message });
-            }
-          } else if (event.data && event.data.type === 'OAUTH_FAILURE') {
-            console.error('❌ OAuth popup failure signal received');
-            window.removeEventListener('message', messageHandler);
-            if (popup && !popup.closed) {
-              popup.close();
-            }
-            reject({ success: false, error: 'oauth_failed' });
-          }
-        };
-        
-        window.addEventListener('message', messageHandler);
-        
-        // تحقق إذا الـ popup انغلق يدوياً
-        const checkClosed = setInterval(() => {
-          if (popup.closed) {
-            clearInterval(checkClosed);
-            window.removeEventListener('message', messageHandler);
-            reject({ success: false, error: 'popup_closed', message: 'Popup was closed' });
-          }
-        }, 1000);
-        
-      } catch (error) {
-        console.error('❌ Google OAuth error:', error);
-        reject({ 
-          success: false, 
-          error: error.type || 'oauth_failed',
-          message: error.message 
-        });
-      }
-    });
+    try {
+      console.log('🔐 Starting Google OAuth...');
+      
+      // حفظ علامة إن المستخدم بدأ OAuth
+      localStorage.setItem('oauth_in_progress', 'true');
+      localStorage.setItem('oauth_start_time', Date.now().toString());
+      
+      // استخدام createOAuth2Session العادي
+      await account.createOAuth2Session(
+        OAuthProvider.Google,
+        `${window.location.origin}/oauth-callback`,
+        `${window.location.origin}/login?error=oauth_failed`
+      );
+      
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Google OAuth error:', error);
+      localStorage.removeItem('oauth_in_progress');
+      localStorage.removeItem('oauth_start_time');
+      return { 
+        success: false, 
+        error: error.type || 'oauth_failed',
+        message: error.message 
+      };
+    }
   },
 
   /**

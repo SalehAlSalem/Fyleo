@@ -91,31 +91,8 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = async () => {
     try {
       const result = await authService.loginWithGoogle();
-      
-      if (result.success && result.user) {
-        console.log('✅ OAuth success, setting user:', result.user);
-        setUser(result.user);
-        
-        // إنشاء سجل في قاعدة البيانات إذا لم يكن موجوداً
-        try {
-          const existingUser = await usersService.getByEmail(result.user.email);
-          
-          if (!existingUser) {
-            console.log('💾 Creating user record in database...');
-            await usersService.create({
-              name: result.user.name || result.user.email.split('@')[0],
-              email: result.user.email
-            });
-            console.log('✅ User record created successfully');
-          } else {
-            console.log('✅ User already exists in database');
-          }
-        } catch (dbError) {
-          console.error('⚠️ Database operation failed:', dbError);
-          // لا نفشل العملية إذا فشل حفظ قاعدة البيانات
-        }
-      }
-      
+      // الـ redirect سيحصل تلقائياً
+      // OAuthCallback page ستتعامل مع الـ session و database
       return result;
     } catch (error) {
       console.error('❌ Google login error:', error);
