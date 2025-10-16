@@ -53,44 +53,30 @@ const OAuthCallback = () => {
         if (userId && secret) {
           setDebugMessage('إنشاء الجلسة من Token...');
           addDebug('🔐 Creating session from OAuth2 token...');
+          addDebug(`userId: ${userId.substring(0, 10)}...`);
           
           try {
             // استخدام account.createSession مباشرة
             const { account } = await import('../../config/appwrite');
-            await account.createSession(userId, secret);
+            const session = await account.createSession(userId, secret);
             addDebug('✅ Session created from token!');
+            addDebug(`Session ID: ${session.$id}`);
             
             // الآن جيب بيانات المستخدم
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 500));
             result = await authService.getCurrentUser();
-            addDebug(`📊 User data: ${JSON.stringify(result)}`);
+            addDebug(`📊 User: ${result.user?.email || 'N/A'}`);
           } catch (sessionError) {
-            addDebug(`❌ Session creation failed: ${sessionError.message}`);
+            addDebug(`❌ Session error: ${sessionError.message}`);
             throw sessionError;
           }
         } else {
-          // Fallback: حاول تجيب الـ session العادي (للـ desktop)
-          addDebug('⚠️ No userId/secret in URL, trying regular session...');
+          // Fallback: session عادي (Windows/Android)
+          addDebug('⚠️ No userId/secret - trying regular session...');
           
-          const MAX_RETRIES = 3;
-          const RETRY_DELAY = 2000;
-          
-          for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            setDebugMessage(`محاولة ${attempt}/${MAX_RETRIES}...`);
-            addDebug(`⏳ Attempt ${attempt}/${MAX_RETRIES}...`);
-            
-            await new Promise(r => setTimeout(r, RETRY_DELAY));
-            
-            result = await authService.getCurrentUser();
-            addDebug(`📊 Result: ${JSON.stringify(result)}`);
-            
-            if (result.success && result.user) {
-              addDebug('✅ Session found!');
-              break;
-            } else {
-              addDebug(`❌ Attempt ${attempt} failed`);
-            }
-          }
+          await new Promise(r => setTimeout(r, 2000));
+          result = await authService.getCurrentUser();
+          addDebug(`📊 Result: ${JSON.stringify(result)}`);
         }
         
         if (result && result.success && result.user) {
