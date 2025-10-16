@@ -21,7 +21,14 @@ const OAuthCallback = () => {
   useEffect(() => {
     const handleOAuthCallback = async () => {
       addDebug('💬 OAuth Callback page loaded');
+      addDebug(`📍 URL: ${window.location.href}`);
       setDebugMessage('تحميل الصفحة...');
+      
+      // فحص URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('userId');
+      const secret = urlParams.get('secret');
+      addDebug(`🔑 URL params - userId: ${userId ? 'present' : 'missing'}, secret: ${secret ? 'present' : 'missing'}`);
       
       // تحقق من localStorage
       const oauthInProgress = localStorage.getItem('oauth_in_progress');
@@ -40,16 +47,33 @@ const OAuthCallback = () => {
       addDebug('✅ localStorage cleared');
       
       try {
-        setDebugMessage('انتظار الجلسة...');
-        addDebug('⏳ Waiting 1.5 seconds for session...');
-        await new Promise(r => setTimeout(r, 1500));
+        // Safari iOS يحتاج وقت أطول + retry logic
+        const MAX_RETRIES = 5;
+        const RETRY_DELAY = 2000; // 2 ثانية
+        let result = null;
         
-        setDebugMessage('جلب بيانات المستخدم...');
-        addDebug('🔍 Fetching user session...');
-        const result = await authService.getCurrentUser();
-        addDebug(`📊 Result: ${JSON.stringify(result)}`);
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+          setDebugMessage(`محاولة ${attempt}/${MAX_RETRIES}...`);
+          addDebug(`⏳ Attempt ${attempt}/${MAX_RETRIES} - waiting ${RETRY_DELAY}ms...`);
+          
+          await new Promise(r => setTimeout(r, RETRY_DELAY));
+          
+          addDebug('🔍 Fetching user session...');
+          result = await authService.getCurrentUser();
+          addDebug(`📊 Result: ${JSON.stringify(result)}`);
+          
+          if (result.success && result.user) {
+            addDebug('✅ Session found!');
+            break;
+          } else {
+            addDebug(`❌ Attempt ${attempt} failed: ${result.error}`);
+            if (attempt < MAX_RETRIES) {
+              addDebug('🔄 Retrying...');
+            }
+          }
+        }
         
-        if (result.success && result.user) {
+        if (result && result.success && result.user) {
           setDebugMessage('✅ تم العثور على الجلسة!');
           addDebug(`✅ User: ${result.user.email}`);
           
