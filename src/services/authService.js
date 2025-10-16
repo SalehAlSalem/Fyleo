@@ -121,15 +121,15 @@ export const authService = {
 
   /**
    * Login with Google OAuth
-   * استخدام createOAuth2Token بدل createOAuth2Session
-   * هذا يحل مشكلة Safari iOS الي بيمنع third-party cookies
    */
   async loginWithGoogle() {
     try {
-      // createOAuth2Token يرجع promise مع userId و secret في الـ URL
-      await account.createOAuth2Token(
+      console.log('🔐 Starting Google OAuth...');
+      
+      // استخدام createOAuth2Session - يشتغل على كل المتصفحات
+      await account.createOAuth2Session(
         OAuthProvider.Google,
-        `${window.location.origin}/oauth-callback`, // ✅ صفحة callback مخصصة
+        `${window.location.origin}/oauth-callback`,
         `${window.location.origin}/login?error=oauth_failed`
       );
       
