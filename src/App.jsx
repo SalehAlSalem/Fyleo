@@ -37,6 +37,7 @@ import CompleteAdminPanel from './pages/AdminPage/CompleteAdminPanel.jsx';
 import FileUploadForm from './components/Upload/FileUploadForm.jsx';
 import EmailVerificationPage from './pages/EmailVerification/EmailVerificationPage.jsx';
 import SessionTestPage from './pages/SessionTest/SessionTestPage.jsx';
+import OAuthCallback from './pages/OAuthCallback/OAuthCallback.jsx';
 
 const App = () => {
   const { theme } = useTheme();
@@ -110,6 +111,7 @@ const App = () => {
               
               <Route path="/login" element={<AppwriteLogin />} />
               <Route path="/signup" element={<AppwriteSignup />} />
+              <Route path="/oauth-callback" element={<OAuthCallback />} />
               <Route path="/verify-email" element={<EmailVerificationPage />} />
               <Route path="/session-test" element={<SessionTestPage />} />
               <Route path="/details" element={<Layout />} />

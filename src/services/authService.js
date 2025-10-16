@@ -124,9 +124,11 @@ export const authService = {
    */
   async loginWithGoogle() {
     try {
+      // استخدام صفحة callback مخصصة للتعامل مع OAuth redirect
+      // هذا يحل مشكلة الموبايل حيث الـ session تاخد وقت عشان تتنشأ
       await account.createOAuth2Session(
         OAuthProvider.Google,
-        `${window.location.origin}/dashboard`,
+        `${window.location.origin}/oauth-callback`, // ✅ صفحة callback مخصصة
         `${window.location.origin}/login?error=oauth_failed`
       );
       
