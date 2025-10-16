@@ -121,18 +121,19 @@ export const authService = {
 
   /**
    * Login with Google OAuth
-   * استخدام redirect بسيط - يشتغل على كل الأجهزة
+   * استخدام createOAuth2Token - الحل الصحيح لـ Safari ITP
    */
   async loginWithGoogle() {
     try {
-      console.log('🔐 Starting Google OAuth...');
+      console.log('🔐 Starting Google OAuth with Token method...');
       
       // حفظ علامة إن المستخدم بدأ OAuth
       localStorage.setItem('oauth_in_progress', 'true');
       localStorage.setItem('oauth_start_time', Date.now().toString());
       
-      // استخدام createOAuth2Session العادي
-      await account.createOAuth2Session(
+      // استخدام createOAuth2Token بدل createOAuth2Session
+      // هذا يرسل userId و secret في الـ URL بدل cookies
+      await account.createOAuth2Token(
         OAuthProvider.Google,
         `${window.location.origin}/oauth-callback`,
         `${window.location.origin}/login?error=oauth_failed`

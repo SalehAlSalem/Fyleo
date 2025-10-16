@@ -47,28 +47,48 @@ const OAuthCallback = () => {
       addDebug('✅ localStorage cleared');
       
       try {
-        // Safari iOS يحتاج وقت أطول + retry logic
-        const MAX_RETRIES = 5;
-        const RETRY_DELAY = 2000; // 2 ثانية
         let result = null;
         
-        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-          setDebugMessage(`محاولة ${attempt}/${MAX_RETRIES}...`);
-          addDebug(`⏳ Attempt ${attempt}/${MAX_RETRIES} - waiting ${RETRY_DELAY}ms...`);
+        // إذا في userId و secret في الـ URL، استخدمهم لإنشاء session
+        if (userId && secret) {
+          setDebugMessage('إنشاء الجلسة من Token...');
+          addDebug('🔐 Creating session from OAuth2 token...');
           
-          await new Promise(r => setTimeout(r, RETRY_DELAY));
+          try {
+            // استخدام account.createSession مباشرة
+            const { account } = await import('../../config/appwrite');
+            await account.createSession(userId, secret);
+            addDebug('✅ Session created from token!');
+            
+            // الآن جيب بيانات المستخدم
+            await new Promise(r => setTimeout(r, 1000));
+            result = await authService.getCurrentUser();
+            addDebug(`📊 User data: ${JSON.stringify(result)}`);
+          } catch (sessionError) {
+            addDebug(`❌ Session creation failed: ${sessionError.message}`);
+            throw sessionError;
+          }
+        } else {
+          // Fallback: حاول تجيب الـ session العادي (للـ desktop)
+          addDebug('⚠️ No userId/secret in URL, trying regular session...');
           
-          addDebug('🔍 Fetching user session...');
-          result = await authService.getCurrentUser();
-          addDebug(`📊 Result: ${JSON.stringify(result)}`);
+          const MAX_RETRIES = 3;
+          const RETRY_DELAY = 2000;
           
-          if (result.success && result.user) {
-            addDebug('✅ Session found!');
-            break;
-          } else {
-            addDebug(`❌ Attempt ${attempt} failed: ${result.error}`);
-            if (attempt < MAX_RETRIES) {
-              addDebug('🔄 Retrying...');
+          for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            setDebugMessage(`محاولة ${attempt}/${MAX_RETRIES}...`);
+            addDebug(`⏳ Attempt ${attempt}/${MAX_RETRIES}...`);
+            
+            await new Promise(r => setTimeout(r, RETRY_DELAY));
+            
+            result = await authService.getCurrentUser();
+            addDebug(`📊 Result: ${JSON.stringify(result)}`);
+            
+            if (result.success && result.user) {
+              addDebug('✅ Session found!');
+              break;
+            } else {
+              addDebug(`❌ Attempt ${attempt} failed`);
             }
           }
         }
