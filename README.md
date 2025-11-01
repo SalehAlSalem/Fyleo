@@ -1,6 +1,19 @@
-# Fyleo
+<div align="center">
+  <img src="./public/fyleo-logo.svg" alt="Fyleo Logo" width="200" height="200">
+  
+  # Fyleo
+  
+  ### A modern educational platform for students to share and access course materials
+  
+  [![Ko-fi](https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/bawa3neh_97)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+  [![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red)](https://github.com/SalehAlSalem)
+  
+</div>
 
-A modern educational platform for students to share and access course materials, featuring a hierarchical content organization system with intelligent search capabilities.
+---
+
+A comprehensive educational materials sharing platform featuring a hierarchical content organization system with intelligent search capabilities.
 
 ## Table of Contents
 
