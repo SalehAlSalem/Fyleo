@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ModernCard, ModernButton, ModernInput, ModernAlert } from '../../components/modern/ModernComponents';
+import { ModernCard, ModernButton, ModernInput, ModernAlert } from '@shared/ui/modern/ModernComponents';
 import AdminService from '../../config/AdminService';
+import { subjectsService } from '../../services/appwriteService';
 
 const FilesManagement = () => {
   const [files, setFiles] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -17,6 +19,7 @@ const FilesManagement = () => {
 
   useEffect(() => {
     loadCategories();
+    loadSubjects();
     loadFiles();
   }, [currentPage, filterCategory]);
 
@@ -26,6 +29,15 @@ const FilesManagement = () => {
       setCategories(data);
     } catch (error) {
       console.error('Error loading categories:', error);
+    }
+  };
+
+  const loadSubjects = async () => {
+    try {
+      const data = await subjectsService.getAll();
+      setSubjects(data);
+    } catch (error) {
+      console.error('Error loading subjects:', error);
     }
   };
 
@@ -58,7 +70,7 @@ const FilesManagement = () => {
         file.title?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesUser = !filterUser || 
-        file.uploadedBy?.toLowerCase().includes(filterUser.toLowerCase());
+        file.uploaderId?.toLowerCase().includes(filterUser.toLowerCase());
       
       return matchesSearch && matchesUser;
     });
@@ -81,6 +93,17 @@ const FilesManagement = () => {
     try {
       await AdminService.reassignMaterialCategory(fileId, newCategoryId);
       setSuccess('تم نقل الملف بنجاح');
+      loadFiles();
+    } catch (error) {
+      setError('فشل نقل الملف');
+      console.error(error);
+    }
+  };
+
+  const handleReassignSubject = async (fileId, newSubjectId) => {
+    try {
+      await AdminService.updateMaterial(fileId, { subjectId: newSubjectId });
+      setSuccess('تم نقل الملف إلى المادة بنجاح');
       loadFiles();
     } catch (error) {
       setError('فشل نقل الملف');
@@ -124,10 +147,10 @@ const FilesManagement = () => {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          إدارة الملفات المرفوعة
+          إدارة المكتبة
         </h2>
         <p className="text-gray-600 dark:text-gray-400">
-          عرض وإدارة جميع الملفات المرفوعة من جميع المستخدمين
+          عرض وإدارة جميع الملفات في المكتبة
         </p>
       </div>
 
@@ -213,8 +236,8 @@ const FilesManagement = () => {
                 <tr>
                   <th className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">اسم الملف</th>
                   <th className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">المالك</th>
-                  <th className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">المادة</th>
                   <th className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">الفئة</th>
+                  <th className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">المادة</th>
                   <th className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">الحجم</th>
                   <th className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">التحميلات</th>
                   <th className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">إجراءات</th>
@@ -232,20 +255,35 @@ const FilesManagement = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
-                      {file.uploadedBy || 'غير معروف'}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400 truncate max-w-xs">
-                      {file.title || 'غير محدد'}
+                      {file.uploaderId || 'غير معروف'}
                     </td>
                     <td className="px-4 py-3">
                       <select
                         value={file.categoryId || ''}
                         onChange={(e) => handleReassignCategory(file.$id, e.target.value)}
                         className="px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        title="نقل إلى فئة أخرى"
                       >
                         {categories.map((category) => (
                           <option key={category.$id} value={category.$id}>
                             {category.nameAr}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={file.subjectId || ''}
+                        onChange={(e) => handleReassignSubject(file.$id, e.target.value)}
+                        className="px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        title="نقل إلى مادة أخرى"
+                      >
+                        <option value="">اختر مادة...</option>
+                        {subjects
+                          .filter(s => !file.categoryId || s.categoryId === file.categoryId)
+                          .map((subject) => (
+                          <option key={subject.$id} value={subject.$id}>
+                            {subject.nameAr}
                           </option>
                         ))}
                       </select>
@@ -334,3 +372,4 @@ const FilesManagement = () => {
 };
 
 export default FilesManagement;
+

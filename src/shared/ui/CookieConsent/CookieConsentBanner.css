@@ -1,0 +1,152 @@
+/* Cookie Consent Banner */
+.cookie-consent-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(26, 35, 50, 0.98);
+  backdrop-filter: blur(10px);
+  border-top: 2px solid rgba(102, 126, 234, 0.3);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cookie-consent-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+}
+
+.cookie-consent-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Cookie Icon */
+.cookie-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Message */
+.cookie-message {
+  flex: 1;
+  min-width: 250px;
+}
+
+.cookie-message p {
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.cookie-link {
+  color: #667eea;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.cookie-link:hover {
+  color: #5a67d8;
+}
+
+/* Accept Button */
+.cookie-accept-btn {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cookie-accept-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.cookie-accept-btn:active {
+  transform: translateY(0);
+}
+
+/* Dark Mode (already dark by default) */
+@media (prefers-color-scheme: light) {
+  .cookie-consent-banner {
+    background: rgba(255, 255, 255, 0.98);
+    border-top-color: rgba(102, 126, 234, 0.2);
+  }
+
+  .cookie-message p {
+    color: #2d3748;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cookie-consent-container {
+    padding: 1rem;
+  }
+
+  .cookie-consent-content {
+    gap: 1rem;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .cookie-icon {
+    font-size: 1.5rem;
+  }
+
+  .cookie-message {
+    min-width: 100%;
+  }
+
+  .cookie-message p {
+    font-size: 0.875rem;
+  }
+
+  .cookie-accept-btn {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+/* RTL Support */
+[dir="rtl"] .cookie-consent-content {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .cookie-message p {
+  text-align: right;
+}

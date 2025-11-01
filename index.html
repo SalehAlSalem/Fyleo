@@ -2,12 +2,13 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/Favicon.webp" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/fyleo-logo.svg" />
+    <link rel="apple-touch-icon" href="/fyleo-logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     
     <!-- Safari iOS compatibility -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     
     <title>Fyleo - مشاركة الملفات التعليمية</title>
     <meta name="description" content="منصة Fyleo لمشاركة وتنظيم الملفات التعليمية والأكاديمية" />
@@ -26,7 +27,25 @@
       * {
         direction: inherit;
       }
+      /* Prevent scroll restoration */
+      html {
+        scroll-behavior: auto !important;
+      }
+      /* Prevent iOS zoom on input focus - minimum 16px font size */
+      input, textarea, select {
+        font-size: 16px !important;
+      }
     </style>
+    
+    <!-- Prevent browser scroll restoration -->
+    <script>
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+    </script>
+    
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <!-- GitHub Pages SPA support -->
     <script type="text/javascript">
@@ -46,6 +65,7 @@
   <body>
    <div id="root"></div>
    <div id="modal" class="top-0 z-[1000000] absolute"></div>
-   <script type="module" src="/src/main.jsx"></script>
+   <script type="module" src="/src/app/main.jsx"></script>
   </body>
 </html>
+

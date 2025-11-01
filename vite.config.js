@@ -3,6 +3,18 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': '/src',
+      '@app': '/src/app',
+      '@shared': '/src/shared',
+      '@features': '/src/features',
+      '@services': '/src/services',
+      '@config': '/src/config',
+      '@types': '/src/types',
+      '@lib': '/src/shared/lib'
+    }
+  },
   base: process.env.GITHUB_PAGES ? '/Fyleo/' : '/',
   build: {
     outDir: 'dist',
@@ -11,33 +23,18 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          router: ['react-router-dom']
+          router: ['react-router-dom'],
+          appwrite: ['appwrite'],
+          query: ['@tanstack/react-query']
         }
       }
     }
   },
   server: {
     port: 5173,
-    host: true,
-    proxy: {
-      '/minio-proxy': {
-        target: 'http://79.76.119.182:9000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/minio-proxy/, ''),
-        secure: false
-      }
-    }
+    host: true
   },
   optimizeDeps: {
-    include: ['react', 'react-dom']
-  },
-  define: {
-    global: 'globalThis',
-  },
-  resolve: {
-    alias: {
-      stream: 'stream-browserify',
-      buffer: 'buffer'
-    }
+    include: ['react', 'react-dom', 'appwrite', '@tanstack/react-query']
   }
 })

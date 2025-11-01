@@ -4,7 +4,7 @@ import { Viewer, Worker, ViewMode, ProgressBar } from "@react-pdf-viewer/core";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
-import NavBar from "../NavBar";
+import ModernNavbar from "../modern/ModernNavbar";
 import { DatabaseService } from "../../config/DatabaseService";
 import classNames from "classnames";
 
@@ -72,7 +72,7 @@ export default function PDFViewer(){
     if (loading) {
         return (
             <>
-                <NavBar/>
+                <ModernNavbar/>
                 <div className="flex items-center justify-center h-screen">
                     <div className="text-lg">جاري تحميل الملف...</div>
                 </div>
@@ -83,7 +83,7 @@ export default function PDFViewer(){
     if (error) {
         return (
             <>
-                <NavBar/>
+                <ModernNavbar/>
                 <div className="flex items-center justify-center h-screen">
                     <div className="text-red-500 text-lg">{error}</div>
                 </div>
@@ -94,7 +94,7 @@ export default function PDFViewer(){
     if (!fileUrl) {
         return (
             <>
-                <NavBar/>
+                <ModernNavbar/>
                 <div className="flex items-center justify-center h-screen">
                     <div className="text-lg">رابط الملف غير متوفر</div>
                 </div>
@@ -104,7 +104,7 @@ export default function PDFViewer(){
 
     return (
         <>
-            <NavBar/>
+            <ModernNavbar/>
             {fileInfo && (
                 <div className="fixed top-20 left-4 bg-white p-3 rounded shadow-lg z-10 max-w-xs">
                     <h3 className="font-bold text-sm mb-1">{fileInfo.originalName || fileInfo.name}</h3>

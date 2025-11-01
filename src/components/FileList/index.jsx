@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { DatabaseService } from '../../config/DatabaseService';
-import { useAuth } from '../../hooks/useAuth';
-import { DownloadHelper } from '../../utils/DownloadHelper';
+import { DatabaseService } from '../../config/DatabaseService';
 
 // أيقونات مزود التخزين
 const providerBadge = (p) => {
@@ -19,69 +18,16 @@ const humanSize = (bytes) => {
 };
 
 const FileList = ({ max=50, enableSearch=true, categorySlug=null }) => {
-  const { user } = useAuth();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [qText, setQText] = useState('');
 
-  // وظيفة تحميل الملف مع تسجيل في Downloads Collection
-  const handleDownload = async (file) => {
-    console.log('🔍 handleDownload called with file:', file);
-    console.log('🔍 User:', user);
-    console.log('🔍 File downloadURL:', file.downloadURL);
-    
-    try {
-      // تسجيل التحميل في Downloads Collection
-      if (user) {
-        await DatabaseService.createDownload({
-          userId: user.$id,
-          fileId: file.$id
-        });
-        console.log('✅ Download recorded in downloads collection');
-      } else {
-        console.log('⚠️ No user logged in, skipping download recording');
-      }
-      
-      // تحميل الملف مباشرة
-      if (file.downloadURL) {
-        console.log('📥 Starting download...');
-        
-        // طريقة مباشرة وبسيطة
-        const link = document.createElement('a');
-        link.href = file.downloadURL;
-        link.download = file.name || file.title || 'file';
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        console.log('✅ Download initiated successfully');
-      } else {
-        console.error('❌ No downloadURL found for file:', file);
-        alert('رابط التحميل غير متوفر');
-      }
-    } catch (err) {
-      console.error('Error in download process:', err);
-      
-      // حتى لو فشل التسجيل، جرب التحميل المباشر
-      if (file.downloadURL) {
-        console.log('🔄 Attempting direct download despite error...');
-        window.open(file.downloadURL, '_blank');
-      } else {
-        alert('خطأ في تحميل الملف: ' + err.message);
-      }
-    }
-  };
-
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        console.log('🔄 Fetching files from database...');
         const filesResponse = await DatabaseService.getAllFiles();
         const files = filesResponse.documents || [];
-        console.log('📂 Files fetched:', files.length);
-        console.log('📂 Sample file data:', files[0]);
         setFiles(files);
         setLoading(false);
       } catch (err) {
@@ -154,22 +100,8 @@ const FileList = ({ max=50, enableSearch=true, categorySlug=null }) => {
                 {f.description && <div className="text-xs mt-1 line-clamp-2 text-gray-500">{f.description}</div>}
               </div>
               <div className="flex flex-col gap-2 w-32">
-                {f.downloadURL ? (
-                  <button 
-                    onClick={() => {
-                      console.log('🖱️ Download button clicked!');
-                      console.log('📂 File object:', f);
-                      console.log('🔗 Download URL:', f.downloadURL);
-                      handleDownload(f);
-                    }}
-                    className="text-center text-xs bg-blue-600 hover:bg-blue-700 text-white rounded px-2 py-1 font-medium cursor-pointer"
-                  >
-                    📥 تنزيل
-                  </button>
-                ) : (
-                  <div className="text-center text-xs bg-gray-400 text-white rounded px-2 py-1 font-medium">
-                    رابط غير متوفر
-                  </div>
+                {f.downloadURL && (
+                  <a href={f.downloadURL} target="_blank" rel="noopener noreferrer" className="text-center text-xs bg-blue-600 hover:bg-blue-700 text-white rounded px-2 py-1 font-medium">تنزيل</a>
                 )}
               </div>
             </div>

@@ -15,7 +15,7 @@ const translations = {
   ar: {
     // Navigation
     home: 'الرئيسية',
-    materials: 'المواد',
+    materials: 'المكتبة',
     dashboard: 'لوحة التحكم',
     profile: 'الملف الشخصي',
     admin: 'لوحة الإدارة',
@@ -57,20 +57,26 @@ const translations = {
     bookmarks: 'المفضلة',
     uploadFile: 'رفع ملف',
     
-    // Materials
+    // Library
     categories: 'التصنيفات',
-    subjects: 'المواد',
+    subjects: 'المواد الدراسية',
     fileTypes: 'أنواع الملفات',
     selectCategory: 'اختر التصنيف',
     selectSubject: 'اختر المادة',
     selectFileType: 'اختر نوع الملف',
+    exploreDescription: 'استكشف مكتبتنا الشاملة من المواد التعليمية',
+    noSubjectsAvailable: 'لا توجد مواد متاحة',
+    creditHours: 'ساعة معتمدة',
+    level: 'المستوى',
+    noContent: 'لا يوجد محتوى متاح',
+    academicCategories: 'التصنيفات الأكاديمية',
     
     // Admin
     usersManagement: 'إدارة المستخدمين',
     categoriesManagement: 'إدارة التصنيفات',
-    subjectsManagement: 'إدارة المواد',
+    subjectsManagement: 'إدارة المواضيع',
     fileTypesManagement: 'إدارة أنواع الملفات',
-    materialsManagement: 'إدارة الملفات',
+    materialsManagement: 'إدارة المكتبة',
     
     // Messages
     uploadSuccess: 'تم رفع الملف بنجاح',
@@ -123,7 +129,7 @@ const translations = {
   en: {
     // Navigation
     home: 'Home',
-    materials: 'Materials',
+    materials: 'Library',
     dashboard: 'Dashboard',
     profile: 'Profile',
     admin: 'Admin Panel',
@@ -165,20 +171,26 @@ const translations = {
     bookmarks: 'Bookmarks',
     uploadFile: 'Upload File',
     
-    // Materials
+    // Library
     categories: 'Categories',
     subjects: 'Subjects',
     fileTypes: 'File Types',
     selectCategory: 'Select Category',
     selectSubject: 'Select Subject',
     selectFileType: 'Select File Type',
+    exploreDescription: 'Explore our comprehensive library of educational materials',
+    noSubjectsAvailable: 'No subjects available',
+    creditHours: 'Credit Hours',
+    level: 'Level',
+    noContent: 'No content available',
+    academicCategories: 'Academic Categories',
     
     // Admin
     usersManagement: 'Users Management',
     categoriesManagement: 'Categories Management',
     subjectsManagement: 'Subjects Management',
     fileTypesManagement: 'File Types Management',
-    materialsManagement: 'Materials Management',
+    materialsManagement: 'Library Management',
     
     // Messages
     uploadSuccess: 'File uploaded successfully',

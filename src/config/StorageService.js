@@ -1,143 +1,215 @@
-import { IntegratedStorageService } from './IntegratedStorageService.js';
+import { Client, Functions } from 'appwrite';
+
+const client = new Client()
+  .setEndpoint(import.meta.env.VITE_APPWRITE_URL || 'https://cloud.appwrite.io/v1')
+  .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID);
+
+const functions = new Functions(client);
+const UPLOAD_FUNCTION_ID = import.meta.env.VITE_APPWRITE_MINIO_UPLOAD_FUNCTION_ID;
 
 export const StorageService = {
-  // ============= File Upload =============
   async uploadFile(file, options = {}) {
     try {
-      console.log('بدء رفع الملف عبر MinIO:', file.name);
-      
-      // محاكاة progress للتجربة البصرية
-      if (options.onProgress) {
-        const simulateProgress = () => {
-          let progress = 0;
-          const interval = setInterval(() => {
-            progress += 10;
-            if (progress <= 90) {
-              options.onProgress(progress);
-            } else {
-              clearInterval(interval);
-            }
-          }, 200);
-          return interval;
-        };
-        const progressInterval = simulateProgress();
-        
-        // استخدام الخدمة المتكاملة (MinIO + Database)
-        const result = await IntegratedStorageService.uploadFile(file, options);
-        
-        clearInterval(progressInterval);
-        options.onProgress(100);
-        
-        console.log('تم رفع الملف بنجاح عبر MinIO:', result);
-        return result;
-      } else {
-        // استخدام الخدمة المتكاملة (MinIO + Database)
-        const result = await IntegratedStorageService.uploadFile(file, options);
-        console.log('تم رفع الملف بنجاح عبر MinIO:', result);
-        return result;
+      if (!this.isValidFileType(file.type)) {
+        throw new Error('نوع الملف غير مدعوم');
       }
-    } catch (error) {
-      console.error('خطأ في رفع الملف عبر MinIO:', error);
-      throw new Error(`فشل في رفع الملف: ${error.message}`);
-    }
-  },
+      if (!this.isValidFileSize(file.size)) {
+        throw new Error('حجم الملف كبير جداً (الحد الأقصى 100 ميجابايت)');
+      }
+      if (!UPLOAD_FUNCTION_ID) {
+        throw new Error('لم يتم ضبط مُعرف وظيفة Appwrite الخاصة برفع MinIO (VITE_APPWRITE_MINIO_UPLOAD_FUNCTION_ID)');
+      }
 
-  // ============= File Management =============
-  async getFileInfo(fileId) {
-    try {
-      return await IntegratedStorageService.getFileInfo(fileId);
+      // 1) اطلب رابط رفع موقّت من Appwrite Function
+      const execution = await functions.createExecution(
+        UPLOAD_FUNCTION_ID,
+        JSON.stringify({
+          action: 'getUploadUrl',
+          fileName: file.name,
+          contentType: file.type
+        }),
+        false,
+        '/',
+        'POST'
+      );
+
+      let data;
+      try {
+        data = JSON.parse(execution.responseBody || '{}');
+      } catch (e) {
+        throw new Error('استجابة الوظيفة غير صالحة');
+      }
+
+      const { uploadUrl, objectName, downloadUrl } = data || {};
+      if (!uploadUrl || !objectName) {
+        throw new Error('فشل الحصول على رابط الرفع من الوظيفة');
+      }
+
+      console.log('🔼 بدء رفع الملف عبر Presigned URL:', { objectName });
+
+      // 2) ارفع الملف إلى MinIO عبر Presigned URL with progress tracking
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        
+        // ✅ Track upload progress
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable && options.onProgress) {
+            const percentComplete = Math.round((e.loaded / e.total) * 100);
+            options.onProgress(percentComplete);
+            console.log(`📈 Upload progress: ${percentComplete}%`);
+          }
+        });
+        
+        // ✅ Handle completion
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            if (options.onProgress) options.onProgress(100);
+            resolve();
+          } else {
+            reject(new Error(`فشل رفع الملف إلى MinIO: ${xhr.status}`));
+          }
+        });
+        
+        // ✅ Handle errors
+        xhr.addEventListener('error', () => {
+          reject(new Error('حدث خطأ أثناء رفع الملف'));
+        });
+        
+        xhr.addEventListener('abort', () => {
+          reject(new Error('تم إلغاء عملية الرفع'));
+        });
+        
+        // ✅ Start upload
+        xhr.open('PUT', uploadUrl);
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.send(file);
+      });
+
+      console.log('✅ تم رفع الملف بنجاح إلى MinIO:', { objectName });
+
+      // ✅ Generate permanent public URL (bucket is public with download policy)
+      const publicUrl = this.getPublicURL(objectName);
+      console.log('✅ Public URL (permanent):', publicUrl);
+
+      return {
+        fileId: objectName,
+        downloadURL: publicUrl,
+        viewURL: publicUrl,
+        previewURL: publicUrl,
+        fileName: file.name,
+        size: file.size,
+        mimeType: file.type
+      };
     } catch (error) {
-      console.error('خطأ في الحصول على معلومات الملف:', error);
-      throw error;
+      console.error('خطأ في رفع الملف عبر الوظيفة:', error);
+      throw new Error(`فشل في رفع الملف: ${error.message}`);
     }
   },
 
   async deleteFile(fileId) {
     try {
-      const result = await IntegratedStorageService.deleteFile(fileId);
-      console.log('تم حذف الملف بنجاح من MinIO:', fileId);
-      return result;
+      if (!UPLOAD_FUNCTION_ID) {
+        throw new Error('لم يتم ضبط مُعرف وظيفة Appwrite (VITE_APPWRITE_MINIO_UPLOAD_FUNCTION_ID)');
+      }
+      const execution = await functions.createExecution(
+        UPLOAD_FUNCTION_ID,
+        JSON.stringify({ action: 'deleteObject', objectName: fileId }),
+        false,
+        '/',
+        'POST'
+      );
+      const res = JSON.parse(execution.responseBody || '{}');
+      const ok = !!res?.deleted;
+      if (ok) console.log('🗑️ تم حذف الملف بنجاح:', fileId);
+      return ok;
     } catch (error) {
-      console.error('خطأ في حذف الملف من MinIO:', error);
+      console.error('خطأ في حذف الملف عبر الوظيفة:', error);
       throw error;
     }
   },
 
-  async listFiles(limit = 100, offset = 0) {
-    try {
-      return await IntegratedStorageService.listFiles(limit, offset);
-    } catch (error) {
-      console.error('خطأ في جلب قائمة الملفات من MinIO:', error);
-      throw error;
-    }
+  /**
+   * Get public URL for a file (permanent - no expiry)
+   * @param {string} fileId - MinIO object name
+   * @returns {string} - Public URL
+   */
+  getPublicURL(fileId) {
+    const endpoint = import.meta.env.VITE_MINIO_ENDPOINT;
+    const port = import.meta.env.VITE_MINIO_PORT || '9000';
+    const useSSL = String(import.meta.env.VITE_MINIO_USE_SSL || 'true') === 'true';
+    const bucket = import.meta.env.VITE_MINIO_BUCKET_NAME || 'mybucket';
+    
+    const protocol = useSSL ? 'https' : 'http';
+    const publicUrl = `${protocol}://${endpoint}:${port}/${bucket}/${fileId}`;
+    
+    return publicUrl;
   },
 
-  // ============= File URLs =============
-  getFileDownload(fileId) {
+  /**
+   * Get file download URL (uses public URL - permanent)
+   * @param {string} fileId - MinIO object name
+   * @returns {Promise<string|null>}
+   */
+  async getFileDownload(fileId) {
     try {
-      return IntegratedStorageService.getFileDownload(fileId);
+      // ✅ Return permanent public URL (bucket is public)
+      return this.getPublicURL(fileId);
     } catch (error) {
-      console.error('خطأ في الحصول على رابط التحميل من MinIO:', error);
+      console.error('خطأ في الحصول على رابط التحميل:', error);
       return null;
     }
   },
-
+  
   getFileView(fileId) {
-    try {
-      return IntegratedStorageService.getFileView(fileId);
-    } catch (error) {
-      console.error('خطأ في الحصول على رابط العرض من MinIO:', error);
-      return null;
-    }
+    // ✅ Return permanent public URL
+    return this.getPublicURL(fileId);
   },
-
-  getFilePreview(fileId, width = 800, height = 600, quality = 90) {
-    try {
-      return IntegratedStorageService.getFilePreview(fileId, width, height, quality);
-    } catch (error) {
-      console.error('خطأ في الحصول على رابط المعاينة من MinIO:', error);
-      return null;
-    }
+  
+  getFilePreview(fileId) {
+    // ✅ Return permanent public URL
+    return this.getPublicURL(fileId);
   },
-
-  // ============= Validation Functions =============
+  
+  // Helper functions remain the same
   isValidFileType(mimeType) {
-    return IntegratedStorageService.isValidFileType(mimeType);
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'text/csv',
+      'application/rtf',
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'image/bmp',
+      'video/mp4',
+      'video/avi',
+      'video/mov',
+      'video/wmv',
+      'video/flv',
+      'video/webm',
+      'audio/mp3',
+      'audio/wav',
+      'audio/ogg',
+      'audio/aac',
+      'application/zip',
+      'application/x-rar-compressed',
+      'application/x-7z-compressed',
+      'application/gzip'
+    ];
+    return allowedTypes.includes(mimeType);
   },
 
   isValidFileSize(size) {
-    return IntegratedStorageService.isValidFileSize(size);
+    const maxSize = 100 * 1024 * 1024; // 100 MB
+    return size <= maxSize;
   },
-
-  // ============= Utility Functions =============
-  formatFileSize(bytes) {
-    return IntegratedStorageService.formatFileSize(bytes);
-  },
-
-  getFileTypeIcon(mimeType) {
-    return IntegratedStorageService.getFileTypeIcon(mimeType);
-  },
-
-  getFileCategory(mimeType) {
-    return IntegratedStorageService.getFileCategory(mimeType);
-  },
-
-  // ============= Bulk Operations =============
-  async uploadMultipleFiles(files, options = {}) {
-    try {
-      return await IntegratedStorageService.uploadMultipleFiles(files, options);
-    } catch (error) {
-      console.error('خطأ في رفع الملفات المتعددة عبر MinIO:', error);
-      throw error;
-    }
-  },
-
-  async deleteMultipleFiles(fileIds) {
-    try {
-      return await IntegratedStorageService.deleteMultipleFiles(fileIds);
-    } catch (error) {
-      console.error('خطأ في حذف الملفات المتعددة من MinIO:', error);
-      throw error;
-    }
-  }
 };

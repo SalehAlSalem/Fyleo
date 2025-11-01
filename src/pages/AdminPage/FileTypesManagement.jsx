@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fileTypesService } from '../../services/appwriteService';
 import { 
   ModernCard, 
@@ -7,12 +8,13 @@ import {
   ModernAlert,
   ModernSkeleton,
   ModernBadge
-} from '../../components/modern/ModernComponents';
+} from '@shared/ui/modern/ModernComponents';
 
 /**
  * 🗂️ File Types Management Component
  */
 const FileTypesManagement = () => {
+  const { t } = useTranslation();
   const [fileTypes, setFileTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -21,7 +23,6 @@ const FileTypesManagement = () => {
   const [editingFileType, setEditingFileType] = useState(null);
   
   const [formData, setFormData] = useState({
-    name: '',
     nameAr: '',
     nameEn: '',
     icon: '📄',
@@ -41,7 +42,7 @@ const FileTypesManagement = () => {
       setFileTypes(data);
     } catch (err) {
       console.error('Error loading file types:', err);
-      setError('فشل تحميل أنواع الملفات');
+      setError(t('admin.loadError'));
     } finally {
       setLoading(false);
     }
@@ -67,26 +68,25 @@ const FileTypesManagement = () => {
       
       if (editingFileType) {
         await fileTypesService.update(editingFileType.$id, dataToSave);
-        setSuccess('تم تحديث نوع الملف بنجاح');
+        setSuccess(t('admin.updateSuccess'));
       } else {
         await fileTypesService.create(dataToSave);
-        setSuccess('تم إضافة نوع الملف بنجاح');
+        setSuccess(t('admin.createSuccess'));
       }
       
       resetForm();
       loadFileTypes();
     } catch (err) {
       console.error('Error saving file type:', err);
-      setError('فشل حفظ نوع الملف');
+      setError(t('admin.saveError'));
     }
   };
 
   const handleEdit = (fileType) => {
     setEditingFileType(fileType);
     setFormData({
-      name: fileType.name,
-      nameAr: fileType.nameAr,
-      nameEn: fileType.nameEn,
+      nameAr: fileType.nameAr || '',
+      nameEn: fileType.nameEn || '',
       icon: fileType.icon || '📄',
       color: fileType.color || '#3B82F6',
       allowedFormats: Array.isArray(fileType.allowedFormats) 
@@ -102,17 +102,16 @@ const FileTypesManagement = () => {
     try {
       setError('');
       await fileTypesService.delete(fileTypeId);
-      setSuccess('تم حذف نوع الملف بنجاح');
+      setSuccess(t('admin.deleteSuccess'));
       loadFileTypes();
     } catch (err) {
       console.error('Error deleting file type:', err);
-      setError('فشل حذف نوع الملف');
+      setError(t('admin.deleteError'));
     }
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
       nameAr: '',
       nameEn: '',
       icon: '📄',
@@ -155,13 +154,7 @@ const FileTypesManagement = () => {
             {editingFileType ? 'تعديل نوع الملف' : 'إضافة نوع ملف جديد'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <ModernInput
-                label="الاسم"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ModernInput
                 label="الاسم بالعربية"
                 value={formData.nameAr}
@@ -284,3 +277,4 @@ const FileTypesManagement = () => {
 };
 
 export default FileTypesManagement;
+

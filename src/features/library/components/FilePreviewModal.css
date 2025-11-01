@@ -1,0 +1,94 @@
+/**
+ * Styles for DOCX Preview
+ * Ensures proper rendering of docx-preview library output
+ */
+
+/* Main wrapper for DOCX content */
+.docx-preview-container {
+  background: white;
+  min-height: 400px;
+  max-height: 3000px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* DOCX wrapper class */
+.docx-wrapper {
+  padding: 20px;
+  background: white;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* DOCX section styling */
+.docx-wrapper section.docx {
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 210mm; /* A4 width */
+  min-height: 297mm; /* A4 height */
+}
+
+/* Ensure all elements fit within container */
+.docx-wrapper * {
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+/* Table styling */
+.docx-wrapper table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.docx-wrapper table td,
+.docx-wrapper table th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+/* Image styling */
+.docx-wrapper img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 10px auto;
+}
+
+/* Paragraph styling */
+.docx-wrapper p {
+  margin: 0.5em 0;
+  line-height: 1.6;
+}
+
+/* Heading styling */
+.docx-wrapper h1,
+.docx-wrapper h2,
+.docx-wrapper h3,
+.docx-wrapper h4,
+.docx-wrapper h5,
+.docx-wrapper h6 {
+  margin: 1em 0 0.5em 0;
+  font-weight: bold;
+}
+
+/* List styling */
+.docx-wrapper ul,
+.docx-wrapper ol {
+  margin: 0.5em 0;
+  padding-left: 2em;
+}
+
+/* Fade-out gradient overlay */
+.docx-fade-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 128px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 1));
+  pointer-events: none;
+  z-index: 10;
+}

@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import { authService } from '../services/authService';
+import { account, ID, OAuthProvider } from '../config/appwrite';
 import { usersService } from '../services/appwriteService';
 
 const AuthContext = createContext();
@@ -14,139 +14,154 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserSession = async () => {
     try {
-      const result = await authService.getCurrentUser();
-      
-      if (result.success) {
-        console.log('✅ User session retrieved:', result.user);
-        setUser(result.user);
-        
-        // Ensure user exists in database (important for OAuth users)
-        if (result.user && result.user.email) {
-          try {
-            console.log('🔍 Checking if user exists in database...');
-            const existingUser = await usersService.getByEmail(result.user.email);
-            
-            if (!existingUser) {
-              console.log('💾 Creating user record in database for OAuth user...');
-              await usersService.create({
-                name: result.user.name || result.user.email.split('@')[0],
-                email: result.user.email
-              });
-              console.log('✅ User record created successfully');
-            } else {
-              console.log('✅ User already exists in database');
-            }
-          } catch (dbError) {
-            console.error('⚠️ Database operation failed:', dbError);
-            // Don't fail the session check if database operation fails
-            // User can still use the app with auth session
-          }
-        }
-        
-        return result; // إرجاع النتيجة للاستخدام في OAuthCallback
-      } else {
-        console.log('ℹ️ No active session');
-        setUser(null);
-        return result;
-      }
-    } catch (error) {
-      console.error('❌ Session check failed:', error);
-      setUser(null);
-      return { success: false, error };
-    } finally {
+      const session = await account.get();
+      setUser(session);
+      try {
+        await usersService.create({ name: session.name, email: session.email });
+      } catch (_) {}
       setLoading(false);
+      return { success: true, user: session };
+    } catch (error) {
+      setUser(null);
+      setLoading(false);
+      return { success: false, user: null };
     }
   };
 
   const login = async (email, password) => {
     try {
-      const result = await authService.login(email, password);
+      await account.createEmailPasswordSession(email, password);
+      const session = await account.get();
+      setUser(session);
       
-      if (result.success) {
-        setUser(result.user);
+      // إضافة المستخدم إلى قاعدة البيانات إذا لم يكن موجوداً
+      try {
+        await usersService.create({ name: session.name, email: session.email });
+      } catch (_) {
+        // تجاهل الأخطاء إذا كان المستخدم موجوداً بالفعل
       }
       
-      return result;
+      return { success: true, user: session };
     } catch (error) {
-      console.error('❌ Login error:', error);
-      return { success: false, error: 'login_failed', message: error.message };
+      return { success: false, error: error.message };
     }
   };
 
   const signup = async (email, password, name) => {
     try {
-      const result = await authService.register(email, password, name);
+      await account.create(ID.unique(), email, password, name);
+      const loginResult = await login(email, password);
       
-      if (result.success) {
-        setUser(result.user);
+      // إرسال إيميل التحقق تلقائياً
+      if (loginResult.success) {
+        try {
+          await account.createVerification(`${window.location.origin}/verify-email`);
+        } catch (verifyError) {
+          console.warn('Could not send verification email:', verifyError);
+        }
       }
       
-      return result;
+      return loginResult;
     } catch (error) {
-      console.error('❌ Signup error:', error);
-      return { success: false, error: 'signup_failed', message: error.message };
+      // إذا كان الحساب موجوداً بالفعل (409 Conflict)، حاول تسجيل الدخول
+      if (error.code === 409 || error.message?.includes('already exists') || error.message?.includes('user_already_exists')) {
+        console.log('⚠️ User already exists, attempting login...');
+        const loginResult = await login(email, password);
+        return loginResult;
+      }
+      return { success: false, error: error.message };
     }
   };
 
   const loginWithGoogle = async () => {
     try {
-      const result = await authService.loginWithGoogle();
-      // الـ redirect سيحصل تلقائياً
-      // OAuthCallback page ستتعامل مع الـ session و database
-      return result;
+      // حفظ علامة إن المستخدم بدأ OAuth
+      localStorage.setItem('oauth_in_progress', 'true');
+      localStorage.setItem('oauth_start_time', Date.now().toString());
+
+      // استخدام createOAuth2Token لملاءمة Safari ITP
+      // يرسل userId & secret في URL بدل cookies (Safari ITP يحظر cookies)
+      await account.createOAuth2Token(
+        OAuthProvider.Google,
+        `${window.location.origin}/oauth-callback`,
+        `${window.location.origin}/login?error=oauth_failed`
+      );
+      return { success: true };
     } catch (error) {
-      console.error('❌ Google login error:', error);
-      return { success: false, error: 'oauth_failed', message: error.message };
+      console.error('Google OAuth error:', error);
+      localStorage.removeItem('oauth_in_progress');
+      localStorage.removeItem('oauth_start_time');
+      return { success: false, error: error.message, message: 'فشل بدء التسجيل/تسجيل الدخول عبر Google' };
     }
   };
 
   const logout = async () => {
     try {
-      const result = await authService.logout();
-      
-      if (result.success) {
-        setUser(null);
-      }
-      
-      return result;
+      await account.deleteSession('current');
+      setUser(null);
+      return { success: true };
     } catch (error) {
-      console.error('❌ Logout error:', error);
-      return { success: false, error: 'logout_failed', message: error.message };
+      return { success: false, error: error.message };
     }
   };
 
   const resetPassword = async (email) => {
     try {
-      const result = await authService.sendPasswordRecovery(email);
-      return result;
+      await account.createRecovery(
+        email,
+        `${window.location.origin}/reset-password`
+      );
+      return { success: true };
     } catch (error) {
-      console.error('❌ Password reset error:', error);
-      return { success: false, error: 'reset_failed', message: error.message };
+      return { success: false, error: error.message };
     }
   };
 
   const updateProfile = async (updates) => {
     try {
-      const result = await authService.updateName(updates.name);
-      
-      if (result.success) {
-        setUser(result.user);
-      }
-      
-      return result;
+      const updatedUser = await account.updateName(updates.name);
+      setUser(updatedUser);
+      return { success: true, user: updatedUser };
     } catch (error) {
-      console.error('❌ Update profile error:', error);
-      return { success: false, error: 'update_failed', message: error.message };
+      return { success: false, error: error.message };
     }
   };
 
   const changePassword = async (newPassword, oldPassword) => {
     try {
-      const result = await authService.updatePassword(newPassword, oldPassword);
-      return result;
+      await account.updatePassword(newPassword, oldPassword);
+      return { success: true };
     } catch (error) {
-      console.error('❌ Change password error:', error);
-      return { success: false, error: 'password_change_failed', message: error.message };
+      return { success: false, error: error.message };
+    }
+  };
+
+  const getCurrentSession = async () => {
+    try {
+      const session = await account.getSession('current');
+      return { success: true, session };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const sendVerificationEmail = async () => {
+    try {
+      await account.createVerification(`${window.location.origin}/verify-email`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const verifyEmail = async (userId, secret) => {
+    try {
+      await account.updateVerification(userId, secret);
+      return { success: true };
+    } catch (error) {
+      console.error('Error verifying email:', error);
+      return { success: false, error: error.message };
     }
   };
 
@@ -160,7 +175,10 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     updateProfile,
     changePassword,
-    checkUserSession
+    getCurrentSession,
+    checkUserSession,
+    sendVerificationEmail,
+    verifyEmail
   };
 
   return (

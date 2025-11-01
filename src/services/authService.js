@@ -24,7 +24,7 @@ export const authService = {
       }
       
       // Create email session
-      const sessionResponse = await account.createEmailSession(email, password);
+      const sessionResponse = await account.createEmailPasswordSession(email, password);
       console.log('✅ Session created:', sessionResponse.$id);
       
       // Get user account with retry logic
@@ -86,13 +86,17 @@ export const authService = {
       
       if (loginResult.success) {
         try {
+          console.log('🔥🔥🔥 REGISTRATION: About to call usersService.create() 🔥🔥🔥');
+          console.log('📝 User data:', { name, email });
+          
           // Create user record in database
-          await usersService.create({
+          const userRecord = await usersService.create({
             name: name,
             email: email
           });
           
-          console.log('✅ User record created in database');
+          console.log('✅✅✅ User record created in database:', userRecord);
+          console.log('✅ Document ID in users collection:', userRecord.$id);
           
           // Send verification email
           try {

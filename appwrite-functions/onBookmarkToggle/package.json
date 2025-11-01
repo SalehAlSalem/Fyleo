@@ -1,0 +1,10 @@
+{
+  "name": "on-bookmark-toggle",
+  "version": "1.0.0",
+  "description": "Appwrite Function to increment/decrement bookmark counter",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "node-appwrite": "^11.0.0"
+  }
+}

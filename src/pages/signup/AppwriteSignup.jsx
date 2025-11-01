@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   ModernButton, 
   ModernInput, 
   ModernCard,
   ModernAlert,
+  useTranslation,
   useTheme 
-} from '../../components/modern/ModernComponents';
+} from '@shared/ui/modern/ModernComponents';
 
 const AppwriteSignup = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +19,9 @@ const AppwriteSignup = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   
   const { user, signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -27,23 +30,23 @@ const AppwriteSignup = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate('/workspace');
     }
   }, [user, navigate]);
 
   const validateForm = () => {
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError(t('common.error'));
+      setError('يرجى ملء جميع الحقول المطلوبة');
       return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError(t('common.error'));
+      setError('كلمات المرور غير متطابقة');
       return false;
     }
 
     if (formData.password.length < 8) {
-      setError(t('common.error'));
+      setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
       return false;
     }
 
@@ -56,35 +59,60 @@ const AppwriteSignup = () => {
     return true;
   };
 
+  const handleGoogleSignup = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const result = await loginWithGoogle();
+      if (result?.success) return; // سيتم التحويل عبر OAuth تلقائياً
+      setError(result?.message || 'فشل بدء التسجيل/تسجيل الدخول عبر Google');
+    } catch (error) {
+      setError('فشل التسجيل عبر Google');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) return;
 
+    if (!agreedToTerms) {
+      setError('يجب الموافقة على شروط الخدمة وسياسة الخصوصية');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
+      console.log('🔵 Starting signup process...');
       const result = await signup(formData.email, formData.password, formData.name);
+      console.log('📊 Signup result:', result);
+      
       if (result.success) {
-        navigate('/dashboard');
+        console.log('✅ Signup successful, navigating to workspace...');
+        navigate('/workspace');
       } else {
-        switch (result.error) {
-          case 'user_already_exists':
-            setError('البريد الإلكتروني مستخدم بالفعل');
-            break;
-          case 'user_invalid_password':
-            setError('كلمة المرور ضعيفة جداً');
-            break;
-          case 'user_invalid_email':
-            setError('البريد الإلكتروني غير صحيح');
-            break;
-          default:
-            setError('حدث خطأ أثناء إنشاء الحساب');
+        console.error('❌ Signup failed:', result.error);
+        // التحقق من نوع الخطأ
+        if (result.error?.includes('already exists') || result.error?.includes('user_already_exists') || result.error === 'user_already_exists') {
+          setError('البريد الإلكتروني مستخدم بالفعل. جاري تسجيل الدخول...');
+          // إعطاء وقت لعرض الرسالة ثم المحاولة مرة أخرى
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 2000);
+        } else if (result.error?.includes('invalid_password') || result.error === 'user_invalid_password') {
+          setError('كلمة المرور ضعيفة جداً');
+        } else if (result.error?.includes('invalid_email') || result.error === 'user_invalid_email') {
+          setError('البريد الإلكتروني غير صحيح');
+        } else {
+          setError('حدث خطأ أثناء إنشاء الحساب: ' + result.error);
         }
       }
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('💥 Signup exception:', error);
       setError('حدث خطأ غير متوقع');
     } finally {
       setLoading(false);
@@ -97,25 +125,6 @@ const AppwriteSignup = () => {
       ...prev,
       [name]: value
     }));
-  };
-
-  const handleGoogleSignup = async () => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      const result = await loginWithGoogle();
-      if (result.success) {
-        navigate('/dashboard');
-      } else {
-        setError('فشل التسجيل بـ Google');
-      }
-    } catch (error) {
-      console.error('Google signup error:', error);
-      setError('حدث خطأ أثناء التسجيل بـ Google');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const getPasswordStrength = (password) => {
@@ -133,61 +142,73 @@ const AppwriteSignup = () => {
   const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-green-600'];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 px-4">
+    <div className="flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 px-4 py-8" style={{ minHeight: '100vh' }}>
       <ModernCard className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('auth.createAccount')}
+            إنشاء حساب جديد
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {t('auth.getStarted')}
+            انضم إلى مجتمع Fyleo التعليمي
           </p>
         </div>
 
         <form onSubmit={handleSignup} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('auth.name')}
+              الاسم الكامل
             </label>
             <ModernInput
               type="text"
               name="name"
-              placeholder={t('auth.name')}
+              placeholder="أدخل اسمك الكامل"
               value={formData.name}
               onChange={handleInputChange}
               required
+              autoComplete="name"
               className="w-full"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('auth.email')}
+              البريد الإلكتروني
             </label>
             <ModernInput
               type="email"
               name="email"
-              placeholder={t('auth.email')}
+              placeholder="أدخل بريدك الإلكتروني"
               value={formData.email}
               onChange={handleInputChange}
               required
+              autoComplete="email"
               className="w-full"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('auth.password')}
+              كلمة المرور
             </label>
             <ModernInput
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               name="password"
-              placeholder={t('auth.password')}
+              placeholder="أدخل كلمة مرور قوية"
               value={formData.password}
               onChange={handleInputChange}
               required
+              autoComplete="new-password"
               className="w-full"
             />
+            <div className="mt-2 text-right">
+              <button
+                type="button"
+                className="text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                onClick={() => setShowPassword(v => !v)}
+              >
+                {showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+              </button>
+            </div>
             {formData.password && (
               <div className="mt-2">
                 <div className="flex items-center space-x-2">
@@ -207,17 +228,27 @@ const AppwriteSignup = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('auth.password')}
+              تأكيد كلمة المرور
             </label>
             <ModernInput
-              type="password"
+              type={showConfirmPassword ? 'text' : 'password'}
               name="confirmPassword"
-              placeholder={t('auth.password')}
+              placeholder="أعد كتابة كلمة المرور"
               value={formData.confirmPassword}
               onChange={handleInputChange}
               required
+              autoComplete="new-password"
               className="w-full"
             />
+            <div className="mt-2 text-right">
+              <button
+                type="button"
+                className="text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                onClick={() => setShowConfirmPassword(v => !v)}
+              >
+                {showConfirmPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -226,6 +257,28 @@ const AppwriteSignup = () => {
             </ModernAlert>
           )}
 
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <input
+                id="terms-agreement"
+                type="checkbox"
+                className="h-4 w-4 mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+              />
+              <label htmlFor="terms-agreement" className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                أوافق على{' '}
+                <Link to="/terms-of-service" target="_blank" className="font-medium text-blue-600 hover:underline">
+                  شروط الخدمة
+                </Link>{' '}
+                و{' '}
+                <Link to="/privacy-policy" target="_blank" className="font-medium text-blue-600 hover:underline">
+                  سياسة الخصوصية
+                </Link>
+              </label>
+            </div>
+
+          </div>
           <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
             <p>• كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل</p>
             <p>• يُفضل استخدام أحرف كبيرة وصغيرة وأرقام ورموز</p>
@@ -235,16 +288,17 @@ const AppwriteSignup = () => {
             type="submit"
             className="w-full"
             loading={loading}
+            disabled={!agreedToTerms || loading}
           >
-            {t('auth.createAccount')}
+            إنشاء الحساب
           </ModernButton>
 
-          <div className="relative">
+          <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300 dark:border-gray-600" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">{t('common.or')}</span>
+              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">أو</span>
             </div>
           </div>
 
@@ -253,7 +307,7 @@ const AppwriteSignup = () => {
             variant="outline"
             className="w-full"
             onClick={handleGoogleSignup}
-            disabled={loading}
+            disabled={!agreedToTerms || loading}
           >
             <svg className="w-5 h-5 ml-2" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -261,18 +315,18 @@ const AppwriteSignup = () => {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            {t('auth.signUpWithGoogle')}
+            المتابعة مع Google
           </ModernButton>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t('auth.alreadyHaveAccount')}{' '}
+            لديك حساب بالفعل؟{' '}
             <Link 
               to="/login" 
               className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
             >
-              {t('nav.login')}
+              تسجيل الدخول
             </Link>
           </p>
         </div>

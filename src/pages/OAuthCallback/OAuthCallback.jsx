@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { authService } from '../../services/authService';
 import { usersService } from '../../services/appwriteService';
 
@@ -13,8 +13,13 @@ const OAuthCallback = () => {
   const navigate = useNavigate();
   const { checkUserSession } = useAuth();
   const [message, setMessage] = React.useState('جاري تسجيل الدخول...');
+  const hasRun = React.useRef(false);
 
   useEffect(() => {
+    // منع التنفيذ المتكرر في React Strict Mode
+    if (hasRun.current) return;
+    hasRun.current = true;
+    
     const handleOAuthCallback = async () => {
       console.log('💬 OAuth Callback page loaded');
       
@@ -24,17 +29,18 @@ const OAuthCallback = () => {
       const secret = urlParams.get('secret');
       console.log(`🔑 userId: ${userId ? 'present' : 'missing'}, secret: ${secret ? 'present' : 'missing'}`);
       
-      // تحقق من localStorage
+      // تحقق من localStorage أو deleteAccountFlow
       const oauthInProgress = localStorage.getItem('oauth_in_progress');
+      const deleteAccountFlow = sessionStorage.getItem('deleteAccountFlow');
       
-      if (oauthInProgress !== 'true') {
-        console.warn('⚠️ No OAuth in progress');
+      if (oauthInProgress !== 'true' && deleteAccountFlow !== 'true') {
+        console.warn('⚠️ No OAuth in progress and no delete account flow');
         setMessage('خطأ: لم يتم العثور على OAuth');
         setTimeout(() => navigate('/login'), 2000);
         return;
       }
       
-      // مسح localStorage
+      // مسح localStorage (لكن نبقي deleteAccountFlow!)
       localStorage.removeItem('oauth_in_progress');
       localStorage.removeItem('oauth_start_time');
       
@@ -56,13 +62,16 @@ const OAuthCallback = () => {
             setMessage('جلب بيانات المستخدم...');
             await new Promise(r => setTimeout(r, 500));
             result = await checkUserSession(); // هذا يحدث useAuth state
-            console.log(`✅ User logged in: ${result.user?.email}`);
+            console.log('✅ checkUserSession result:', result);
+            if (result && result.user) {
+              console.log(`✅ User logged in: ${result.user.email}`);
+            }
           } catch (sessionError) {
             console.error(`❌ Session error:`, sessionError);
             throw sessionError;
           }
         } else {
-          // Fallback: session عادي (Windows/Android)
+          // Fallback: session عادي (Windows/Android/Safari)
           console.log('⚠️ No userId/secret - trying regular session...');
           setMessage('التحقق من الجلسة...');
           
@@ -76,9 +85,22 @@ const OAuthCallback = () => {
           // checkUserSession بيعمل create user record تلقائياً
           // ما في حاجة نعملها مرة ثانية
           
-          setMessage('✅ تم تسجيل الدخول بنجاح!');
-          console.log('🎯 Navigating to dashboard...');
-          setTimeout(() => navigate('/dashboard', { replace: true }), 500);
+          // فحص إذا كان في عملية حذف حساب جارية
+          const deleteAccountFlow = sessionStorage.getItem('deleteAccountFlow');
+          
+          if (deleteAccountFlow === 'true') {
+            console.log('🗑️ Delete account flow detected - redirecting to confirm page');
+            sessionStorage.removeItem('deleteAccountFlow');
+            setMessage('✅ تم تسجيل الدخول - جاري المتابعة لحذف الحساب...');
+            setTimeout(() => navigate('/delete-account/confirm', { 
+              replace: true,
+              state: { authenticated: true, method: 'google' }
+            }), 500);
+          } else {
+            setMessage('✅ تم تسجيل الدخول بنجاح!');
+            console.log('🎯 Navigating to workspace...');
+            setTimeout(() => navigate('/workspace', { replace: true }), 500);
+          }
         } else {
           console.error('❌ No session found');
           setMessage('❌ فشل تسجيل الدخول');
@@ -114,3 +136,4 @@ const OAuthCallback = () => {
 };
 
 export default OAuthCallback;
+

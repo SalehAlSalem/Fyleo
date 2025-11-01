@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ModernButton, useTranslation, useTheme } from '../../components/modern/ModernComponents';
+import { ModernButton, useTranslation, useTheme } from '@shared/ui/modern/ModernComponents';
 
 const Modern404 = () => {
   const { t } = useTranslation();
@@ -81,10 +81,10 @@ const Modern404 = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-6">
               <Link 
-                to="/materials" 
+                to="/library" 
                 className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200"
               >
-                {t('materials', 'المواد التعليمية', 'Materials')}
+                {t('materials', 'المكتبة', 'Library')}
               </Link>
               <Link 
                 to="/login" 

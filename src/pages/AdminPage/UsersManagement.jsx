@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usersService } from '../../services/appwriteService';
 import { 
   ModernCard, 
@@ -6,9 +7,10 @@ import {
   ModernAlert,
   ModernSkeleton,
   ModernBadge
-} from '../../components/modern/ModernComponents';
+} from '@shared/ui/modern/ModernComponents';
 
 const UsersManagement = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,7 +25,7 @@ const UsersManagement = () => {
       const data = await usersService.getAll();
       setUsers(data);
     } catch (err) {
-      setError('فشل تحميل المستخدمين');
+      setError(t('admin.loadError'));
     } finally {
       setLoading(false);
     }
@@ -57,3 +59,4 @@ const UsersManagement = () => {
 };
 
 export default UsersManagement;
+

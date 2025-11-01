@@ -1,0 +1,665 @@
+/* Modern Navbar Styles */
+
+.navbar-modern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000 !important;
+  background: rgb(255, 255, 255) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* iOS Safari Fix - Force hardware acceleration */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+[data-theme="dark"] .navbar-modern {
+  background: rgb(15, 23, 42) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-modern.shadow-modern {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .navbar-modern.shadow-modern {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.container-modern {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Logo Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #f97316 0%, #a855f7 50%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Force English font stack regardless of UI language */
+.font-en {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !important;
+}
+
+/* Fix gap regardless of RTL/LTR to prevent layout shifts */
+.gap-fixed {
+  gap: 0.75rem !important; /* equals Tailwind gap-3 */
+}
+
+/* 1) Lock logical areas to avoid shifts on RTL/LTR flip */
+.logo {
+  min-width: 100px;
+  text-align: center;
+}
+.username {
+  min-width: 100px;
+  text-align: center;
+}
+
+/* 2) Tools area: exact centering and optical alignment */
+.navbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.navbar-tools button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  padding: 0;
+  line-height: 1;
+}
+.navbar-tools button svg,
+.navbar-tools button span {
+  display: block;
+  transform: translateY(1px);
+}
+
+/* 3) Prevent hover overlap and stray scaling on nav items */
+.nav-item {
+  position: relative;
+  z-index: 1;
+}
+.nav-item:hover {
+  outline: 1px solid rgba(255, 255, 255, 0.15);
+  transform: none !important;
+}
+
+/* 4) Limit transitions to visual properties only inside navbar */
+.navbar-modern * {
+  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+.navbar-modern [class*="gap-"],
+.navbar-modern .flex {
+  transition: none !important;
+}
+
+/* Tool Buttons - Language & Theme (Rounded Pill Style) */
+.modern-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
+  border-radius: 9999px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .modern-tool-btn {
+    min-width: 48px;
+    min-height: 48px;
+    padding: 10px;
+    font-size: 15px;
+  }
+}
+
+.modern-tool-btn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+[data-theme="dark"] .modern-tool-btn {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .modern-tool-btn:hover {
+  background: rgba(55, 65, 81, 0.5);
+  color: #e5e7eb;
+}
+
+.modern-tool-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.modern-tool-btn span {
+  display: block;
+  line-height: 1;
+}
+
+/* Auth Buttons - Login & Signup (Rounded Pill Style) */
+.auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+
+.auth-btn-login {
+  background: transparent;
+  color: #6b7280;
+}
+
+.auth-btn-login:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+[data-theme="dark"] .auth-btn-login {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .auth-btn-login:hover {
+  background: rgba(55, 65, 81, 0.5);
+  color: #e5e7eb;
+}
+
+.auth-btn-signup {
+  background: linear-gradient(to right, #f97316, #a855f7, #3b82f6);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25);
+}
+
+.auth-btn-signup:hover {
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.35);
+}
+
+/* ========================================
+   🚀 MOBILE BOTTOM NAVIGATION - MODERN STYLE
+   Floating Action Button with Curved Notch
+   ======================================== */
+
+.mobile-bottom-nav-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  pointer-events: none;
+  
+  /* iOS Safari Fix - Force hardware acceleration */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.mobile-bottom-nav-wrapper > * {
+  pointer-events: auto;
+}
+
+/* Navigation Bar - Simple with centered button */
+.mobile-bottom-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  height: 65px;
+  
+  /* iOS Safari Fix - Ensure nav stays fixed */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+[data-theme="dark"] .mobile-bottom-nav {
+  background: rgb(15, 23, 42);
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Navigation Item Groups */
+.nav-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-section.right {
+  justify-content: space-evenly;
+  order: -1; /* على اليمين */
+}
+
+.nav-section.left {
+  justify-content: space-evenly;
+  order: 1; /* على اليسار */
+}
+
+/* Center Button - In the middle */
+.nav-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  order: 0; /* في الوسط */
+}
+
+/* Navigation Items */
+/* Mobile Navigation Items - Icon Only */
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 12px;
+  transition: all 0.2s;
+  color: #64748b;
+  text-decoration: none;
+  width: 48px;
+  height: 48px;
+}
+
+.mobile-nav-item .icon {
+  font-size: 24px;
+  transition: transform 0.2s;
+}
+
+/* Hide labels */
+.mobile-nav-item .label {
+  display: none;
+}
+
+.mobile-nav-item:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.mobile-nav-item:hover .icon {
+  transform: scale(1.1);
+}
+
+.mobile-nav-item.active {
+  color: #3b82f6;
+}
+
+.mobile-nav-item.active .icon {
+  transform: scale(1.15);
+}
+
+[data-theme="dark"] .mobile-nav-item {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .mobile-nav-item:hover {
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .mobile-nav-item.active {
+  color: #60a5fa;
+}
+
+/* ========================================
+   ✨ FLOATING SEARCH BUTTON - FAB Style
+   ======================================== */
+
+/* Center Search Button - Simple in the middle */
+.center-search-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.center-search-btn:focus {
+  outline: none;
+}
+
+.search-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B6B 0%, #A855F7 50%, #3B82F6 100%);
+  box-shadow: 
+    0 4px 12px rgba(168, 85, 247, 0.4),
+    0 8px 20px rgba(168, 85, 247, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* Search Icon (SVG) */
+.search-icon {
+  width: 28px;
+  height: 28px;
+  color: white;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Active State - When Search is Open */
+.search-circle.active {
+  background: linear-gradient(135deg, #3B82F6 0%, #A855F7 50%, #FF6B6B 100%);
+}
+
+/* Hover State */
+.center-search-btn:hover .search-circle {
+  transform: scale(1.1);
+  box-shadow: 
+    0 6px 20px rgba(168, 85, 247, 0.5),
+    0 10px 30px rgba(168, 85, 247, 0.4);
+}
+
+.center-search-btn:hover .search-icon {
+  transform: scale(1.1);
+}
+
+/* Active/Press State */
+.center-search-btn:active .search-circle {
+  transform: scale(0.95);
+}
+
+
+
+/* Add padding to body/footer when bottom nav is visible */
+@media (max-width: 768px) {
+  /* Add padding to footer instead of main */
+  footer {
+    padding-bottom: calc(60px + max(env(safe-area-inset-bottom), 8px)) !important;
+  }
+  
+  /* Fix FilePreviewModal - adjust for mobile */
+  .fixed.top-16 {
+    top: 48px !important;
+    padding-bottom: 68px !important;
+  }
+}
+
+/* Mobile User Menu Popup */
+.mobile-user-popup {
+  position: fixed;
+  bottom: calc(60px + 16px);
+  right: 16px;
+  left: 16px;
+  max-width: 400px;
+  margin: 0 auto;
+  z-index: 10000;
+  animation: slideUp 0.2s ease-out;
+  max-height: calc(100vh - 60px - 48px - 32px);
+  overflow-y: auto;
+}
+
+/* Mobile Search Popup */
+@media (max-width: 768px) {
+  .mobile-search-popup {
+    position: fixed;
+    top: 56px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-height: calc(100vh - 56px - 60px - 32px);
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    z-index: 9999;
+  }
+
+  [data-theme="dark"] .mobile-search-popup {
+    background: #1e293b;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-user-popup {
+    bottom: calc(60px + max(env(safe-area-inset-bottom), 8px) + 16px);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-out;
+}
+
+/* Glass Effect */
+.glass {
+  background: rgb(255, 255, 255);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+[data-theme="dark"] .glass {
+  background: rgb(30, 41, 59);
+}
+
+/* Loading Pulse */
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: linear-gradient(90deg, #e2e8f0 25%, #cbd5e1 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+}
+
+[data-theme="dark"] .loading-pulse {
+  background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Mobile Menu Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-menu-enter {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* User Menu Dropdown */
+.user-menu-dropdown {
+  animation: slideDown 0.2s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container-modern {
+    padding: 0 1rem;
+  }
+  
+  .navbar-modern {
+    padding: 0.5rem 0;
+  }
+}
+
+/* RTL Support */
+[dir="rtl"] .navbar-modern {
+  direction: rtl;
+}
+
+/* Smooth Transitions - Only for visual properties */
+.navbar-modern button,
+.navbar-modern a,
+.navbar-modern .glass {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Prevent layout shift during language change */
+.navbar-modern .container-modern {
+  min-height: 64px;
+}
+
+.navbar-modern .flex {
+  flex-shrink: 0;
+}
+
+/* FORCE: Prevent ALL text movement */
+.navbar-modern,
+.navbar-modern *,
+.navbar-modern *::before,
+.navbar-modern *::after {
+  transition: background-color 0.2s, color 0.2s, opacity 0.2s, box-shadow 0.2s !important;
+  animation: none !important;
+}
+
+/* Lock all positions */
+.navbar-modern .container-modern > * {
+  will-change: auto !important;
+}
+
+/* Disable all layout transitions */
+.navbar-modern .flex,
+.navbar-modern [class*="space-"],
+.navbar-modern [class*="gap-"] {
+  transition-property: none !important;
+  transition-duration: 0s !important;
+}
+
+/* Force instant direction change without animation */
+[dir="rtl"] .navbar-modern,
+[dir="ltr"] .navbar-modern {
+  transition: none !important;
+}
+
+/* Prevent text reflow animation */
+.navbar-modern span,
+.navbar-modern a,
+.navbar-modern button {
+  white-space: nowrap;
+  overflow: visible;
+}
+
+/* Natural alignment - no centering to prevent shift */
+.navbar-modern a,
+.navbar-modern button,
+.navbar-modern span {
+  text-align: inherit;
+  justify-content: flex-start;
+}
+
+/* Keep container stable */
+.navbar-modern .container-modern {
+  width: 100%;
+  max-width: 1400px;
+}
+
+/* Prevent width changes */
+.navbar-modern .flex {
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+/* Fix spacing for both LTR and RTL */
+.navbar-modern .space-x-2 > * + *,
+.navbar-modern .space-x-3 > * + *,
+.navbar-modern .space-x-4 > * + *,
+.navbar-modern .space-x-8 > * + * {
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
+[dir="rtl"] .navbar-modern .space-x-2 > * + *,
+[dir="rtl"] .navbar-modern .space-x-3 > * + *,
+[dir="rtl"] .navbar-modern .space-x-4 > * + * {
+  margin-left: 0;
+  margin-right: 0.375rem;  /* ← أقل من الإنجليزي */
+}
+
+[dir="rtl"] .navbar-modern .space-x-8 > * + * {
+  margin-left: 0;
+  margin-right: 1.5rem;  /* ← أقل من الإنجليزي */
+}
+
+/* Ensure proper spacing in flex containers */
+.navbar-modern .flex.items-center {
+  gap: 0.75rem;
+}
+
+[dir="rtl"] .navbar-modern .flex.items-center {
+  gap: 0.5rem;  /* ← أقل بالعربي */
+}
+
+.navbar-modern .flex.items-center.space-x-8 {
+  gap: 2rem;
+}
+
+[dir="rtl"] .navbar-modern .flex.items-center.space-x-8 {
+  gap: 1.5rem;  /* ← أقل بالعربي */
+}

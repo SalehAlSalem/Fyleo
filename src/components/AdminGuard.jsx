@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { account } from '../config/appwrite';
 
 /**
@@ -80,3 +80,4 @@ const AdminGuard = ({ children }) => {
 };
 
 export default AdminGuard;
+

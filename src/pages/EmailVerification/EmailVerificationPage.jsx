@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authService } from '../../services/authService';
-import { ModernCard, ModernButton, ModernAlert } from '../../components/modern/ModernComponents';
+import { ModernCard, ModernButton, ModernAlert } from '@shared/ui/modern/ModernComponents';
 
 /**
  * 📧 Email Verification Page
@@ -116,3 +116,4 @@ const EmailVerificationPage = () => {
 };
 
 export default EmailVerificationPage;
+

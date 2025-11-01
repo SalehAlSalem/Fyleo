@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ModernCard, ModernButton, ModernInput, ModernAlert } from '../../components/modern/ModernComponents';
+import { ModernCard, ModernButton, ModernInput, ModernAlert } from '@shared/ui/modern/ModernComponents';
 import AdminService from '../../config/AdminService';
 
 const CategoriesManagement = ({ onUpdate }) => {
@@ -324,3 +324,4 @@ const CategoriesManagement = ({ onUpdate }) => {
 };
 
 export default CategoriesManagement;
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ModernCard, ModernButton, ModernInput, ModernAlert } from '../../components/modern/ModernComponents';
+import { ModernCard, ModernButton, ModernInput, ModernAlert } from '@shared/ui/modern/ModernComponents';
 import AdminService from '../../config/AdminService';
 
 const MaterialsManagement = ({ onUpdate }) => {
@@ -226,7 +226,7 @@ const MaterialsManagement = ({ onUpdate }) => {
                     )}
                     <div className="flex items-center gap-2">
                       <span>👤</span>
-                      <span>{material.uploadedBy || 'غير معروف'}</span>
+                      <span>{material.uploaderId || 'غير معروف'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span>⬇️</span>
@@ -317,3 +317,4 @@ const MaterialsManagement = ({ onUpdate }) => {
 };
 
 export default MaterialsManagement;
+

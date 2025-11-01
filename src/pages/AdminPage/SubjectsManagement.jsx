@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { subjectsService, categoriesService } from '../../services/appwriteService';
 import { 
   ModernCard, 
@@ -7,12 +8,13 @@ import {
   ModernAlert,
   ModernSkeleton,
   ModernBadge
-} from '../../components/modern/ModernComponents';
+} from '@shared/ui/modern/ModernComponents';
 
 /**
  * 📚 Subjects Management Component
  */
 const SubjectsManagement = () => {
+  const { t } = useTranslation();
   const [subjects, setSubjects] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ const SubjectsManagement = () => {
       setCategories(categoriesData);
     } catch (err) {
       console.error('Error loading data:', err);
-      setError('فشل تحميل البيانات');
+      setError(t('admin.loadError'));
     } finally {
       setLoading(false);
     }
@@ -65,17 +67,17 @@ const SubjectsManagement = () => {
       
       if (editingSubject) {
         await subjectsService.update(editingSubject.$id, formData);
-        setSuccess('تم تحديث المادة بنجاح');
+        setSuccess(t('admin.updateSuccess'));
       } else {
         await subjectsService.create(formData);
-        setSuccess('تم إضافة المادة بنجاح');
+        setSuccess(t('admin.createSuccess'));
       }
       
       resetForm();
       loadData();
     } catch (err) {
       console.error('Error saving subject:', err);
-      setError('فشل حفظ المادة');
+      setError(t('admin.saveError'));
     }
   };
 
@@ -101,11 +103,11 @@ const SubjectsManagement = () => {
     try {
       setError('');
       await subjectsService.delete(subjectId);
-      setSuccess('تم حذف المادة بنجاح');
+      setSuccess(t('admin.deleteSuccess'));
       loadData();
     } catch (err) {
       console.error('Error deleting subject:', err);
-      setError('فشل حذف المادة');
+      setError(t('admin.deleteError'));
     }
   };
 
@@ -150,7 +152,14 @@ const SubjectsManagement = () => {
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
           إدارة المواد الدراسية
         </h2>
-        <ModernButton onClick={() => setShowForm(!showForm)}>
+        <ModernButton onClick={() => {
+          if (showForm) {
+            resetForm();
+          } else {
+            resetForm(); // Clear form before showing
+            setShowForm(true);
+          }
+        }}>
           {showForm ? 'إلغاء' : '+ إضافة مادة'}
         </ModernButton>
       </div>
@@ -363,3 +372,4 @@ const SubjectsManagement = () => {
 };
 
 export default SubjectsManagement;
+

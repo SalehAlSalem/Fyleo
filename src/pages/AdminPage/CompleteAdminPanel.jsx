@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { ModernCard, ModernButton, ModernBadge } from '../../components/modern/ModernComponents';
+import { useAuth } from '@/hooks/useAuth';
+import { ModernCard, ModernButton, ModernBadge } from '@shared/ui/modern/ModernComponents';
 import CategoriesManagement from './CategoriesManagement';
 import SubjectsManagement from './SubjectsManagement';
 import MaterialsManagement from './MaterialsManagement';
 import FileTypesManagement from './FileTypesManagement';
 import UsersManagement from './UsersManagement';
 import StatisticsDashboard from './StatisticsDashboard';
+import EducationalPurposesManagement from './EducationalPurposesManagement';
 
 /**
  * 🎛️ Complete Admin Panel
@@ -24,6 +25,7 @@ const CompleteAdminPanel = () => {
     { id: 'subjects', label: 'المواد الدراسية', icon: '📚', description: 'إدارة المواد والمقررات' },
     { id: 'materials', label: 'الملفات', icon: '📄', description: 'إدارة جميع الملفات المرفوعة' },
     { id: 'fileTypes', label: 'أنواع الملفات', icon: '🗂️', description: 'إدارة أنواع الملفات' },
+    { id: 'purposes', label: 'الأغراض التعليمية', icon: '🎯', description: 'إدارة الأغراض التعليمية وربطها بأنواع الملفات' },
     { id: 'users', label: 'المستخدمون', icon: '👥', description: 'إدارة المستخدمين' }
   ];
 
@@ -39,6 +41,8 @@ const CompleteAdminPanel = () => {
         return <MaterialsManagement />;
       case 'fileTypes':
         return <FileTypesManagement />;
+      case 'purposes':
+        return <EducationalPurposesManagement />;
       case 'users':
         return <UsersManagement />;
       default:
@@ -79,7 +83,7 @@ const CompleteAdminPanel = () => {
         {/* Tabs */}
         <div className="mb-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
@@ -110,3 +114,4 @@ const CompleteAdminPanel = () => {
 };
 
 export default CompleteAdminPanel;
+

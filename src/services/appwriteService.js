@@ -11,12 +11,15 @@ import {
   BOOKMARKS_COLLECTION_ID,
   DOWNLOADS_COLLECTION_ID,
   PROFILES_COLLECTION_ID,
+  POSTS_COLLECTION_ID,
+  EDUCATIONAL_PURPOSES_COLLECTION_ID,
   STORAGE_BUCKET_ID,
   Query,
   ID,
   Permission,
   Role
 } from '../config/appwrite';
+import { StorageService } from '../config/StorageService';
 
 /**
  * 🚀 Comprehensive Appwrite Service Layer
@@ -225,11 +228,23 @@ export const subjectsService = {
    */
   async update(subjectId, updates) {
     try {
+      const updateData = {
+        nameAr: updates.nameAr,
+        nameEn: updates.nameEn,
+        descriptionAr: updates.descriptionAr || '',
+        descriptionEn: updates.descriptionEn || '',
+        categoryId: updates.categoryId,
+        creditHours: updates.creditHours || 3,
+        level: String(updates.level || 1),
+        prerequisite: updates.prerequisite || '',
+        isActive: updates.isActive !== false
+      };
+      
       const response = await databases.updateDocument(
         DATABASE_ID,
         SUBJECTS_COLLECTION_ID,
         subjectId,
-        updates
+        updateData
       );
       return response;
     } catch (error) {
@@ -307,19 +322,68 @@ export const fileTypesService = {
         FILE_TYPES_COLLECTION_ID,
         ID.unique(),
         {
-          name: fileTypeData.name,
           nameAr: fileTypeData.nameAr,
           nameEn: fileTypeData.nameEn,
           icon: fileTypeData.icon || '📄',
           color: fileTypeData.color || '#6B7280',
           allowedFormats: Array.isArray(fileTypeData.allowedFormats) 
-            ? fileTypeData.allowedFormats.join(',') 
-            : (fileTypeData.allowedFormats || '')
+            ? fileTypeData.allowedFormats 
+            : (fileTypeData.allowedFormats || [])
         }
       );
       return response;
     } catch (error) {
       console.error('❌ Error creating file type:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update file type
+   */
+  async update(fileTypeId, updates) {
+    try {
+      // Build update payload dynamically to include all provided fields
+      const updatePayload = {};
+      
+      if (updates.nameAr !== undefined) updatePayload.nameAr = updates.nameAr;
+      if (updates.nameEn !== undefined) updatePayload.nameEn = updates.nameEn;
+      if (updates.icon !== undefined) updatePayload.icon = updates.icon;
+      if (updates.color !== undefined) updatePayload.color = updates.color;
+      if (updates.educationalPurposeId !== undefined) updatePayload.educationalPurposeId = updates.educationalPurposeId;
+      
+      if (updates.allowedFormats !== undefined) {
+        updatePayload.allowedFormats = Array.isArray(updates.allowedFormats) 
+          ? updates.allowedFormats 
+          : (updates.allowedFormats || []);
+      }
+      
+      const response = await databases.updateDocument(
+        DATABASE_ID,
+        FILE_TYPES_COLLECTION_ID,
+        fileTypeId,
+        updatePayload
+      );
+      return response;
+    } catch (error) {
+      console.error('❌ Error updating file type:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete file type
+   */
+  async delete(fileTypeId) {
+    try {
+      await databases.deleteDocument(
+        DATABASE_ID,
+        FILE_TYPES_COLLECTION_ID,
+        fileTypeId
+      );
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting file type:', error);
       throw error;
     }
   }
@@ -393,7 +457,7 @@ export const materialsService = {
   },
 
   /**
-   * Get material by ID
+   * Get material by ID (with fileType populated)
    */
   async getById(materialId) {
     try {
@@ -402,7 +466,20 @@ export const materialsService = {
         MATERIALS_COLLECTION_ID,
         materialId
       );
-      return response;
+      
+      const material = response;
+      
+      // ✅ Populate fileType if available
+      if (material.fileTypeId) {
+        try {
+          const fileType = await fileTypesService.getById(material.fileTypeId);
+          return { ...material, fileType };
+        } catch (err) {
+          console.warn(`⚠️ Could not fetch fileType for material ${materialId}:`, err);
+        }
+      }
+      
+      return material;
     } catch (error) {
       console.error('❌ Error fetching material:', error);
       throw error;
@@ -414,33 +491,27 @@ export const materialsService = {
    */
   async create(materialData) {
     try {
-      const user = await account.get();
-      
       const response = await databases.createDocument(
         DATABASE_ID,
         MATERIALS_COLLECTION_ID,
         ID.unique(),
         {
+          uploaderId: materialData.uploaderId,
           title: materialData.title,
-          description: materialData.description || '',
-          categoryId: materialData.categoryId,
-          subjectId: materialData.subjectId,
-          fileTypeId: materialData.fileTypeId,
+          description: materialData.description || 'No Description',
           fileId: materialData.fileId,
-          uploaderId: user.$id,
           fileName: materialData.fileName,
           fileSize: materialData.fileSize,
-          mimeType: materialData.mimeType,
-          downloadURL: materialData.downloadURL,
-          viewURL: materialData.viewURL || '',
-          tags: materialData.tags || [],
-          semester: materialData.semester || '',
-          year: materialData.year || new Date().getFullYear()
+          downloadURL: materialData.downloadURL || materialData.viewURL || '',
+          viewURL: materialData.viewURL || materialData.downloadURL || '',
+          subjectId: materialData.subjectId,
+          fileTypeId: materialData.fileTypeId,
+          tags: materialData.tags || null
         }
       );
       return response;
     } catch (error) {
-      console.error('❌ Error creating material:', error);
+      console.error(' Error creating material:', error);
       throw error;
     }
   },
@@ -464,15 +535,61 @@ export const materialsService = {
   },
 
   /**
-   * Delete material
+   * Delete material (complete cleanup)
    */
   async delete(materialId) {
     try {
+      // 1. Get material to get fileId
+      const material = await this.getById(materialId);
+      
+      // 2. Delete file from MinIO storage
+      if (material.fileId) {
+        try {
+          await StorageService.deleteFile(material.fileId);
+          console.log('🗑️ File deleted from MinIO:', material.fileId);
+        } catch (err) {
+          console.warn('⚠️ Could not delete file from MinIO:', err.message);
+        }
+      }
+      
+      // 3. Delete all downloads for this file
+      try {
+        const downloads = await databases.listDocuments(
+          DATABASE_ID,
+          DOWNLOADS_COLLECTION_ID,
+          [Query.equal('fileId', materialId)]
+        );
+        for (const download of downloads.documents) {
+          await databases.deleteDocument(DATABASE_ID, DOWNLOADS_COLLECTION_ID, download.$id);
+        }
+        console.log(`🗑️ Deleted ${downloads.documents.length} download records`);
+      } catch (err) {
+        console.warn('⚠️ Could not delete downloads:', err.message);
+      }
+      
+      // 4. Delete all bookmarks for this file
+      try {
+        const bookmarks = await databases.listDocuments(
+          DATABASE_ID,
+          BOOKMARKS_COLLECTION_ID,
+          [Query.equal('fileId', materialId)]
+        );
+        for (const bookmark of bookmarks.documents) {
+          await databases.deleteDocument(DATABASE_ID, BOOKMARKS_COLLECTION_ID, bookmark.$id);
+        }
+        console.log(`🗑️ Deleted ${bookmarks.documents.length} bookmark records`);
+      } catch (err) {
+        console.warn('⚠️ Could not delete bookmarks:', err.message);
+      }
+      
+      // 5. Finally, delete the material document
       await databases.deleteDocument(
         DATABASE_ID,
         MATERIALS_COLLECTION_ID,
         materialId
       );
+      
+      console.log('✅ Material completely deleted:', materialId);
       return true;
     } catch (error) {
       console.error('❌ Error deleting material:', error);
@@ -502,7 +619,7 @@ export const materialsService = {
   },
 
   /**
-   * Get materials by uploader
+   * Get materials by uploader (with fileType populated)
    */
   async getByUploader(uploaderId, limit = 50) {
     try {
@@ -515,7 +632,24 @@ export const materialsService = {
           Query.limit(limit)
         ]
       );
-      return response.documents;
+      
+      // Populate fileType for each material
+      const materialsWithFileType = await Promise.all(
+        response.documents.map(async (material) => {
+          if (material.fileTypeId) {
+            try {
+              const fileType = await fileTypesService.getById(material.fileTypeId);
+              return { ...material, fileType };
+            } catch (err) {
+              console.warn(`⚠️ Could not fetch fileType for material ${material.$id}:`, err);
+              return material;
+            }
+          }
+          return material;
+        })
+      );
+      
+      return materialsWithFileType;
     } catch (error) {
       console.error('❌ Error fetching materials by uploader:', error);
       throw error;
@@ -549,20 +683,90 @@ export const materialsService = {
 export const usersService = {
   /**
    * Create user record in database
+   * ✅ FIX: Use Auth user's ID as document ID for proper linking
    */
   async create(userData) {
     try {
+      console.log('🔥🔥🔥 usersService.create() CALLED 🔥🔥🔥');
       console.log('📝 Creating user in database:', userData.email);
+      console.log('📊 DATABASE_ID:', DATABASE_ID);
+      console.log('📊 USERS_COLLECTION_ID:', USERS_COLLECTION_ID);
+      
+      // Get the authenticated user to use their ID
+      const authUser = await account.get();
+      console.log('👤 Auth user from account.get():', {
+        id: authUser.$id,
+        name: authUser.name,
+        email: authUser.email
+      });
+      
+      // Fast path: if a document already exists with the correct ID, return it
+      try {
+        const existingById = await databases.getDocument(
+          DATABASE_ID,
+          USERS_COLLECTION_ID,
+          authUser.$id
+        );
+        console.log('ℹ️ User document already exists with matching ID:', existingById.$id);
+        return existingById;
+      } catch (_) {
+        // Not found by ID, continue
+      }
+
+      // Check by email in case there is an old document with different ID
+      let existingByEmail = null;
+      try {
+        const list = await databases.listDocuments(
+          DATABASE_ID,
+          USERS_COLLECTION_ID,
+          [Query.equal('email', userData.email || authUser.email), Query.limit(1)]
+        );
+        existingByEmail = list.documents?.[0] || null;
+      } catch (_) {}
+
+      // If an old document exists with a different ID, create the correct one and try to clean up
+      if (existingByEmail && existingByEmail.$id !== authUser.$id) {
+        console.log('🛠️ Found existing user by email with different ID:', existingByEmail.$id);
+        try {
+          const created = await databases.createDocument(
+            DATABASE_ID,
+            USERS_COLLECTION_ID,
+            authUser.$id,
+            {
+              name: userData.name || authUser.name || existingByEmail.name || '',
+              email: userData.email || authUser.email || existingByEmail.email || ''
+            }
+          );
+          console.log('✅ Created new user doc with auth ID:', created.$id);
+          // Try to delete the old document (ignore errors if permissions block it)
+          try {
+            await databases.deleteDocument(DATABASE_ID, USERS_COLLECTION_ID, existingByEmail.$id);
+            console.log('🗑️ Deleted old user doc with mismatched ID:', existingByEmail.$id);
+          } catch (delErr) {
+            console.warn('⚠️ Could not delete old user doc:', delErr?.message);
+          }
+          return created;
+        } catch (createErr) {
+          if (createErr.code === 409) {
+            const fallback = await databases.getDocument(DATABASE_ID, USERS_COLLECTION_ID, authUser.$id);
+            return fallback;
+          }
+          throw createErr;
+        }
+      }
+
+      console.log('🎯 Creating document with Auth user ID as document ID:', authUser.$id);
       const response = await databases.createDocument(
         DATABASE_ID,
         USERS_COLLECTION_ID,
-        ID.unique(),
+        authUser.$id, // ✅ FIX: Use Auth user's ID instead of ID.unique()
         {
-          name: userData.name,
-          email: userData.email
+          name: userData.name || authUser.name,
+          email: userData.email || authUser.email
         }
       );
-      console.log('✅ User created in database:', response.$id);
+      console.log('✅✅✅ User created in database with matching ID:', response.$id);
+      console.log('✅ Verify: Auth ID =', authUser.$id, '| Document ID =', response.$id);
       return response;
     } catch (error) {
       console.error('❌ Error creating user:', {
@@ -571,10 +775,15 @@ export const usersService = {
         type: error.type
       });
       
-      // If user already exists (duplicate email), try to fetch and return
-      if (error.code === 409 || error.message?.includes('unique')) {
+      // If user already exists (duplicate ID or email), try to fetch and return
+      if (error.code === 409 || error.message?.includes('unique') || error.message?.includes('already exists')) {
         console.log('⚠️ User already exists, fetching existing user...');
-        return await this.getByEmail(userData.email);
+        try {
+          const authUser = await account.get();
+          return await this.getById(authUser.$id);
+        } catch (fetchError) {
+          return await this.getByEmail(userData.email);
+        }
       }
       
       throw error;
@@ -612,6 +821,63 @@ export const usersService = {
       return response;
     } catch (error) {
       console.error('❌ Error fetching user:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update user data
+   */
+  async update(userId, data) {
+    try {
+      const response = await databases.updateDocument(
+        DATABASE_ID,
+        USERS_COLLECTION_ID,
+        userId,
+        data
+      );
+      console.log('✅ User updated in database:', userId);
+      return response;
+    } catch (error) {
+      console.error('❌ Error updating user:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all users (Admin only)
+   */
+  async getAll(limit = 100) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        USERS_COLLECTION_ID,
+        [
+          Query.orderDesc('$createdAt'),
+          Query.limit(limit)
+        ]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching all users:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update user
+   */
+  async update(userId, updates) {
+    try {
+      const response = await databases.updateDocument(
+        DATABASE_ID,
+        USERS_COLLECTION_ID,
+        userId,
+        updates
+      );
+      return response;
+    } catch (error) {
+      console.error('❌ Error updating user:', error);
       throw error;
     }
   }
@@ -691,6 +957,11 @@ export const userProfilesService = {
 // ============================================
 // 🔖 BOOKMARKS SERVICE
 // ============================================
+
+// Request deduplication cache
+const bookmarkRequestCache = new Map();
+const CACHE_DURATION = 1000; // 1 second
+
 export const bookmarksService = {
   /**
    * Create bookmark
@@ -780,20 +1051,52 @@ export const bookmarksService = {
   },
 
   /**
-   * Toggle bookmark
+   * Toggle bookmark with request deduplication
    */
   async toggle(fileId) {
     try {
       const user = await account.get();
-      const existing = await this.getByUserAndFile(user.$id, fileId);
+      const cacheKey = `${user.$id}-${fileId}`;
       
-      if (existing) {
-        await this.delete(existing.$id);
-        return { bookmarked: false };
-      } else {
-        await this.create(fileId);
-        return { bookmarked: true };
+      // ✅ Request deduplication: Check if request is in progress
+      const now = Date.now();
+      if (bookmarkRequestCache.has(cacheKey)) {
+        const { promise, timestamp } = bookmarkRequestCache.get(cacheKey);
+        
+        // If request is still fresh, return the existing promise
+        if (now - timestamp < CACHE_DURATION) {
+          console.log('⚡ Reusing existing bookmark request');
+          return promise;
+        }
       }
+      
+      // ✅ Create new request and cache it
+      const requestPromise = (async () => {
+        try {
+          const existing = await this.getByUserAndFile(user.$id, fileId);
+          
+          if (existing) {
+            await this.delete(existing.$id);
+            return { bookmarked: false, bookmarkId: null };
+          } else {
+            const newBookmark = await this.create(fileId);
+            return { bookmarked: true, bookmarkId: newBookmark.$id };
+          }
+        } finally {
+          // ✅ Clear cache after request completes
+          setTimeout(() => {
+            bookmarkRequestCache.delete(cacheKey);
+          }, CACHE_DURATION);
+        }
+      })();
+      
+      // ✅ Store promise in cache
+      bookmarkRequestCache.set(cacheKey, {
+        promise: requestPromise,
+        timestamp: now
+      });
+      
+      return requestPromise;
     } catch (error) {
       console.error('❌ Error toggling bookmark:', error);
       throw error;
@@ -850,6 +1153,26 @@ export const downloadsService = {
     } catch (error) {
       console.error('❌ Error fetching downloads:', error);
       throw error;
+    }
+  },
+
+  /**
+   * Get downloads by file
+   */
+  async getByFile(fileId, limit = 1000) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        DOWNLOADS_COLLECTION_ID,
+        [
+          Query.equal('fileId', fileId),
+          Query.limit(limit)
+        ]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching downloads by file:', error);
+      return [];
     }
   },
 
@@ -994,6 +1317,323 @@ export const statisticsService = {
   }
 };
 
+// ============================================
+// 📝 POSTS SERVICE
+// ============================================
+export const postsService = {
+  /**
+   * Create a new post
+   */
+  async create(postData) {
+    try {
+      const { subjectId, uploaderId, contentText, linkURL, educationalPurposeId } = postData;
+      
+      // Validate that at least one field is provided
+      if (!contentText?.trim() && !linkURL?.trim()) {
+        throw new Error('Post must have either text content or a link');
+      }
+      
+      // Validate and check URL safety if provided
+      if (linkURL?.trim()) {
+        try {
+          new URL(linkURL);
+        } catch {
+          throw new Error('Invalid URL format');
+        }
+        
+        // For link posts, educational purpose is required
+        if (!educationalPurposeId) {
+          throw new Error('Educational purpose is required for link posts');
+        }
+        
+        // Security check: Validate URL safety using backend service
+        try {
+          const { validateUrlSafety } = await import('./linkSecurityClient.js');
+          const securityCheck = await validateUrlSafety(linkURL);
+          
+          if (!securityCheck.safe) {
+            throw new Error(securityCheck.message || 'This URL has been flagged as potentially dangerous and cannot be posted');
+          }
+          
+          if (securityCheck.warning) {
+            console.warn('⚠️  URL security warning:', securityCheck.warning);
+          }
+        } catch (securityError) {
+          // If it's our custom error about unsafe URL, rethrow it
+          if (securityError.message.includes('flagged') || securityError.message.includes('dangerous')) {
+            throw securityError;
+          }
+          // Otherwise, log and continue (backend might be unavailable)
+          console.warn('⚠️  Could not perform security check:', securityError.message);
+          console.warn('⚠️  Proceeding without security check - backend may be offline');
+        }
+      }
+      
+      const document = {
+        subjectId,
+        uploaderId,
+        contentText: contentText?.trim() || '',
+        linkURL: linkURL?.trim() || '',
+        ...(educationalPurposeId ? { educationalPurposeId } : {})
+      };
+      
+      console.log('📝 Creating post with data:', document);
+      
+      const response = await databases.createDocument(
+        DATABASE_ID,
+        POSTS_COLLECTION_ID,
+        ID.unique(),
+        document
+      );
+      
+      console.log('✅ Post created:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error creating post:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get posts by subject
+   */
+  async getBySubject(subjectId, limit = 100) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        POSTS_COLLECTION_ID,
+        [
+          Query.equal('subjectId', subjectId),
+          Query.orderDesc('$createdAt'),
+          Query.limit(limit)
+        ]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching posts by subject:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get posts by uploader
+   */
+  async getByUploader(uploaderId, limit = 100) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        POSTS_COLLECTION_ID,
+        [
+          Query.equal('uploaderId', uploaderId),
+          Query.orderDesc('$createdAt'),
+          Query.limit(limit)
+        ]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching posts by uploader:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get a single post by ID
+   */
+  async getById(postId) {
+    try {
+      const response = await databases.getDocument(
+        DATABASE_ID,
+        POSTS_COLLECTION_ID,
+        postId
+      );
+      return response;
+    } catch (error) {
+      console.error('❌ Error fetching post:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update a post
+   */
+  async update(postId, updates) {
+    try {
+      const response = await databases.updateDocument(
+        DATABASE_ID,
+        POSTS_COLLECTION_ID,
+        postId,
+        updates
+      );
+      console.log('✅ Post updated:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error updating post:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a post
+   */
+  async delete(postId) {
+    try {
+      await databases.deleteDocument(
+        DATABASE_ID,
+        POSTS_COLLECTION_ID,
+        postId
+      );
+      console.log('✅ Post deleted');
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting post:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all posts (admin)
+   */
+  async getAll(limit = 100) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        POSTS_COLLECTION_ID,
+        [
+          Query.orderDesc('$createdAt'),
+          Query.limit(limit)
+        ]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching all posts:', error);
+      throw error;
+    }
+  }
+};
+
+// ============================================
+// 🎯 EDUCATIONAL PURPOSES SERVICE
+// ============================================
+export const educationalPurposesService = {
+  /**
+   * Get all educational purposes
+   */
+  async getAll(limit = 100) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        EDUCATIONAL_PURPOSES_COLLECTION_ID,
+        [
+          Query.orderAsc('nameEn'),
+          Query.limit(limit)
+        ]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching educational purposes:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get educational purposes where links are allowed
+   */
+  async getLinkAllowed() {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        EDUCATIONAL_PURPOSES_COLLECTION_ID,
+        [
+          Query.equal('isLinkAllowed', true),
+          Query.orderAsc('nameEn')
+        ]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching link-allowed purposes:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get educational purpose by ID
+   */
+  async getById(purposeId) {
+    try {
+      const response = await databases.getDocument(
+        DATABASE_ID,
+        EDUCATIONAL_PURPOSES_COLLECTION_ID,
+        purposeId
+      );
+      return response;
+    } catch (error) {
+      console.error('❌ Error fetching educational purpose:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create new educational purpose (Admin only)
+   */
+  async create(purposeData) {
+    try {
+      const response = await databases.createDocument(
+        DATABASE_ID,
+        EDUCATIONAL_PURPOSES_COLLECTION_ID,
+        ID.unique(),
+        {
+          nameAr: purposeData.nameAr,
+          nameEn: purposeData.nameEn,
+          icon: purposeData.icon || '📚',
+          isLinkAllowed: purposeData.isLinkAllowed || false
+        }
+      );
+      console.log('✅ Educational purpose created:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error creating educational purpose:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update educational purpose
+   */
+  async update(purposeId, updates) {
+    try {
+      const response = await databases.updateDocument(
+        DATABASE_ID,
+        EDUCATIONAL_PURPOSES_COLLECTION_ID,
+        purposeId,
+        updates
+      );
+      console.log('✅ Educational purpose updated:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error updating educational purpose:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete educational purpose
+   */
+  async delete(purposeId) {
+    try {
+      await databases.deleteDocument(
+        DATABASE_ID,
+        EDUCATIONAL_PURPOSES_COLLECTION_ID,
+        purposeId
+      );
+      console.log('✅ Educational purpose deleted');
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting educational purpose:', error);
+      throw error;
+    }
+  }
+};
+
 // Export all services as default
 export default {
   categories: categoriesService,
@@ -1005,5 +1645,7 @@ export default {
   bookmarks: bookmarksService,
   downloads: downloadsService,
   storage: storageService,
-  statistics: statisticsService
+  statistics: statisticsService,
+  posts: postsService,
+  educationalPurposes: educationalPurposesService
 };

@@ -146,11 +146,9 @@ export const hierarchyService = {
       
       const material = await materialsService.getById(materialId);
       
-      // Get parent subject and category
-      const [subject, category] = await Promise.all([
-        subjectsService.getById(material.subjectId),
-        categoriesService.getById(material.categoryId)
-      ]);
+      // ✅ SCHEMA UPDATE: Get category through subject (no direct categoryId in material)
+      const subject = await subjectsService.getById(material.subjectId);
+      const category = await categoriesService.getById(subject.categoryId);
 
       return {
         ...material,
@@ -262,10 +260,9 @@ export const hierarchyService = {
   async getBreadcrumb(materialId) {
     try {
       const material = await materialsService.getById(materialId);
-      const [subject, category] = await Promise.all([
-        subjectsService.getById(material.subjectId),
-        categoriesService.getById(material.categoryId)
-      ]);
+      // ✅ SCHEMA UPDATE: Get category through subject
+      const subject = await subjectsService.getById(material.subjectId);
+      const category = await categoriesService.getById(subject.categoryId);
 
       return [
         { type: 'category', id: category.$id, name: category.nameEn, nameAr: category.nameAr },

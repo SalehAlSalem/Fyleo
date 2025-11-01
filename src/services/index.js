@@ -24,8 +24,7 @@ export { authService } from './authService';
 export { hierarchyService } from './hierarchyService';
 
 // Legacy Services (for backward compatibility)
-export { databaseService } from './databaseService';
-export { default as DatabaseService } from '../config/DatabaseService';
+export { DatabaseService } from '../config/DatabaseService';
 
 // Default export
 export { default } from './appwriteService';

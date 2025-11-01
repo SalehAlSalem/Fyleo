@@ -1,10 +1,8 @@
 import { Client, Databases, Query, ID } from 'appwrite';
-import minioStorage from './MinioService.js';
 import { 
   DATABASE_ID, 
   USERS_COLLECTION_ID, 
   FILES_COLLECTION_ID,
-  MATERIALS_COLLECTION_ID,
   BOOKMARKS_COLLECTION_ID,
   DOWNLOADS_COLLECTION_ID,
   PROFILES_COLLECTION_ID
@@ -20,27 +18,16 @@ export const DatabaseService = {
   // ============= File Management =============
   async createFile(fileData) {
     try {
-      console.log('🔄 Creating file with data:', fileData);
-      console.log('📊 Using DATABASE_ID:', DATABASE_ID);
-      console.log('📊 Using FILES_COLLECTION_ID (materials):', FILES_COLLECTION_ID);
-      
+      console.log('Creating file with data:', fileData);
       const response = await databases.createDocument(
         DATABASE_ID,
-        FILES_COLLECTION_ID, // هذا materials collection
+        FILES_COLLECTION_ID,
         ID.unique(),
         fileData // Appwrite automatically adds $createdAt and $updatedAt
       );
-      
-      console.log('✅ File created successfully:', response);
       return response;
     } catch (error) {
-      console.error('❌ Error creating file:', error);
-      console.error('🔧 Error details:', {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        type: error.type
-      });
+      console.error('Error creating file:', error);
       throw error;
     }
   },
@@ -104,7 +91,7 @@ export const DatabaseService = {
         DATABASE_ID,
         FILES_COLLECTION_ID,
         [
-          Query.equal('uploadedBy', userId),
+          Query.equal('uploaderId', userId),
           Query.orderDesc('$createdAt'), // استخدام $createdAt
           Query.limit(limit)
         ]
@@ -118,7 +105,7 @@ export const DatabaseService = {
           DATABASE_ID,
           FILES_COLLECTION_ID,
           [
-            Query.equal('uploadedBy', userId),
+            Query.equal('uploaderId', userId),
             Query.limit(limit)
           ]
         );
@@ -168,7 +155,10 @@ export const DatabaseService = {
         DATABASE_ID,
         FILES_COLLECTION_ID,
         fileId,
-        updates // Appwrite يدير $updatedAt تلقائياً
+        {
+          ...updates,
+          updatedAt: new Date().toISOString()
+        }
       );
       return response;
     } catch (error) {
@@ -205,32 +195,19 @@ export const DatabaseService = {
   // ============= User Management =============
   async createUser(userData) {
     try {
-      console.log('🔄 Creating user with data:', userData);
-      console.log('📊 Using DATABASE_ID:', DATABASE_ID);
-      console.log('📊 Using USERS_COLLECTION_ID:', USERS_COLLECTION_ID);
-      
       const response = await databases.createDocument(
         DATABASE_ID,
         USERS_COLLECTION_ID,
-        ID.unique(), // دائماً إنشاء ID جديد
+        userData.userId || ID.unique(),
         {
-          name: userData.name,
-          email: userData.email
-          // بس الـ attributes الموجودة: name, email
-          // Appwrite هيضيف $createdAt و $updatedAt تلقائياً
+          ...userData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
       );
-      
-      console.log('✅ User created successfully:', response);
       return response;
     } catch (error) {
-      console.error('❌ Error creating user:', error);
-      console.error('🔧 Error details:', {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        type: error.type
-      });
+      console.error('Error creating user:', error);
       throw error;
     }
   },
@@ -398,7 +375,7 @@ export const DatabaseService = {
     try {
       let queries = [];
       if (userId) {
-        queries.push(Query.equal('uploadedBy', userId));
+        queries.push(Query.equal('uploaderId', userId));
       }
 
       const response = await databases.listDocuments(
@@ -470,437 +447,6 @@ export const DatabaseService = {
       return response.documents;
     } catch (error) {
       console.error('Error getting popular files:', error);
-      throw error;
-    }
-  },
-
-  // ============= Statistics =============
-  async getActiveUsersCount() {
-    try {
-      // احصل على عدد المستخدمين النشطين (تسجيل دخول خلال آخر 30 يوم)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        PROFILES_COLLECTION_ID,
-        [
-          Query.greaterThan('$updatedAt', thirtyDaysAgo.toISOString()),
-          Query.limit(1000) // حد أقصى للحصول على العدد
-        ]
-      );
-      return response.total || response.documents.length;
-    } catch (error) {
-      console.error('Error getting active users count:', error);
-      return 25; // رقم افتراضي
-    }
-  },
-
-  async getTotalUsersCount() {
-    try {
-      // احصل على إجمالي عدد المستخدمين المسجلين
-      console.log('🔍 DatabaseService: Attempting to fetch total users...');
-      console.log('📊 Using DATABASE_ID:', DATABASE_ID);
-      console.log('📊 Using USERS_COLLECTION_ID:', USERS_COLLECTION_ID);
-      
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        USERS_COLLECTION_ID, // استخدم users بدلاً من user_profiles
-        [Query.limit(1)]
-      );
-      
-      console.log('✅ DatabaseService: Users response received:', {
-        total: response.total,
-        documentsLength: response.documents?.length,
-        fullResponse: response
-      });
-      
-      if (response.total > 0) {
-        console.log('🎯 Found users data:', response.total);
-        return response.total;
-      } else {
-        console.warn('⚠️ No users found in', USERS_COLLECTION_ID);
-        return 0; // بدون أرقام وهمية
-      }
-    } catch (error) {
-      console.error('❌ DatabaseService: Error getting total users count:', error);
-      console.error('🔧 Error details:', {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        type: error.type
-      });
-      
-      // في حالة الفشل، جرب من user_profiles كخطة احتياطية
-      try {
-        console.log('🔄 Trying fallback: user_profiles collection...');
-        console.log('📊 Using PROFILES_COLLECTION_ID:', PROFILES_COLLECTION_ID);
-        
-        const fallbackResponse = await databases.listDocuments(
-          DATABASE_ID,
-          PROFILES_COLLECTION_ID,
-          [Query.limit(1)]
-        );
-        
-        console.log('✅ Fallback response:', {
-          total: fallbackResponse.total,
-          documentsLength: fallbackResponse.documents?.length
-        });
-        
-        if (fallbackResponse.total > 0) {
-          console.log('🎯 Found users in profiles:', fallbackResponse.total);
-          return fallbackResponse.total;
-        } else {
-          console.warn('⚠️ No users found in user_profiles either');
-          return 0;
-        }
-      } catch (fallbackError) {
-        console.error('❌ Fallback also failed:', fallbackError);
-        console.error('🔧 Fallback error details:', {
-          name: fallbackError.name,
-          message: fallbackError.message,
-          code: fallbackError.code,
-          type: fallbackError.type
-        });
-        return 0; // بدون أرقام وهمية
-      }
-    }
-  },
-
-  async getTotalFilesCount() {
-    try {
-      // احصل على إجمالي عدد الملفات - جرب materials أولاً
-      console.log('🔍 DatabaseService: Attempting to fetch total files...');
-      console.log('📊 Using DATABASE_ID:', DATABASE_ID);
-      console.log('📊 First trying MATERIALS_COLLECTION_ID:', MATERIALS_COLLECTION_ID);
-      
-      const materialsResponse = await databases.listDocuments(
-        DATABASE_ID,
-        MATERIALS_COLLECTION_ID,
-        [Query.limit(1)]
-      );
-      
-      console.log('✅ DatabaseService: Materials response received:', {
-        total: materialsResponse.total,
-        documentsLength: materialsResponse.documents?.length,
-        fullResponse: materialsResponse
-      });
-      
-      if (materialsResponse.total > 0) {
-        console.log('🎯 Found files in materials:', materialsResponse.total);
-        return materialsResponse.total;
-      } else {
-        console.log('⚠️ No files found in materials collection, trying FILES collection...');
-        console.log('📊 Trying FILES_COLLECTION_ID:', FILES_COLLECTION_ID);
-        
-        const filesResponse = await databases.listDocuments(
-          DATABASE_ID,
-          FILES_COLLECTION_ID,
-          [Query.limit(1)]
-        );
-        
-        console.log('✅ Files collection response:', {
-          total: filesResponse.total,
-          documentsLength: filesResponse.documents?.length
-        });
-        
-        return filesResponse.total || 0;
-      }
-    } catch (error) {
-      console.error('❌ DatabaseService: Error getting total files count:', error);
-      console.error('🔧 Error details:', {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        type: error.type
-      });
-      return 0; // بدون أرقام وهمية
-    }
-  },
-
-  async getTotalDownloadsCount() {
-    try {
-      // احصل على إجمالي عدد التحميلات
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        DOWNLOADS_COLLECTION_ID,
-        [Query.limit(1)]
-      );
-      return response.total || 500; // رقم افتراضي
-    } catch (error) {
-      console.error('Error getting total downloads count:', error);
-      return 500; // رقم افتراضي
-    }
-  },
-
-  // ============= Downloads Management =============
-  async createDownload(downloadData) {
-    try {
-      console.log('🔄 Creating download record:', downloadData);
-      const response = await databases.createDocument(
-        DATABASE_ID,
-        DOWNLOADS_COLLECTION_ID,
-        ID.unique(),
-        {
-          userId: downloadData.userId,
-          fileId: downloadData.fileId,
-          downloadedAt: new Date().toISOString()
-          // البنية الصحيحة: userId, fileId, downloadedAt
-        }
-      );
-      
-      console.log('✅ Download recorded successfully:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ Error creating download record:', error);
-      console.error('🔧 Error details:', {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        type: error.type
-      });
-      throw error;
-    }
-  },
-
-  async getUserDownloads(userId) {
-    try {
-      console.log('🔍 Getting downloads for user:', userId);
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        DOWNLOADS_COLLECTION_ID,
-        [
-          Query.equal('userId', userId),
-          Query.orderDesc('$createdAt'),
-          Query.limit(50)
-        ]
-      );
-      
-      console.log('✅ User downloads fetched:', response.documents.length);
-      return response.documents;
-    } catch (error) {
-      console.error('❌ Error getting user downloads:', error);
-      return [];
-    }
-  },
-
-  async getFileDownloadCount(fileId) {
-    try {
-      console.log('🔍 Getting download count for file:', fileId);
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        DOWNLOADS_COLLECTION_ID,
-        [
-          Query.equal('fileId', fileId),
-          Query.limit(1) // نحتاج فقط للعدد الإجمالي
-        ]
-      );
-      
-      console.log(`✅ File ${fileId} download count:`, response.total);
-      console.log('🔍 Found downloads:', response.documents.length);
-      
-      // إضافة معلومات تفصيلية للتطوير
-      if (response.documents.length > 0) {
-        console.log('🔍 Sample download record:', response.documents[0]);
-      }
-      
-      return response.total || 0;
-    } catch (error) {
-      console.error('❌ Error getting file download count:', error);
-      return 0;
-    }
-  },
-
-  async getUserTotalDownloads(userId) {
-    try {
-      console.log('🔍 Getting total downloads for user files:', userId);
-      
-      // احصل على جميع ملفات المستخدم
-      const userFiles = await this.getUserFiles(userId, 1000);
-      
-      let totalDownloads = 0;
-      
-      // احسب مجموع التحميلات لكل ملف
-      for (const file of userFiles.documents) {
-        const downloadCount = await this.getFileDownloadCount(file.$id);
-        totalDownloads += downloadCount;
-      }
-      
-      console.log('✅ User total downloads:', totalDownloads);
-      return totalDownloads;
-    } catch (error) {
-      console.error('❌ Error getting user total downloads:', error);
-      return 0;
-    }
-  },
-
-  async getUserDownloadedFilesCount(userId) {
-    try {
-      console.log('🔍 Getting count of files downloaded by user:', userId);
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        DOWNLOADS_COLLECTION_ID,
-        [
-          Query.equal('userId', userId),
-          Query.limit(1) // نحتاج فقط للعدد الإجمالي
-        ]
-      );
-      
-      console.log('✅ User downloaded files count:', response.total);
-      return response.total || 0;
-    } catch (error) {
-      console.error('❌ Error getting user downloaded files count:', error);
-      return 0;
-    }
-  },
-
-  async enrichFilesWithDownloadCount(files) {
-    try {
-      console.log('🔍 Enriching files with download counts');
-      const enrichedFiles = [];
-      
-      for (const file of files) {
-        const downloadCount = await this.getFileDownloadCount(file.$id);
-        enrichedFiles.push({
-          ...file,
-          downloadCount: downloadCount
-        });
-      }
-      
-      console.log('✅ Files enriched with download counts');
-      return enrichedFiles;
-    } catch (error) {
-      console.error('❌ Error enriching files with download counts:', error);
-      return files; // أعد الملفات كما هي في حالة الخطأ
-    }
-  },
-
-  // ============= Bookmarks Management =============
-  async createBookmark(bookmarkData) {
-    try {
-      console.log('🔄 Creating bookmark:', bookmarkData);
-      const response = await databases.createDocument(
-        DATABASE_ID,
-        BOOKMARKS_COLLECTION_ID,
-        ID.unique(),
-        {
-          userId: bookmarkData.userId,
-          fileId: bookmarkData.fileId,
-          fileName: bookmarkData.fileName,
-          bookmarkedAt: new Date().toISOString()
-        }
-      );
-      
-      console.log('✅ Bookmark created successfully:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ Error creating bookmark:', error);
-      throw error;
-    }
-  },
-
-  async getUserBookmarks(userId) {
-    try {
-      console.log('🔍 Getting bookmarks for user:', userId);
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        BOOKMARKS_COLLECTION_ID,
-        [
-          Query.equal('userId', userId),
-          Query.orderDesc('$createdAt'),
-          Query.limit(50)
-        ]
-      );
-      
-      console.log('✅ User bookmarks fetched:', response.documents.length);
-      return response.documents;
-    } catch (error) {
-      console.error('❌ Error getting user bookmarks:', error);
-      return [];
-    }
-  },
-
-  async deleteBookmark(bookmarkId) {
-    try {
-      await databases.deleteDocument(
-        DATABASE_ID,
-        BOOKMARKS_COLLECTION_ID,
-        bookmarkId
-      );
-      console.log('✅ Bookmark deleted successfully');
-      return true;
-    } catch (error) {
-      console.error('❌ Error deleting bookmark:', error);
-      throw error;
-    }
-  },
-
-  // ============= Test Functions =============
-  async createTestUser() {
-    try {
-      console.log('🧪 Creating test user...');
-      const testUser = {
-        name: 'Test User',
-        email: `test_${Date.now()}@example.com`,
-        university: 'IIITDMJ',
-        department: 'CSE',
-        createdAt: new Date().toISOString(),
-        isTestUser: true
-      };
-      
-      const response = await databases.createDocument(
-        DATABASE_ID,
-        USERS_COLLECTION_ID,
-        'unique()',
-        testUser
-      );
-      
-      console.log('✅ Test user created:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ Error creating test user:', error);
-      throw error;
-    }
-  },
-
-  async listAllCollections() {
-    try {
-      console.log('📋 Listing all collections and their counts...');
-      
-      const collections = [
-        { name: 'users', id: USERS_COLLECTION_ID },
-        { name: 'user_profiles', id: PROFILES_COLLECTION_ID },
-        { name: 'materials', id: MATERIALS_COLLECTION_ID },
-        { name: 'files', id: FILES_COLLECTION_ID },
-        { name: 'downloads', id: DOWNLOADS_COLLECTION_ID },
-        { name: 'bookmarks', id: BOOKMARKS_COLLECTION_ID }
-      ];
-      
-      const results = {};
-      
-      for (const collection of collections) {
-        try {
-          const response = await databases.listDocuments(
-            DATABASE_ID,
-            collection.id,
-            [Query.limit(1)]
-          );
-          
-          results[collection.name] = {
-            total: response.total,
-            hasDocuments: response.documents?.length > 0
-          };
-          
-          console.log(`📊 ${collection.name}: ${response.total} documents`);
-        } catch (error) {
-          console.error(`❌ Error checking ${collection.name}:`, error.message);
-          results[collection.name] = { error: error.message };
-        }
-      }
-      
-      return results;
-    } catch (error) {
-      console.error('❌ Error listing collections:', error);
       throw error;
     }
   }

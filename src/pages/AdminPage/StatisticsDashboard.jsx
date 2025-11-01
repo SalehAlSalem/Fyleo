@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { statisticsService } from '../../services/appwriteService';
-import { ModernCard, ModernSkeleton, ModernAlert } from '../../components/modern/ModernComponents';
+import { ModernCard, ModernSkeleton, ModernAlert } from '@shared/ui/modern/ModernComponents';
 
 /**
  * 📊 Statistics Dashboard
@@ -103,7 +103,7 @@ const StatisticsDashboard = () => {
           </div>
           <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
             <span className="text-gray-600 dark:text-gray-400">آخر تحديث</span>
-            <span className="text-gray-800 dark:text-white">{new Date().toLocaleDateString('ar-SA')}</span>
+            <span className="text-gray-800 dark:text-white">{new Date().toLocaleDateString()}</span>
           </div>
           <div className="flex items-center justify-between py-3">
             <span className="text-gray-600 dark:text-gray-400">الإصدار</span>
@@ -116,3 +116,4 @@ const StatisticsDashboard = () => {
 };
 
 export default StatisticsDashboard;
+
