@@ -267,13 +267,13 @@ const AppwriteSignup = () => {
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
               />
               <label htmlFor="terms-agreement" className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                أوافق على{' '}
+                {t('signup.legalCheckbox.agreeText')}{' '}
                 <Link to="/terms-of-service" target="_blank" className="font-medium text-blue-600 hover:underline">
-                  شروط الخدمة
+                  {t('signup.legalCheckbox.terms')}
                 </Link>{' '}
-                و{' '}
+                {t('signup.legalCheckbox.and')}{' '}
                 <Link to="/privacy-policy" target="_blank" className="font-medium text-blue-600 hover:underline">
-                  سياسة الخصوصية
+                  {t('signup.legalCheckbox.privacy')}
                 </Link>
               </label>
             </div>

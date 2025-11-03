@@ -109,7 +109,7 @@
       "password": "At least 8 characters",
       "confirmPassword": "Re-enter your password"
     },
-    "legal": {
+    "legalCheckbox": {
       "agreeText": "I have read and agree to the",
       "terms": "Terms of Service",
       "and": "and",
@@ -186,17 +186,349 @@
   },
   
   "admin": {
-    "title": "Admin Panel",
-    "usersManagement": "Users Management",
-    "categoriesManagement": "Categories Management",
-    "subjectsManagement": "Subjects Management",
-    "fileTypesManagement": "File Types Management",
-    "materialsManagement": "Materials Management",
-    "statistics": "Statistics",
-    "totalUsers": "Total Users",
-    "totalFiles": "Total Files",
-    "totalCategories": "Total Categories",
-    "totalSubjects": "Total Subjects"
+    "panel": {
+      "title": "Admin Panel",
+      "welcome": "Welcome to the Admin Panel",
+      "tabs": {
+        "users": "Users Management",
+        "content": "Content Management",
+        "categories": "Categories",
+        "materials": "Materials"
+      },
+      "roles": {
+        "systemAdmin": "👑 System Administrator",
+        "contentReviewer": "Content Reviewer",
+        "contentManager": "Content Manager",
+        "noPermissions": "You don't have permissions to access the admin panel"
+      },
+      "statistics": {
+        "title": "Statistics",
+        "totalUsers": "Total Users",
+        "totalFiles": "Total Files",
+        "totalCategories": "Total Categories",
+        "totalSubjects": "Total Subjects",
+        "totalDownloads": "Total Downloads",
+        "overview": "Overview",
+        "systemStatus": "System Status",
+        "operatingNormally": "Operating Normally",
+        "lastUpdate": "Last Update",
+        "version": "Version"
+      }
+    },
+    "categories": {
+      "title": "Academic Categories Management",
+      "addNew": "Add New Category",
+      "addCategory": "Add Category",
+      "editCategory": "Edit Category",
+      "nameAr": "Arabic Name",
+      "nameEn": "English Name",
+      "descriptionAr": "Arabic Description",
+      "descriptionEn": "English Description",
+      "icon": "Icon (Emoji)",
+      "color": "Color",
+      "order": "Order",
+      "active": "Active",
+      "categoryActive": "Category Active",
+      "namePlaceholderAr": "Example: University Requirements",
+      "namePlaceholderEn": "Example: University Requirements",
+      "descriptionPlaceholderAr": "Category description",
+      "descriptionPlaceholderEn": "Category description",
+      "iconPlaceholder": "Select emoji...",
+      "colorPlaceholder": "Select color...",
+      "orderPlaceholder": "Order number",
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "add": "Add",
+        "cancel": "Cancel",
+        "save": "Save"
+      }
+    },
+    "subjects": {
+      "title": "Academic Subjects Management",
+      "addNew": "Add Subject",
+      "addSubject": "Add Subject",
+      "editSubject": "Edit Subject",
+      "all": "All",
+      "uncategorized": "Uncategorized",
+      "nameAr": "Arabic Name",
+      "nameEn": "English Name",
+      "descriptionAr": "Arabic Description",
+      "descriptionEn": "English Description",
+      "category": "Category",
+      "selectCategory": "Select Category",
+      "creditHours": "Credit Hours",
+      "level": "Level",
+      "active": "Active",
+      "hours": "hours",
+      "hour": "hour",
+      "level1": "Level 1",
+      "level2": "Level 2",
+      "level3": "Level 3",
+      "level4": "Level 4",
+      "level5": "Level 5",
+      "firstLevel": "First Level",
+      "secondLevel": "Second Level",
+      "thirdLevel": "Third Level",
+      "fourthLevel": "Fourth Level",
+      "fifthLevel": "Fifth Level",
+      "namePlaceholderAr": "Example: Computer Science",
+      "namePlaceholderEn": "Example: Computer Science",
+      "descriptionPlaceholderAr": "Subject description",
+      "descriptionPlaceholderEn": "Subject description",
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "add": "Add",
+        "cancel": "Cancel",
+        "save": "Save"
+      }
+    },
+    "fileTypes": {
+      "title": "File Types Management",
+      "addNew": "Add File Type",
+      "addFileType": "Add New File Type",
+      "editFileType": "Edit File Type",
+      "nameAr": "Arabic Name",
+      "nameEn": "English Name",
+      "icon": "Icon (Emoji)",
+      "color": "Color (Hex)",
+      "allowedExtensions": "Allowed Extensions (comma separated)",
+      "extensionsPlaceholder": "Example: pdf, doc, docx, txt",
+      "allowedExtensionsLabel": "Allowed Extensions:",
+      "namePlaceholderAr": "Example: Lecture",
+      "namePlaceholderEn": "Example: Lecture",
+      "iconPlaceholder": "Select emoji...",
+      "colorPlaceholder": "#000000",
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "add": "Add",
+        "cancel": "Cancel",
+        "save": "Save"
+      }
+    },
+    "educationalPurposes": {
+      "title": "Educational Purposes Management",
+      "description": "Manage educational purposes and assign file types",
+      "addNew": "Create New Purpose",
+      "assignTypes": "Assign Types",
+      "assignedFileTypes": "Assigned File Types"
+    },
+    "users": {
+      "title": "Users Management",
+      "description": "View user information and contact them",
+      "totalUsers": "users",
+      "functionsReady": "Functions ready! You can now block users and manage teams",
+      "contact": "Contact",
+      "block": "Block",
+      "unblock": "Unblock",
+      "teamsLabel": "Teams:",
+      "joinedDate": "Joined:",
+      "actions": {
+        "addUser": "Add User",
+        "ban": "Ban",
+        "unban": "Unban",
+        "deleteUser": "Delete User",
+        "addToTeam": "Add to Team",
+        "removeFromTeam": "Remove from Team",
+        "selectAll": "Select All",
+        "deselectAll": "Deselect All",
+        "bulkBan": "Ban Selected",
+        "bulkUnban": "Unban Selected"
+      },
+      "status": {
+        "active": "Active",
+        "banned": "Banned",
+        "verified": "Verified",
+        "unverified": "Unverified"
+      },
+      "teams": {
+        "title": "Teams Management",
+        "createTeam": "Create Team",
+        "editTeam": "Edit Team",
+        "deleteTeam": "Delete Team",
+        "members": "Members",
+        "addMembers": "Add Members"
+      },
+      "confirmations": {
+        "banUser": "Are you sure you want to ban this user?",
+        "unbanUser": "Are you sure you want to unban this user?",
+        "deleteUser": "Are you sure you want to delete this user? This action cannot be undone.",
+        "bulkBan": "Are you sure you want to ban {{count}} users?",
+        "bulkUnban": "Are you sure you want to unban {{count}} users?",
+        "addToTeam": "Do you want to add this user to the team?",
+        "removeFromTeam": "Do you want to remove this user from the team?"
+      },
+      "messages": {
+        "userBanned": "User banned successfully",
+        "userUnbanned": "User unbanned successfully",
+        "userDeleted": "User deleted successfully",
+        "bulkActionComplete": "Action completed on {{count}} users",
+        "addedToTeam": "User added to team successfully",
+        "removedFromTeam": "User removed from team successfully",
+        "loadError": "Failed to load users",
+        "actionError": "Failed to execute action",
+        "banError": "Failed to ban user",
+        "unbanError": "Failed to unban user",
+        "noResults": "No results found",
+        "noUsers": "No users found"
+      },
+      "filters": {
+        "all": "All",
+        "active": "Active",
+        "banned": "Banned",
+        "verified": "Verified",
+        "unverified": "Unverified"
+      },
+      "labels": {
+        "username": "Username",
+        "email": "Email",
+        "status": "Status",
+        "registrationDate": "Registration Date",
+        "lastLogin": "Last Login",
+        "teams": "Teams",
+        "actions": "Actions",
+        "noName": "No name",
+        "joined": "Joined"
+      },
+      "placeholders": {
+        "searchUser": "Search for user...",
+        "searchUsers": "Search for user...",
+        "selectTeam": "Select team...",
+        "noUsersFound": "No users found"
+      }
+    },
+    "content": {
+      "title": "Content Management",
+      "tabs": {
+        "materials": "Educational Materials",
+        "posts": "Posts"
+      },
+      "actions": {
+        "view": "👁️ View",
+        "edit": "✏️ Edit",
+        "delete": "🗑️ Delete",
+        "approve": "✅ Approve",
+        "reject": "❌ Reject",
+        "pin": "📌 Pin",
+        "unpin": "📌 Unpin"
+      },
+      "filters": {
+        "all": "All",
+        "pending": "Pending Review",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "pinned": "Pinned"
+      },
+      "confirmations": {
+        "delete": "Are you sure you want to delete this item?",
+        "approve": "Do you want to approve this item?",
+        "reject": "Do you want to reject this item?",
+        "pin": "Do you want to pin this item?",
+        "unpin": "Do you want to unpin this item?"
+      },
+      "messages": {
+        "deleted": "Item deleted successfully",
+        "materialDeleted": "File deleted successfully",
+        "postDeleted": "Post deleted successfully",
+        "deleteError": "Failed to delete item",
+        "approved": "Item approved successfully",
+        "rejected": "Item rejected successfully",
+        "pinned": "Item pinned successfully",
+        "unpinned": "Item unpinned successfully",
+        "loadError": "Failed to load content",
+        "actionError": "Failed to execute action",
+        "updateSuccess": "Item updated successfully",
+        "noResults": "No results found",
+        "noContent": "No content available"
+      },
+      "labels": {
+        "title": "Title",
+        "description": "Description",
+        "uploader": "Uploader",
+        "author": "Author",
+        "uploadDate": "Upload Date",
+        "date": "Date",
+        "status": "Status",
+        "category": "Category",
+        "subject": "Subject",
+        "fileType": "File Type",
+        "fileSize": "File Size",
+        "preview": "Preview",
+        "download": "Download",
+        "bookmark": "Bookmark",
+        "info": "Info",
+        "size": "Size",
+        "type": "Type",
+        "views": "Views",
+        "downloads": "Downloads",
+        "likes": "Likes",
+        "actions": "Actions",
+        "link": "Link",
+        "post": "Post",
+        "file": "file",
+        "viewAllContent": "View and manage all files and posts",
+        "untitled": "Untitled"
+      },
+      "placeholders": {
+        "searchContent": "Search content...",
+        "noContentFound": "No content found",
+        "selectCategory": "Select category...",
+        "selectSubject": "Select subject..."
+      },
+      "materials": {
+        "fileType": "File Type",
+        "fileSize": "File Size",
+        "description": "Description"
+      },
+      "posts": {
+        "content": "Content",
+        "comments": "Comments",
+        "shares": "Shares"
+      }
+    },
+    "common": {
+      "buttons": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "close": "Close",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "submit": "Submit",
+        "reset": "Reset",
+        "search": "Search",
+        "filter": "Filter",
+        "export": "Export",
+        "import": "Import",
+        "refresh": "Refresh"
+      },
+      "messages": {
+        "success": "Operation successful",
+        "error": "An error occurred",
+        "loading": "Loading...",
+        "noData": "No data available",
+        "confirmAction": "Are you sure?",
+        "unsavedChanges": "You have unsaved changes",
+        "sessionExpired": "Session expired, please login again"
+      },
+      "validation": {
+        "required": "This field is required",
+        "invalidEmail": "Invalid email address",
+        "invalidUrl": "Invalid URL",
+        "minLength": "Minimum length is {{min}} characters",
+        "maxLength": "Maximum length is {{max}} characters",
+        "invalidFormat": "Invalid format"
+      },
+      "pagination": {
+        "page": "Page",
+        "of": "of",
+        "itemsPerPage": "Items per page",
+        "showing": "Showing {{start}} to {{end}} of {{total}}"
+      }
+    }
   },
   "messages": {
     "deleteConfirm": "Are you sure you want to delete this?",
@@ -309,7 +641,6 @@
     "solution4": "Collaborative Community",
     "solution4Desc": "Share and help your classmates study",
     "whyChooseUsDesc": "Features that make us the best choice",
-    "statsTitle": "Platform Statistics",
     "readyToStart": "Ready to Start?",
     "joinCommunity": "Join our community and start sharing now!",
     "heroIdentity": "Fyleo",
@@ -335,12 +666,11 @@
     "ctaDesc": "Join now the community that will change your study experience forever",
     "ctaButton": "Start Now - Free",
     "ctaSecondary": "Explore the Platform First",
-    "browseLibrary": "Browse Library",
     "browseFirst": "Browse First",
     "theProblem": "The Problem",
     "problemDesc": "As a student, you struggle to find study materials. You search through scattered WhatsApp and Telegram groups, waste time looking for a single file, and find files unorganized without clear categorization.",
     "theSolution": "The Solution",
-    "solutionDesc": "Fyleo is a centralized platform for sharing study materials. All files are organized by category and subject, with fast and easy search, and a student community that shares and helps each other.",
+    "solutionPlatform": "Fyleo is a centralized platform for sharing study materials. All files are organized by category and subject, with fast and easy search, and a student community that shares and helps each other.",
     "exploreTitle": "Browse the Library",
     "exploreDesc": "Study materials organized by category and subject",
     "browseCategories": "Study Materials",
@@ -379,8 +709,7 @@
     "dropHere": "Drop file here",
     "fileTypeIncompatible": "File type incompatible with file extension",
     "itemsSelected": "items selected",
-    "deleteSelectedConfirm": "Are you sure you want to delete selected items?",
-    "linkTitle": "Link",
+    "deleteSelectedConfirm": "Are you sure you want to delete the selected items?",
     "noTitle": "No title",
     "bookmarkTitle": "Content",
     "type": "Type",
@@ -411,53 +740,7 @@
     "loadingResources": "Loading resources...",
     "almostReady": "Almost ready..."
   },
-  "legal": {
-    "termsOfService": "Terms of Service",
-    "privacyPolicy": "Privacy Policy",
-    "disclaimer": "Disclaimer",
-    "lastUpdated": "Last Updated",
-    "acceptance": "Acceptance of Terms",
-    "acceptanceText": "By accessing and using Fyleo, you accept and agree to be bound by the terms and provision of this agreement.",
-    "userAccounts": "User Accounts",
-    "userAccountsText": "When you create an account with us, you must provide accurate and complete information. You are responsible for:",
-    "accountPoint1": "Maintaining the security of your account and password",
-    "accountPoint2": "All activities that occur under your account",
-    "accountPoint3": "Notifying us immediately of any unauthorized use",
-    "contentGuidelines": "Content Guidelines",
-    "contentGuidelinesText": "Users are responsible for the content they upload. Prohibited content includes copyrighted materials without permission, offensive or harmful content, and spam or malicious files.",
-    "dataCollection": "Data Collection",
-    "dataCollectionText": "We collect the following types of information:",
-    "dataPoint1": "Account information (name, email)",
-    "dataPoint2": "Uploaded files and materials",
-    "dataPoint3": "Usage statistics and analytics",
-    "dataUsage": "How We Use Your Data",
-    "dataUsageText": "Your data is used to provide and improve our services, maintain security, and communicate important updates.",
-    "dataSecurity": "Data Security",
-    "dataSecurityText": "We implement industry-standard security measures to protect your data. However, no method of transmission over the internet is 100% secure.",
-    "generalDisclaimer": "General Disclaimer",
-    "generalDisclaimerText": "The information provided on Fyleo is for educational purposes only. While we strive to keep the information accurate and up-to-date, we make no representations or warranties of any kind about the completeness, accuracy, reliability, or availability of the materials.",
-    "contentAccuracy": "Content Accuracy",
-    "contentAccuracyText": "All materials uploaded by users are their responsibility. Fyleo does not:",
-    "accuracyPoint1": "Verify the accuracy of user-uploaded content",
-    "accuracyPoint2": "Guarantee the quality or correctness of materials",
-    "accuracyPoint3": "Assume liability for errors or omissions in content",
-    "userResponsibility": "User Responsibility",
-    "userResponsibilityText": "Users are solely responsible for:",
-    "responsibilityPoint1": "Verifying the accuracy of downloaded materials",
-    "responsibilityPoint2": "Ensuring proper use of educational resources",
-    "responsibilityPoint3": "Respecting intellectual property rights",
-    "externalLinks": "External Links",
-    "externalLinksText": "Our platform may contain links to external websites. We have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party sites.",
-    "noWarranty": "No Warranty",
-    "noWarrantyText": "Fyleo is provided 'as is' without any warranties, express or implied. We do not warrant that the service will be uninterrupted, timely, secure, or error-free.",
-    "limitationLiability": "Limitation of Liability",
-    "limitationLiabilityText": "In no event shall Fyleo or its operators be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the service.",
-    "changesDisclaimer": "Changes to This Disclaimer",
-    "changesDisclaimerText": "We reserve the right to modify this disclaimer at any time. Changes will be effective immediately upon posting to the website.",
-    "importantNotice": "Important Notice",
-    "importantNoticeText": "This platform is intended for educational purposes only. Students should always verify information with official university sources and instructors.",
-    "questionsContact": "Questions? Contact us"
-  },
+
   "gpa": {
     "title": "Cumulative GPA Calculator",
     "subtitle": "This tool supports calculating GPA out of 4, out of 5, and out of 100 quickly and accurately.",
@@ -499,5 +782,363 @@
     "gpaDecreasedMessage": "Don't worry, next time will be better! 💙",
     "gpaStable": "😊 Your GPA is stable",
     "gpaStableMessage": "Keep maintaining your good level! 👍"
+  },
+  "legal": {
+    "lastUpdated": "Last Updated: {{date}}",
+    "contactEmail": "fyleo.bawa3neh.97@gmail.com",
+    "disclaimerTitle": "Disclaimer",
+    "privacyPolicyTitle": "Privacy Policy",
+    "termsOfServiceTitle": "Terms of Service",
+    "aboutPageTitle": "About",
+    "about": {
+      "title": "About Fyleo",
+      "subtitle": "An open-source educational platform for sharing knowledge and educational materials",
+      "mission": "Our Mission",
+      "missionText": "We strive to provide a free and secure platform that enables students to share educational materials and exchange knowledge easily and systematically, with full commitment to intellectual property rights and Jordanian laws.",
+      "features": "Our Features",
+      "feature1": "Comprehensive Library",
+      "feature1Desc": "Thousands of educational files organized by subject and level",
+      "feature2": "Smart Search",
+      "feature2Desc": "Advanced search system for quick access to required materials",
+      "feature3": "Fast and Secure",
+      "feature3Desc": "Fast downloads with complete protection of your personal data",
+      "feature4": "Completely Free",
+      "feature4Desc": "All services are free without any fees or advertisements",
+      "team": "Our Team",
+      "teamText": "A team of developers and students passionate about providing the best free educational experience for everyone",
+      "exploreMaterials": "Explore Materials",
+      "joinUs": "Join Us",
+      "contactUs": "Contact Us",
+      "contactText": "Have a question or suggestion? We're here to help!",
+      "users": "Active Users",
+      "files": "Educational Files",
+      "downloads": "Downloads",
+      "rating": "User Rating"
+    },
+    "disclaimer": {
+      "title": "Disclaimer",
+      "intro": "The information and materials available on the Fyleo platform (\"Information System\" and \"Information Network\" as defined in the Jordanian Cybercrime Law) are provided by platform users and are for educational and knowledge exchange purposes only.",
+      "section1": {
+        "title": "1. Platform Nature and User Role",
+        "content": "Fyleo is an educational platform that operates as a \"Service Provider\" as defined in the Cybercrime Law. We only provide the technical infrastructure, while content is created and uploaded by users.",
+        "userContent": "User Content:",
+        "userContentDesc": "All files, posts, and links available on the platform are uploaded and shared by registered users",
+        "technicalRole": "Our Technical Role:",
+        "technicalRoleDesc": "We provide file storage system (MinIO + Oracle Cloud), database (Appwrite), and authentication system only",
+        "noReview": "No Pre-Review:",
+        "noReviewDesc": "We do not review or inspect content before publication, but respond to reports immediately"
+      },
+      "section2": {
+        "title": "2. Content Accuracy and Reliability",
+        "content": "Fyleo does not guarantee the accuracy, completeness, or usefulness of any files, links, or published information:",
+        "personalOpinions": "Personal Opinions:",
+        "personalOpinionsDesc": "All content expresses the opinions of its publishers from users and not necessarily the opinion of the platform or its management",
+        "noVerification": "No Verification:",
+        "noVerificationDesc": "We do not verify the accuracy of published academic or scientific information",
+        "updates": "Updates:",
+        "updatesDesc": "Content may be outdated or not updated, and we do not guarantee its update",
+        "errors": "Errors:",
+        "errorsDesc": "Content may contain scientific errors or inaccurate information"
+      },
+      "section3": {
+        "title": "3. External Links and Websites",
+        "content": "The platform may contain links to external websites (\"Website\" in the legal sense):",
+        "easeOfAccess": "Ease of Access Only:",
+        "easeOfAccessDesc": "These links are available for ease of user access only",
+        "noResponsibility": "No Responsibility:",
+        "noResponsibilityDesc": "Fyleo is not responsible for the content, privacy policies, or practices of those sites",
+        "linkCheck": "Link Checking:",
+        "linkCheckDesc": "We use Google Safe Browsing API to check links, but do not guarantee the safety of all links",
+        "personalResponsibility": "Personal Responsibility:",
+        "personalResponsibilityDesc": "Visiting any external site is at your own risk"
+      },
+      "section4": {
+        "title": "4. Use at Your Own Risk",
+        "content": "Your use of or reliance on any content through the platform is at your own personal risk:",
+        "academicDecisions": "Academic Decisions:",
+        "academicDecisionsDesc": "Do not rely on published content for important academic decisions without verification from official sources",
+        "exams": "Examinations:",
+        "examsDesc": "Content does not replace official references and textbooks approved by the university",
+        "copyrights": "Copyrights:",
+        "copyrightsDesc": "Ensure that your use of content does not violate intellectual property rights",
+        "damages": "Damages:",
+        "damagesDesc": "Fyleo disclaims responsibility for any material or moral losses or damages that may result from using the content"
+      },
+      "section5": {
+        "title": "5. Intellectual Property Rights",
+        "content": "Regarding copyright and intellectual property:",
+        "userResponsibility": "User Responsibility:",
+        "userResponsibilityDesc": "The user who uploads content is responsible for ensuring no copyright infringement",
+        "reportResponse": "Report Response:",
+        "reportResponseDesc": "We respond immediately to any copyright infringement report and delete violating content within 48 hours",
+        "fairUse": "Fair Use:",
+        "fairUseDesc": "Published content must be for educational purposes within the principle of \"fair use\"",
+        "reporting": "Reporting:",
+        "reportingDesc": "If you find content that violates your rights, please report it immediately via"
+      },
+      "section6": {
+        "title": "6. Security and Viruses",
+        "content": "Regarding uploaded file security:",
+        "fileCheck": "File Checking:",
+        "fileCheckDesc": "We check file types (File Type Validation) but do not guarantee they are free from viruses or malware",
+        "antivirusSoftware": "Using Protection Software:",
+        "antivirusSoftwareDesc": "We strongly recommend using antivirus software before opening any file",
+        "safeDownload": "Safe Download:",
+        "safeDownloadDesc": "Make sure to download files from trusted sources only"
+      },
+      "section7": {
+        "title": "7. Availability and Technical Performance",
+        "content": "Regarding service availability and performance:",
+        "noAvailabilityGuarantee": "No Availability Guarantee:",
+        "noAvailabilityGuaranteeDesc": "We do not guarantee that the platform will be available 24/7 without interruption",
+        "maintenance": "Maintenance:",
+        "maintenanceDesc": "We may temporarily suspend service for maintenance or updates",
+        "technicalErrors": "Technical Errors:",
+        "technicalErrorsDesc": "Technical errors or performance issues may occur",
+        "dataLoss": "Data Loss:",
+        "dataLossDesc": "We recommend keeping backup copies of your important files"
+      },
+      "warningBox": {
+        "title": "Important Legal Notice",
+        "content": "Content available on the platform is provided by users and for educational purposes only:",
+        "point1": "You must verify the accuracy of information before relying on it for any academic or professional decisions",
+        "point2": "You are legally responsible for any content you publish according to the Jordanian Cybercrime Law",
+        "point3": "Using the platform means you agree to take full responsibility for your actions",
+        "point4": "In case of any violating content, please report it immediately"
+      },
+      "section8": {
+        "title": "8. Contact and Inquiries",
+        "content": "For any inquiries or reports about violating content, please contact us via:",
+        "email": "Email:"
+      }
+    },
+    "privacy": {
+      "title": "Fyleo Platform Privacy Policy",
+      "intro": "Your privacy matters to us. This policy explains how we collect, use, and protect your personal information when you use the Fyleo platform (\"Service\") in accordance with the Electronic Transactions Law and Personal Data Protection Law in the Hashemite Kingdom of Jordan.",
+      "section1": {
+        "title": "1. Information We Collect",
+        "content": "We collect the following types of information (\"Data\" as defined in the Cybercrime Law):",
+        "personalInfo": "Personal Information You Provide:",
+        "personalInfoDesc": "Name and email when creating an account. Your password is handled and stored securely and encrypted (Hashed using Bcrypt algorithm) and we cannot access it in any way.",
+        "autoCollected": "Automatically Collected Data:",
+        "autoCollectedDesc": "We collect and store your Internet Protocol (IP Address) and \"traffic data route\" (login dates and times) in server logs. This is done for security purposes only, such as protection from unauthorized use, diagnosing technical problems, and cooperating with authorities when needed.",
+        "uploadedContent": "Content You Upload:",
+        "uploadedContentDesc": "Educational files and posts you share on the platform, including metadata such as file name, size, file type, and upload date."
+      },
+      "section2": {
+        "title": "2. How We Use Your Information",
+        "content": "We use your information for the following purposes:",
+        "point1": "Creating and managing your account on the platform",
+        "point2": "Communicating with you about important matters related to your account",
+        "point3": "Maintaining platform security and safety and preventing unauthorized use",
+        "point4": "Complying with legal requirements and cooperating with competent authorities",
+        "point5": "Improving service quality and fixing technical errors"
+      },
+      "section3": {
+        "title": "3. Cookies",
+        "content": "We use cookies for necessary purposes only:",
+        "sessionCookies": "Session Cookies:",
+        "sessionCookiesDesc": "To keep your login session active while browsing the platform",
+        "authTokens": "Authentication Tokens:",
+        "authTokensDesc": "To authenticate your identity securely with each request",
+        "langPreference": "Language Preference:",
+        "langPreferenceDesc": "To save your language preferences",
+        "note": "Important Note:",
+        "noteDesc": "We do not use cookies for tracking, advertising, or marketing analytics purposes."
+      },
+      "section4": {
+        "title": "4. Data Storage and Technical Infrastructure",
+        "content": "We use reliable services to store your data securely:",
+        "appwrite": "Appwrite (Database and Authentication):",
+        "appwriteDesc": "We use the open-source Appwrite platform to manage databases and login authentication. All data is encrypted in transit (TLS/SSL) and at rest (Encryption at Rest).",
+        "oracle": "Oracle Cloud + MinIO (File Storage):",
+        "oracleDesc": "Files you upload are stored on Oracle Cloud servers using MinIO system. Each file gets a unique identifier (UUID) and is stored securely with specific access permissions.",
+        "analytics": "Visitor Analytics:",
+        "analyticsDesc": "We do not use any external analytics tools (such as Google Analytics or Facebook Pixel) to track visitor behavior on the platform.",
+        "dataSharing": "Data Sharing:",
+        "dataSharingDesc": "We do not sell, rent, or share your personal information with any third parties for marketing or advertising purposes."
+      },
+      "section5": {
+        "title": "🔐 5. Security and Encryption",
+        "content": "We take strict security measures to protect your data:",
+        "passwordEncryption": "Password Encryption:",
+        "passwordEncryptionDesc": "Using Bcrypt with high Salt Factor",
+        "https": "HTTPS/TLS:",
+        "httpsDesc": "All communications are encrypted using TLS 1.3 protocol",
+        "accessControl": "Access Control:",
+        "accessControlDesc": "Specific access permissions for each user (Role-Based Access Control)",
+        "sessionManagement": "Session Management:",
+        "sessionManagementDesc": "Secure sessions with automatic expiration",
+        "fileValidation": "File Validation:",
+        "fileValidationDesc": "Checking all uploaded files for safety"
+      },
+      "section6": {
+        "title": "6. Data Retention and Storage Duration",
+        "content": "We retain your data for the following periods:",
+        "accountData": "Account Data:",
+        "accountDataDesc": "As long as your account is active, or until you request deletion",
+        "ipLogs": "IP and Activity Logs:",
+        "ipLogsDesc": "90 days for security purposes",
+        "uploadedFiles": "Uploaded Files:",
+        "uploadedFilesDesc": "Until you delete them or delete your account",
+        "legalData": "Legally Required Data:",
+        "legalDataDesc": "We may retain some data for a longer period if required by court order"
+      },
+      "section7": {
+        "title": "⚖️ 7. Cooperation with Authorities (Legally Mandatory)",
+        "content": "According to the Jordanian Cybercrime Law, we are committed to full cooperation with competent authorities. In case of an official request from the Public Prosecutor, judicial, or security authorities, we will provide:",
+        "userData": "User Data:",
+        "userDataDesc": "Name, email, registration date",
+        "activityLogs": "Activity Logs:",
+        "activityLogsDesc": "IP addresses (\"Protocol Address\"), login dates and times (\"traffic data route\")",
+        "publishedContent": "Published Content:",
+        "publishedContentDesc": "Copies of reported files or posts",
+        "metadata": "Metadata:",
+        "metadataDesc": "Information about uploaded files and interactions",
+        "note": "Note:",
+        "noteDesc": "We will not share any data except by official court order or request from a competent government authority."
+      },
+      "section8": {
+        "title": "8. Your Personal Data Rights",
+        "content": "You have the following rights regarding your personal data:",
+        "accessRight": "Right to Access:",
+        "accessRightDesc": "You can request a copy of all your personal data",
+        "correctionRight": "Right to Correction:",
+        "correctionRightDesc": "You can modify your account information at any time",
+        "deletionRight": "Right to Deletion:",
+        "deletionRightDesc": "You can permanently delete your account and all your data through the settings page",
+        "objectionRight": "Right to Object:",
+        "objectionRightDesc": "You can object to processing your data for certain purposes",
+        "portabilityRight": "Right to Data Portability:",
+        "portabilityRightDesc": "You can request a copy of your data in a readable format",
+        "contactInfo": "To do any of this, please contact us via email:"
+      },
+      "section9": {
+        "title": "9. Account and Data Deletion",
+        "content": "When you delete your account, we will delete:",
+        "point1": "All your personal data from the database",
+        "point2": "All files you uploaded from storage servers (MinIO)",
+        "point3": "All your posts and comments",
+        "point4": "Your activity logs (after 90 days)",
+        "note": "Note:",
+        "noteDesc": "We may retain some anonymous data for statistical purposes or if legally required."
+      },
+      "section10": {
+        "title": "10. Privacy Policy Updates",
+        "content": "We may update this policy from time to time. We will notify you of any material changes via email or through a notice on the platform. Your continued use of the platform after updates means you agree to the updated policy."
+      }
+    },
+    "terms": {
+      "title": "Fyleo Platform Terms of Service",
+      "intro": "Welcome to Fyleo. By using our platform (\"Service\"), you agree to comply with these terms and conditions (\"Terms\") and all applicable laws in the Hashemite Kingdom of Jordan, including Cybercrime Law No. (17) of 2023 and Electronic Transactions Law.",
+      "section1": {
+        "title": "1. Legal Eligibility (Minimum Age)",
+        "content": "You must be at least 18 years old to create an account and use this service. By using the platform, you acknowledge and warrant that you are at least 18 years old and have full legal capacity to agree to these terms and comply with Jordanian laws."
+      },
+      "section2": {
+        "title": "2. Service Description",
+        "content": "Fyleo is an electronic educational platform, open source, aimed at enabling users to share educational files and study resources (\"Content\") for purely educational purposes. The platform operates as an \"Information System\" and \"Information Network\" as defined in the Jordanian Cybercrime Law."
+      },
+      "section3": {
+        "title": "3. User Responsibility and Content",
+        "content": "You alone are fully responsible for any content you upload or share. You acknowledge that you own all necessary rights that allow you to share this content, and that your content does not violate any applicable laws in the Hashemite Kingdom of Jordan.",
+        "legalCommitment": "Your Legal Commitment:",
+        "legalCommitmentDesc": "Under the Jordanian Cybercrime Law, you are legally responsible for any content you publish, and may be held legally accountable in case of publishing violating content."
+      },
+      "section4": {
+        "title": "⚠️ 4. Prohibited Content (Legally Mandatory)",
+        "content": "According to Jordanian Cybercrime Law No. (17) of 2023, it is strictly prohibited to publish or share any content that includes:",
+        "pornographic": "Pornographic or Obscene Content:",
+        "pornographicDesc": "Any content related to prostitution, obscenity, or violating public decency (Article 14 - Penalty: 6 months + 9,000-15,000 dinars)",
+        "falseNews": "False News:",
+        "falseNewsDesc": "Publishing false or misleading information targeting national security or community peace (Article 15 - Penalty: 3 months + 5,000-20,000 dinars)",
+        "defamation": "Defamation and Slander:",
+        "defamationDesc": "Any content including insult, defamation, or character assassination (Articles 15 & 16 - Penalty: 3 months + 5,000-20,000 dinars)",
+        "incitement": "Incitement to Sedition and Hatred:",
+        "incitementDesc": "Content that incites sectarian or ethnic tensions or promotes hatred or violence (Article 17 - Penalty: 1-3 years + 5,000-20,000 dinars)",
+        "extortion": "Electronic Extortion:",
+        "extortionDesc": "Any attempt to blackmail or threaten others (Article 18 - Penalty: 1 year + 3,000-6,000 dinars)",
+        "extremist": "Extremist Content:",
+        "extremistDesc": "Promoting weapons, explosives, or extremist ideas (Article 19 - Penalty: 2 years + 10,000-30,000 dinars)",
+        "privacyViolation": "Privacy Violation:",
+        "privacyViolationDesc": "Publishing private photos or videos without permission (Article 20 - Penalty: 3 months + 20,000-40,000 dinars)"
+      },
+      "section5": {
+        "title": "5. Copyright Policy (Report and Remove)",
+        "content": "We respect intellectual property rights in accordance with Jordanian Copyright Protection Law. If you believe content violates your rights, please send a detailed report including:",
+        "point1": "Accurate description of the infringed work",
+        "point2": "Link to content on the platform",
+        "point3": "Proof of your rights ownership",
+        "point4": "Your contact information",
+        "email": "Email:",
+        "commitment": "We commit to reviewing reports and removing violating content within 48 hours of receiving the report."
+      },
+      "section6": {
+        "title": "🚫 6. Commercial Promotion and Paid Advertising Ban (Red Line)",
+        "content": "Fyleo platform is a completely free educational platform aimed at knowledge exchange without any financial compensation. It is strictly prohibited to use the platform for the following purposes:",
+        "paidCourses": "Promoting Paid Courses:",
+        "paidCoursesDesc": "Any content promoting paid training courses or courses whether online or offline",
+        "personalAds": "Personal Advertising:",
+        "personalAdsDesc": "Promoting personal paid services, private lessons, paid consultations, or any commercial activity",
+        "promoLinks": "Promotional Links:",
+        "promoLinksDesc": "Publishing links to commercial sites, paid course platforms (Udemy, Coursera, etc. for personal profit), or any marketing content",
+        "platformExploitation": "Platform Exploitation:",
+        "platformExploitationDesc": "Using the platform as a means to reach students for commercial or personal profit purposes",
+        "conditionalContent": "Conditional Content:",
+        "conditionalContentDesc": "Publishing educational content then directing users to pay for \"full version\" or \"advanced content\"",
+        "penalties": {
+          "title": "⚠️ Penalties and Actions:",
+          "first": "First Violation:",
+          "firstDesc": "Immediate deletion of violating content + official warning",
+          "repeat": "Repeat Violation:",
+          "repeatDesc": "Account suspension for 30 days",
+          "multiple": "Multiple Violations:",
+          "multipleDesc": "Permanent account cancellation without possibility of recovery",
+          "severe": "Severe Exploitation:",
+          "severeDesc": "Immediate account cancellation + IP ban + reporting to competent authorities if necessary"
+        },
+        "purpose": "🎓 Platform Purpose:",
+        "purposeDesc": "Providing completely free educational content for everyone without any commercial exploitation. We respect and appreciate contributors' efforts, but this does not mean turning the platform into a personal profit tool. Knowledge should be available to everyone for free."
+      },
+      "section7": {
+        "title": "7. Cooperation with Authorities",
+        "content": "We are committed to full cooperation with Jordanian competent authorities. In case of an official request from the Public Prosecutor or judicial authorities, we will provide:",
+        "userData": "User Data:",
+        "userDataDesc": "Name, email, registration date",
+        "activityLogs": "Activity Logs:",
+        "activityLogsDesc": "IP addresses, login dates, published content",
+        "violatingContent": "Violating Content:",
+        "violatingContentDesc": "Copies of reported files or posts"
+      },
+      "section8": {
+        "title": "8. Disclaimer of Warranties",
+        "content": "The service is provided \"as is\" and \"as available\" without warranties of any kind. We do not guarantee that the service will be secure, error-free, or that content available on it is accurate or reliable. Published content expresses opinions of its publishers and not necessarily the opinion of the platform."
+      },
+      "section9": {
+        "title": "9. Limitation of Liability",
+        "content": "In no event shall Fyleo owner be liable for any direct or indirect damages arising from your use or inability to use the service, or from any content obtained through it. User bears full legal responsibility for their actions on the platform."
+      },
+      "section10": {
+        "title": "10. Account Termination",
+        "content": "We reserve the right to suspend or terminate your account immediately and without prior notice in case of:",
+        "point1": "Violating any of these terms",
+        "point2": "Publishing legally prohibited content",
+        "point3": "Promoting paid services or commercial courses (red line)",
+        "point4": "Receiving repeated complaints against you",
+        "point5": "Using the platform for illegal or commercial purposes"
+      },
+      "section11": {
+        "title": "11. Governing Law and Jurisdiction",
+        "content": "These terms are governed and interpreted in accordance with the laws of the Hashemite Kingdom of Jordan, including:",
+        "law1": "Cybercrime Law No. (17) of 2023",
+        "law2": "Electronic Transactions Law",
+        "law3": "Copyright Protection Law",
+        "jurisdiction": "Jordanian courts have jurisdiction to hear any dispute arising from the use of this platform."
+      },
+      "warningBox": {
+        "title": "⚠️ Important Legal Notice",
+        "content": "By using this platform, you acknowledge that you have read and understood all the above terms, and agree to comply with Jordanian laws. Any violation of these terms may subject you to legal accountability and penalties stipulated in the Jordanian Cybercrime Law."
+      }
+    }
   }
 }
