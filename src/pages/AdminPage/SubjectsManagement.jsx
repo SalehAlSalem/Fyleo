@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocalizedContent } from '../../hooks/useLocalizedContent';
 import { subjectsService, categoriesService } from '../../services/appwriteService';
 import { 
   ModernCard, 
@@ -15,6 +16,7 @@ import {
  */
 const SubjectsManagement = () => {
   const { t } = useTranslation();
+  const { getLocalizedValue } = useLocalizedContent();
   const [subjects, setSubjects] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,6 @@ const SubjectsManagement = () => {
     categoryId: '',
     creditHours: 3,
     level: 1,
-    prerequisite: '',
     isActive: true
   });
 
@@ -91,7 +92,6 @@ const SubjectsManagement = () => {
       categoryId: subject.categoryId,
       creditHours: subject.creditHours || 3,
       level: subject.level || 1,
-      prerequisite: subject.prerequisite || '',
       isActive: subject.isActive !== false
     });
     setShowForm(true);
@@ -103,11 +103,13 @@ const SubjectsManagement = () => {
     try {
       setError('');
       await subjectsService.delete(subjectId);
-      setSuccess(t('admin.deleteSuccess'));
+      setSuccess('تم حذف المادة الدراسية بنجاح');
       loadData();
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       console.error('Error deleting subject:', err);
-      setError(t('admin.deleteError'));
+      // Display the specific error message from the service
+      setError(err.message || 'حدث خطأ أثناء حذف المادة الدراسية');
     }
   };
 
@@ -120,7 +122,6 @@ const SubjectsManagement = () => {
       categoryId: '',
       creditHours: 3,
       level: 1,
-      prerequisite: '',
       isActive: true
     });
     setEditingSubject(null);
@@ -129,11 +130,13 @@ const SubjectsManagement = () => {
 
   const getCategoryName = (categoryId) => {
     const category = categories.find(c => c.$id === categoryId);
-    return category ? category.nameAr : 'غير محدد';
+    return category ? getLocalizedValue(category, 'name') : t('admin.subjects.uncategorized');
   };
 
   const filteredSubjects = selectedCategory === 'all' 
     ? subjects 
+    : selectedCategory === 'uncategorized'
+    ? subjects.filter(s => !s.categoryId || s.categoryId === '')
     : subjects.filter(s => s.categoryId === selectedCategory);
 
   if (loading) {
@@ -150,7 +153,7 @@ const SubjectsManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-          إدارة المواد الدراسية
+          {t('admin.subjects.title')}
         </h2>
         <ModernButton onClick={() => {
           if (showForm) {
@@ -160,7 +163,7 @@ const SubjectsManagement = () => {
             setShowForm(true);
           }
         }}>
-          {showForm ? 'إلغاء' : '+ إضافة مادة'}
+          {showForm ? t('admin.subjects.actions.cancel') : `+ ${t('admin.subjects.addNew')}`}
         </ModernButton>
       </div>
 
@@ -175,7 +178,14 @@ const SubjectsManagement = () => {
           size="sm"
           onClick={() => setSelectedCategory('all')}
         >
-          الكل ({subjects.length})
+          {t('admin.subjects.all')} ({subjects.length})
+        </ModernButton>
+        <ModernButton
+          variant={selectedCategory === 'uncategorized' ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setSelectedCategory('uncategorized')}
+        >
+          🔍 {t('admin.subjects.uncategorized')} ({subjects.filter(s => !s.categoryId || s.categoryId === '').length})
         </ModernButton>
         {categories.map(category => (
           <ModernButton
@@ -184,7 +194,7 @@ const SubjectsManagement = () => {
             size="sm"
             onClick={() => setSelectedCategory(category.$id)}
           >
-            {category.icon} {category.nameAr}
+            {category.icon} {getLocalizedValue(category, 'name')}
           </ModernButton>
         ))}
       </div>
@@ -193,40 +203,44 @@ const SubjectsManagement = () => {
       {showForm && (
         <ModernCard className="p-6">
           <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-            {editingSubject ? 'تعديل المادة' : 'إضافة مادة جديدة'}
+            {editingSubject ? t('admin.subjects.editSubject') : t('admin.subjects.addSubject')}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ModernInput
-                label="الاسم بالعربية"
+                label={t('admin.subjects.nameAr')}
                 value={formData.nameAr}
                 onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
+                placeholder={t('admin.subjects.namePlaceholderAr')}
                 required
               />
               <ModernInput
-                label="الاسم بالإنجليزية"
+                label={t('admin.subjects.nameEn')}
                 value={formData.nameEn}
                 onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                placeholder={t('admin.subjects.namePlaceholderEn')}
                 required
               />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-group-modern">
-                <label className="form-label-modern">الوصف بالعربية</label>
+                <label className="form-label-modern">{t('admin.subjects.descriptionAr')}</label>
                 <textarea
                   value={formData.descriptionAr}
                   onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
                   className="input-modern"
+                  placeholder={t('admin.subjects.descriptionPlaceholderAr')}
                   rows="3"
                 />
               </div>
               <div className="form-group-modern">
-                <label className="form-label-modern">الوصف بالإنجليزية</label>
+                <label className="form-label-modern">{t('admin.subjects.descriptionEn')}</label>
                 <textarea
                   value={formData.descriptionEn}
                   onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
                   className="input-modern"
+                  placeholder={t('admin.subjects.descriptionPlaceholderEn')}
                   rows="3"
                 />
               </div>
@@ -234,46 +248,53 @@ const SubjectsManagement = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="form-group-modern">
-                <label className="form-label-modern">التصنيف</label>
+                <label className="form-label-modern">{t('admin.subjects.category')}</label>
                 <select
                   value={formData.categoryId}
                   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   className="input-modern"
                   required
                 >
-                  <option value="">اختر التصنيف</option>
+                  <option value="">{t('admin.subjects.selectCategory')}</option>
                   {categories.map(category => (
                     <option key={category.$id} value={category.$id}>
-                      {category.icon} {category.nameAr}
+                      {category.icon} {getLocalizedValue(category, 'name')}
                     </option>
                   ))}
                 </select>
               </div>
 
               <ModernInput
-                label="الساعات المعتمدة"
+                label={t('admin.subjects.creditHours')}
                 type="number"
                 value={formData.creditHours}
                 onChange={(e) => setFormData({ ...formData, creditHours: parseInt(e.target.value) })}
                 min="1"
                 max="6"
               />
-              <ModernInput
-                label="المستوى"
-                type="number"
-                value={formData.level}
-                onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value) })}
-                min="1"
-                max="8"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('admin.subjects.level')} *
+                </label>
+                <select
+                  value={formData.level}
+                  onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value) })}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                    bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                    focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="1">{t('admin.subjects.firstLevel')}</option>
+                  <option value="2">{t('admin.subjects.secondLevel')}</option>
+                  <option value="3">{t('admin.subjects.thirdLevel')}</option>
+                  <option value="4">{t('admin.subjects.fourthLevel')}</option>
+                  <option value="5">{t('admin.subjects.fifthLevel')}</option>
+                  <option value="6">{t('admin.subjects.level1')} 6</option>
+                  <option value="7">{t('admin.subjects.level1')} 7</option>
+                  <option value="8">{t('admin.subjects.level1')} 8</option>
+                </select>
+              </div>
             </div>
-
-            <ModernInput
-              label="المتطلب السابق (اختياري)"
-              value={formData.prerequisite}
-              onChange={(e) => setFormData({ ...formData, prerequisite: e.target.value })}
-              placeholder="مثال: CS101"
-            />
 
             <div className="flex items-center gap-2">
               <input
@@ -284,16 +305,16 @@ const SubjectsManagement = () => {
                 className="w-4 h-4"
               />
               <label htmlFor="isActive" className="text-gray-700 dark:text-gray-300">
-                نشط
+                {t('admin.subjects.active')}
               </label>
             </div>
 
             <div className="flex gap-2">
               <ModernButton type="submit">
-                {editingSubject ? 'تحديث' : 'إضافة'}
+                {editingSubject ? t('admin.subjects.actions.save') : t('admin.subjects.actions.add')}
               </ModernButton>
               <ModernButton type="button" variant="outline" onClick={resetForm}>
-                إلغاء
+                {t('admin.subjects.actions.cancel')}
               </ModernButton>
             </div>
           </form>
@@ -327,18 +348,12 @@ const SubjectsManagement = () => {
                 {getCategoryName(subject.categoryId)}
               </ModernBadge>
               <ModernBadge variant="default">
-                {subject.creditHours} ساعة
+                {subject.creditHours} {t('admin.subjects.hour')}
               </ModernBadge>
               <ModernBadge variant="default">
-                المستوى {subject.level}
+                {t('admin.subjects.level')} {subject.level}
               </ModernBadge>
             </div>
-
-            {subject.prerequisite && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                المتطلب: {subject.prerequisite}
-              </p>
-            )}
 
             <div className="flex gap-2">
               <ModernButton 
@@ -346,14 +361,14 @@ const SubjectsManagement = () => {
                 variant="outline"
                 onClick={() => handleEdit(subject)}
               >
-                تعديل
+                {t('admin.subjects.actions.edit')}
               </ModernButton>
               <ModernButton 
                 size="sm" 
                 variant="danger"
                 onClick={() => handleDelete(subject.$id)}
               >
-                حذف
+                {t('admin.subjects.actions.delete')}
               </ModernButton>
             </div>
           </ModernCard>
@@ -363,7 +378,7 @@ const SubjectsManagement = () => {
       {filteredSubjects.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">
-            لا توجد مواد دراسية حالياً
+            {t('admin.content.messages.noContent')}
           </p>
         </div>
       )}

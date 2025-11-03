@@ -1,33 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { ModernCard, ModernButton, ModernBadge } from '@shared/ui/modern/ModernComponents';
+import { account, teams } from '../../config/appwrite';
 import CategoriesManagement from './CategoriesManagement';
 import SubjectsManagement from './SubjectsManagement';
-import MaterialsManagement from './MaterialsManagement';
+import AdminContentManagement from './AdminContentManagement';
 import FileTypesManagement from './FileTypesManagement';
 import UsersManagement from './UsersManagement';
 import StatisticsDashboard from './StatisticsDashboard';
 import EducationalPurposesManagement from './EducationalPurposesManagement';
 
 /**
- * 🎛️ Complete Admin Panel
- * - Only accessible to verified users with 'admin' label
- * - Full CRUD for Categories, Subjects, Materials
- * - Global materials management
+ * 🎛️ Complete Admin Panel - Role-Based Access Control
+ * 
+ * Access Levels:
+ * 1. Admin (Label: 'admin') - Full Access to all tabs
+ * 2. Reviewer (Team: 'reviewer-team') - Content Management only
+ * 3. Content Manager (Team: 'content_manager') - Categories & Subjects only
  */
 const CompleteAdminPanel = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('statistics');
+  const [activeTab, setActiveTab] = useState(null);
+  const [userRoles, setUserRoles] = useState([]); // Changed to array to support multiple roles
+  const [userTeams, setUserTeams] = useState([]);
 
-  const tabs = [
-    { id: 'statistics', label: 'الإحصائيات', icon: '📊', description: 'نظرة عامة على المنصة' },
-    { id: 'categories', label: 'التصنيفات', icon: '📁', description: 'إدارة التصنيفات الرئيسية' },
-    { id: 'subjects', label: 'المواد الدراسية', icon: '📚', description: 'إدارة المواد والمقررات' },
-    { id: 'materials', label: 'الملفات', icon: '📄', description: 'إدارة جميع الملفات المرفوعة' },
-    { id: 'fileTypes', label: 'أنواع الملفات', icon: '🗂️', description: 'إدارة أنواع الملفات' },
-    { id: 'purposes', label: 'الأغراض التعليمية', icon: '🎯', description: 'إدارة الأغراض التعليمية وربطها بأنواع الملفات' },
-    { id: 'users', label: 'المستخدمون', icon: '👥', description: 'إدارة المستخدمين' }
+  useEffect(() => {
+    checkUserPermissions();
+  }, [user]);
+
+  const checkUserPermissions = async () => {
+    if (!user) return;
+
+    try {
+      // Get user's prefs to check for admin label
+      const prefs = await account.getPrefs();
+      const labels = user.labels || [];
+      
+      // Get user's teams using the teams service
+      const userTeamsList = await teams.list();
+      const teamIds = userTeamsList.teams.map(t => t.$id);
+      setUserTeams(teamIds);
+
+      // Collect all roles (user can have multiple!)
+      const roles = [];
+      
+      if (labels.includes('admin')) {
+        roles.push('admin');
+      }
+      
+      if (teamIds.includes('reviewer-team')) {
+        roles.push('reviewer');
+      }
+      
+      if (teamIds.includes('content_manager')) {
+        roles.push('content_manager');
+      }
+      
+      setUserRoles(roles);
+      
+      // Set default tab based on highest priority role
+      if (roles.includes('admin')) {
+        setActiveTab('statistics');
+      } else if (roles.includes('reviewer')) {
+        setActiveTab('materials');
+      } else if (roles.includes('content_manager')) {
+        setActiveTab('categories');
+      }
+    } catch (error) {
+      console.error('Error checking permissions:', error);
+    }
+  };
+
+  // All available tabs with their access requirements
+  const allTabs = [
+    { id: 'statistics', label: t('admin.panel.statistics.title'), icon: '📊', description: t('admin.panel.statistics.title'), roles: ['admin'] },
+    { id: 'categories', label: t('admin.panel.tabs.categories'), icon: '📁', description: t('admin.categories.title'), roles: ['admin', 'content_manager'] },
+    { id: 'subjects', label: t('admin.panel.tabs.materials'), icon: '📚', description: t('admin.panel.tabs.materials'), roles: ['admin', 'content_manager'] },
+    { id: 'materials', label: t('admin.panel.tabs.content'), icon: '📄', description: t('admin.content.title'), roles: ['admin', 'reviewer'] },
+    { id: 'fileTypes', label: t('materials.fileTypes'), icon: '🗂️', description: t('materials.fileTypes'), roles: ['admin'] },
+    { id: 'purposes', label: t('materials.educationalPurposes'), icon: '🎯', description: t('materials.educationalPurposes'), roles: ['admin'] },
+    { id: 'users', label: t('admin.panel.tabs.users'), icon: '👥', description: t('admin.users.title'), roles: ['admin'] }
   ];
+
+  // Filter tabs based on user roles (user can have multiple roles!)
+  const tabs = allTabs.filter(tab => 
+    tab.roles.some(role => userRoles.includes(role))
+  );
 
   const renderContent = () => {
     switch (activeTab) {
@@ -38,7 +98,7 @@ const CompleteAdminPanel = () => {
       case 'subjects':
         return <SubjectsManagement />;
       case 'materials':
-        return <MaterialsManagement />;
+        return <AdminContentManagement />;
       case 'fileTypes':
         return <FileTypesManagement />;
       case 'purposes':
@@ -52,6 +112,43 @@ const CompleteAdminPanel = () => {
 
   const currentTab = tabs.find(t => t.id === activeTab);
 
+  // Show loading while checking permissions
+  if (userRoles.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⏳</div>
+          <p className="text-xl text-gray-600 dark:text-gray-300">{t('admin.common.messages.loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if no access
+  if (tabs.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🚫</div>
+          <p className="text-xl text-gray-600 dark:text-gray-300">{t('admin.panel.roles.noPermissions')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Get role display text
+  const getRoleDisplay = () => {
+    if (userRoles.includes('admin')) {
+      return t('admin.panel.roles.systemAdmin');
+    }
+    
+    const roleNames = [];
+    if (userRoles.includes('reviewer')) roleNames.push(t('admin.panel.roles.contentReviewer'));
+    if (userRoles.includes('content_manager')) roleNames.push(t('admin.panel.roles.contentManager'));
+    
+    return roleNames.length > 0 ? roleNames.join(' + ') : t('common.user');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 pt-20">
       <div className="container mx-auto px-4 py-8">
@@ -60,14 +157,17 @@ const CompleteAdminPanel = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                🎛️ لوحة التحكم الإدارية
+                🎛️ {t('admin.panel.title')}
               </h1>
               <p className="text-gray-600 dark:text-gray-300">
-                إدارة كاملة لمنصة Fyleo - مرحباً {user?.name}
+                {t('admin.panel.welcome')} {user?.name}
               </p>
             </div>
-            <ModernBadge variant="success" className="text-lg px-4 py-2">
-              👤 مدير
+            <ModernBadge 
+              variant={userRoles.includes('admin') ? 'success' : userRoles.includes('reviewer') ? 'info' : 'warning'} 
+              className="text-lg px-4 py-2"
+            >
+              {getRoleDisplay()}
             </ModernBadge>
           </div>
           

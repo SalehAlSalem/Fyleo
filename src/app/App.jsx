@@ -17,6 +17,7 @@ import ScrollToTop from '@/components/ScrollToTop.jsx';
 
 import LoadingScreen from '@shared/ui/LoadingScreen.jsx';
 import ProtectedRoute from '@shared/ui/ProtectedRoute.jsx';
+import AdminRoleGuard from '@/components/AdminRoleGuard.jsx';
 import PersonalWorkspace from '@/pages/PersonalWorkspace/PersonalWorkspace.jsx';
 import AdminPage from '@/pages/AdminPage/CompleteAdminPanel.jsx';
 import ModernFooter from '@shared/ui/modern/ModernFooter.jsx';
@@ -199,9 +200,9 @@ const AppContent = () => {
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
-                <ProtectedRoute>
+                <AdminRoleGuard>
                   <AdminPage />
-                </ProtectedRoute>
+                </AdminRoleGuard>
               } />
               
               {/* Delete Account Flow */}

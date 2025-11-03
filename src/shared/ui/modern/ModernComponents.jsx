@@ -58,7 +58,8 @@ export const ModernButton = ({
     secondary: 'btn-secondary',
     outline: 'btn-outline',
     ghost: 'btn-ghost',
-    danger: 'bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700 focus:ring-red-500'
+    danger: 'bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700 focus:ring-red-500',
+    success: 'bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 focus:ring-green-500'
   };
 
   return (

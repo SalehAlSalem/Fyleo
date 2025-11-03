@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
+import { account, teams } from '@/config/appwrite';
 import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import { 
   ModernButton, 
@@ -93,8 +94,46 @@ const ModernNavbar = ({ showUserMenu, setShowUserMenu }) => {
     return () => document.removeEventListener('keydown', onKey);
   }, [isOpen]);
 
-  // Check if user is admin
-  const isAdmin = user?.labels?.includes('admin');
+  // Check if user has admin access (admin label OR reviewer/content_manager team)
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      if (!user) {
+        setHasAdminAccess(false);
+        return;
+      }
+      
+      // Check for admin label first
+      const labels = user.labels || [];
+      if (labels.includes('admin')) {
+        setHasAdminAccess(true);
+        return;
+      }
+      
+      // Check for team membership
+      try {
+        const userTeamsList = await teams.list();
+        const teamIds = userTeamsList.teams.map(t => t.$id);
+        const isReviewer = teamIds.includes('reviewer-team');
+        const isContentManager = teamIds.includes('content_manager');
+        
+        if (isReviewer || isContentManager) {
+          setHasAdminAccess(true);
+        } else {
+          setHasAdminAccess(false);
+        }
+      } catch (err) {
+        console.error('Error checking teams:', err);
+        setHasAdminAccess(false);
+      }
+    };
+    
+    checkAdminAccess();
+  }, [user]);
+  
+  // For backward compatibility
+  const isAdmin = hasAdminAccess;
 
   // Close user menu when clicking outside or scrolling
   useEffect(() => {

@@ -47,6 +47,25 @@ export const authService = {
         }
       }
       
+      // Check if user is blocked
+      try {
+        const { usersService } = await import('./appwriteService');
+        const userDoc = await usersService.getById(user.$id);
+        if (userDoc?.blocked === true) {
+          console.warn('🚫 User is blocked:', user.$id);
+          // Delete the session
+          await account.deleteSession('current');
+          return {
+            success: false,
+            error: 'account_blocked',
+            message: 'تم حظر حسابك. يرجى التواصل مع الإدارة.'
+          };
+        }
+      } catch (blockCheckError) {
+        console.warn('⚠️ Could not check block status:', blockCheckError);
+        // Continue anyway if we can't check
+      }
+      
       // Verify session is working
       const sessions = await account.listSessions();
       console.log('📋 Active sessions:', sessions.total);

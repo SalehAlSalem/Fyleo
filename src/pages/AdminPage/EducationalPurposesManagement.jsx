@@ -98,19 +98,19 @@ const EducationalPurposesManagement = () => {
   };
 
   const handleDelete = async (purposeId) => {
-    if (!confirm('Are you sure you want to delete this educational purpose?')) {
+    if (!confirm('هل أنت متأكد من حذف هذا الغرض التعليمي؟')) {
       return;
     }
     
     try {
       setError('');
       await educationalPurposesService.delete(purposeId);
-      setSuccess('Educational purpose deleted successfully!');
+      setSuccess('تم حذف الغرض التعليمي بنجاح');
       loadData();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       console.error('Error deleting purpose:', err);
-      setError('Failed to delete educational purpose. It may be in use.');
+      setError(err.message || 'حدث خطأ أثناء حذف الغرض التعليمي');
     }
   };
 
@@ -207,14 +207,14 @@ const EducationalPurposesManagement = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-            🎯 Educational Purposes Management
+            🎯 {t('admin.educationalPurposes.title')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Manage educational purposes and assign file types
+            {t('admin.educationalPurposes.description')}
           </p>
         </div>
         <ModernButton onClick={() => setShowCreateModal(true)}>
-          ➕ Create New Purpose
+          ➕ {t('admin.educationalPurposes.addNew')}
         </ModernButton>
       </div>
 
@@ -267,7 +267,7 @@ const EducationalPurposesManagement = () => {
               {/* Assigned File Types */}
               <div className="mb-4">
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Assigned File Types ({assignedFileTypes.length}):
+                  {t('admin.educationalPurposes.assignedFileTypes')} ({assignedFileTypes.length}):
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {assignedFileTypes.length > 0 ? (
@@ -278,7 +278,7 @@ const EducationalPurposesManagement = () => {
                     ))
                   ) : (
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No file types assigned
+                      {t('admin.content.messages.noContent')}
                     </p>
                   )}
                 </div>
@@ -292,7 +292,7 @@ const EducationalPurposesManagement = () => {
                   onClick={() => openAssignModal(purpose)}
                   className="flex-1"
                 >
-                  📎 Assign Types
+                  📎 {t('admin.educationalPurposes.assignTypes')}
                 </ModernButton>
                 <ModernButton
                   size="sm"

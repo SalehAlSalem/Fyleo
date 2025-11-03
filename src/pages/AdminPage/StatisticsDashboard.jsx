@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { statisticsService } from '../../services/appwriteService';
 import { ModernCard, ModernSkeleton, ModernAlert } from '@shared/ui/modern/ModernComponents';
 
@@ -6,6 +7,7 @@ import { ModernCard, ModernSkeleton, ModernAlert } from '@shared/ui/modern/Moder
  * 📊 Statistics Dashboard
  */
 const StatisticsDashboard = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [stats, setStats] = useState({
@@ -27,7 +29,7 @@ const StatisticsDashboard = () => {
       setStats(platformStats);
     } catch (err) {
       console.error('Error loading statistics:', err);
-      setError('فشل تحميل الإحصائيات');
+      setError(t('admin.common.messages.loading'));
     } finally {
       setLoading(false);
     }
@@ -51,19 +53,19 @@ const StatisticsDashboard = () => {
 
   const statCards = [
     {
-      title: 'إجمالي المستخدمين',
+      title: t('admin.panel.statistics.totalUsers'),
       value: stats.totalUsers,
       icon: '👥',
       color: 'bg-blue-500'
     },
     {
-      title: 'إجمالي الملفات',
+      title: t('admin.panel.statistics.totalFiles'),
       value: stats.totalMaterials,
       icon: '📄',
       color: 'bg-green-500'
     },
     {
-      title: 'إجمالي التحميلات',
+      title: t('admin.panel.statistics.totalDownloads'),
       value: stats.totalDownloads,
       icon: '📥',
       color: 'bg-purple-500'
@@ -94,19 +96,19 @@ const StatisticsDashboard = () => {
 
       <ModernCard className="p-6">
         <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-          نظرة عامة
+          {t('admin.panel.statistics.overview')}
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-            <span className="text-gray-600 dark:text-gray-400">حالة النظام</span>
-            <span className="text-green-600 font-semibold">✓ يعمل بشكل طبيعي</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('admin.panel.statistics.systemStatus')}</span>
+            <span className="text-green-600 font-semibold">✓ {t('admin.panel.statistics.operatingNormally')}</span>
           </div>
           <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-            <span className="text-gray-600 dark:text-gray-400">آخر تحديث</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('admin.panel.statistics.lastUpdate')}</span>
             <span className="text-gray-800 dark:text-white">{new Date().toLocaleDateString()}</span>
           </div>
           <div className="flex items-center justify-between py-3">
-            <span className="text-gray-600 dark:text-gray-400">الإصدار</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('admin.panel.statistics.version')}</span>
             <span className="text-gray-800 dark:text-white">3.0.0</span>
           </div>
         </div>

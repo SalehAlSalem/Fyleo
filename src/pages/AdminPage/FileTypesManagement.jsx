@@ -27,19 +27,20 @@ const FileTypesManagement = () => {
     nameEn: '',
     icon: '📄',
     color: '#3B82F6',
-    allowedFormats: ''
+    allowedFormats: '',
+    educationalPurposeId: '' // Managed from Educational Purposes page
   });
 
   useEffect(() => {
-    loadFileTypes();
+    loadData();
   }, []);
 
-  const loadFileTypes = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       setError('');
-      const data = await fileTypesService.getAll();
-      setFileTypes(data);
+      const fileTypesData = await fileTypesService.getAll();
+      setFileTypes(fileTypesData);
     } catch (err) {
       console.error('Error loading file types:', err);
       setError(t('admin.loadError'));
@@ -55,15 +56,12 @@ const FileTypesManagement = () => {
       setError('');
       setSuccess('');
       
-      // Convert allowedFormats string to array
-      const formatsArray = formData.allowedFormats
-        .split(',')
-        .map(f => f.trim())
-        .filter(f => f);
-      
+      // Keep allowedFormats as string (database expects string, not array)
+      // Add educationalPurposeId (empty string means not assigned yet)
       const dataToSave = {
         ...formData,
-        allowedFormats: formatsArray
+        allowedFormats: formData.allowedFormats.trim(),
+        educationalPurposeId: formData.educationalPurposeId || '' // Required by database schema
       };
       
       if (editingFileType) {
@@ -75,7 +73,7 @@ const FileTypesManagement = () => {
       }
       
       resetForm();
-      loadFileTypes();
+      loadData();
     } catch (err) {
       console.error('Error saving file type:', err);
       setError(t('admin.saveError'));
@@ -89,9 +87,8 @@ const FileTypesManagement = () => {
       nameEn: fileType.nameEn || '',
       icon: fileType.icon || '📄',
       color: fileType.color || '#3B82F6',
-      allowedFormats: Array.isArray(fileType.allowedFormats) 
-        ? fileType.allowedFormats.join(', ') 
-        : ''
+      allowedFormats: fileType.allowedFormats || '',
+      educationalPurposeId: fileType.educationalPurposeId || '' // Preserve existing assignment
     });
     setShowForm(true);
   };
@@ -102,11 +99,12 @@ const FileTypesManagement = () => {
     try {
       setError('');
       await fileTypesService.delete(fileTypeId);
-      setSuccess(t('admin.deleteSuccess'));
-      loadFileTypes();
+      setSuccess('تم حذف نوع الملف بنجاح');
+      loadData();
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       console.error('Error deleting file type:', err);
-      setError(t('admin.deleteError'));
+      setError(err.message || 'حدث خطأ أثناء حذف نوع الملف');
     }
   };
 
@@ -116,7 +114,8 @@ const FileTypesManagement = () => {
       nameEn: '',
       icon: '📄',
       color: '#3B82F6',
-      allowedFormats: ''
+      allowedFormats: '',
+      educationalPurposeId: '' // Reset to empty (not assigned)
     });
     setEditingFileType(null);
     setShowForm(false);
@@ -136,10 +135,10 @@ const FileTypesManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-          إدارة أنواع الملفات
+          {t('admin.fileTypes.title')}
         </h2>
         <ModernButton onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'إلغاء' : '+ إضافة نوع ملف'}
+          {showForm ? t('admin.fileTypes.actions.cancel') : `+ ${t('admin.fileTypes.addNew')}`}
         </ModernButton>
       </div>
 
@@ -151,33 +150,35 @@ const FileTypesManagement = () => {
       {showForm && (
         <ModernCard className="p-6">
           <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-            {editingFileType ? 'تعديل نوع الملف' : 'إضافة نوع ملف جديد'}
+            {editingFileType ? t('admin.fileTypes.editFileType') : t('admin.fileTypes.addFileType')}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ModernInput
-                label="الاسم بالعربية"
+                label={t('admin.fileTypes.nameAr')}
                 value={formData.nameAr}
                 onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
+                placeholder={t('admin.fileTypes.namePlaceholderAr')}
                 required
               />
               <ModernInput
-                label="الاسم بالإنجليزية"
+                label={t('admin.fileTypes.nameEn')}
                 value={formData.nameEn}
                 onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                placeholder={t('admin.fileTypes.namePlaceholderEn')}
                 required
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ModernInput
-                label="الأيقونة (Emoji)"
+                label={t('admin.fileTypes.icon')}
                 value={formData.icon}
                 onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                placeholder="📄"
+                placeholder={t('admin.fileTypes.iconPlaceholder')}
               />
               <ModernInput
-                label="اللون (Hex)"
+                label={t('admin.fileTypes.color')}
                 type="color"
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
@@ -186,20 +187,20 @@ const FileTypesManagement = () => {
 
             <div>
               <ModernInput
-                label="الصيغ المسموحة (مفصولة بفواصل)"
+                label={t('admin.fileTypes.allowedExtensions')}
                 value={formData.allowedFormats}
                 onChange={(e) => setFormData({ ...formData, allowedFormats: e.target.value })}
-                placeholder="pdf, doc, docx"
+                placeholder={t('admin.fileTypes.extensionsPlaceholder')}
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">مثال: pdf, doc, docx, txt</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('admin.fileTypes.extensionsPlaceholder')}</p>
             </div>
 
             <div className="flex gap-2">
               <ModernButton type="submit">
-                {editingFileType ? 'تحديث' : 'إضافة'}
+                {editingFileType ? t('admin.fileTypes.actions.save') : t('admin.fileTypes.actions.add')}
               </ModernButton>
               <ModernButton type="button" variant="outline" onClick={resetForm}>
-                إلغاء
+                {t('admin.fileTypes.actions.cancel')}
               </ModernButton>
             </div>
           </form>
@@ -231,7 +232,7 @@ const FileTypesManagement = () => {
             
             {fileType.allowedFormats && (
               <div className="mb-4">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">الصيغ المسموحة:</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t('admin.fileTypes.allowedExtensionsLabel')}</p>
                 <div className="flex gap-1 flex-wrap">
                   {(Array.isArray(fileType.allowedFormats) 
                     ? fileType.allowedFormats 
@@ -251,14 +252,14 @@ const FileTypesManagement = () => {
                 variant="outline"
                 onClick={() => handleEdit(fileType)}
               >
-                تعديل
+                {t('admin.fileTypes.actions.edit')}
               </ModernButton>
               <ModernButton 
                 size="sm" 
                 variant="danger"
                 onClick={() => handleDelete(fileType.$id)}
               >
-                حذف
+                {t('admin.fileTypes.actions.delete')}
               </ModernButton>
             </div>
           </ModernCard>
@@ -268,7 +269,7 @@ const FileTypesManagement = () => {
       {fileTypes.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">
-            لا توجد أنواع ملفات حالياً
+            {t('admin.content.messages.noContent')}
           </p>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, Query, ID, Permission, Role } from 'appwrite';
+import { Client, Account, Databases, Storage, Teams, Query, ID, Permission, Role } from 'appwrite';
 
 // Appwrite Configuration - النطاق الرسمي الوحيد المعتمد
 const client = new Client()
@@ -9,6 +9,8 @@ export { client }; // Export client for Realtime subscriptions
 export const account = new Account(client);
 export const databases = new Databases(client);
 export const storage = new Storage(client);
+export const teams = new Teams(client);
+// Note: Users API is server-only, use Appwrite Functions for user management
 
 // Configuration IDs
 export const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID || 'fyleo-database';

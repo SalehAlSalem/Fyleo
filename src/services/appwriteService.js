@@ -2,6 +2,7 @@ import {
   databases, 
   storage, 
   account,
+  teams,
   DATABASE_ID, 
   USERS_COLLECTION_ID,
   MATERIALS_COLLECTION_ID,
@@ -118,6 +119,17 @@ export const categoriesService = {
    */
   async delete(categoryId) {
     try {
+      // Check if any subjects are using this category
+      const subjectsCheck = await databases.listDocuments(
+        DATABASE_ID,
+        SUBJECTS_COLLECTION_ID,
+        [Query.equal('categoryId', categoryId), Query.limit(1)]
+      );
+      
+      if (subjectsCheck.total > 0) {
+        throw new Error('لا يمكن حذف هذا التصنيف لأنه مرتبط بمواد دراسية موجودة. يجب حذف المواد أولاً أو نقلها لتصنيف آخر.');
+      }
+      
       await databases.deleteDocument(
         DATABASE_ID,
         CATEGORIES_COLLECTION_ID,
@@ -212,7 +224,6 @@ export const subjectsService = {
           categoryId: subjectData.categoryId,
           creditHours: subjectData.creditHours || 3,
           level: String(subjectData.level || 1), // Convert to string
-          prerequisite: subjectData.prerequisite || '',
           isActive: subjectData.isActive !== false
         }
       );
@@ -236,7 +247,6 @@ export const subjectsService = {
         categoryId: updates.categoryId,
         creditHours: updates.creditHours || 3,
         level: String(updates.level || 1),
-        prerequisite: updates.prerequisite || '',
         isActive: updates.isActive !== false
       };
       
@@ -258,6 +268,28 @@ export const subjectsService = {
    */
   async delete(subjectId) {
     try {
+      // Check if any materials are using this subject
+      const materialsCheck = await databases.listDocuments(
+        DATABASE_ID,
+        MATERIALS_COLLECTION_ID,
+        [Query.equal('subjectId', subjectId), Query.limit(1)]
+      );
+      
+      if (materialsCheck.total > 0) {
+        throw new Error('لا يمكن حذف هذه المادة الدراسية لأنها مرتبطة بملفات موجودة. يجب حذف الملفات أولاً.');
+      }
+      
+      // Check if any posts are using this subject
+      const postsCheck = await databases.listDocuments(
+        DATABASE_ID,
+        POSTS_COLLECTION_ID,
+        [Query.equal('subjectId', subjectId), Query.limit(1)]
+      );
+      
+      if (postsCheck.total > 0) {
+        throw new Error('لا يمكن حذف هذه المادة الدراسية لأنها مرتبطة بمنشورات موجودة. يجب حذف المنشورات أولاً.');
+      }
+      
       await databases.deleteDocument(
         DATABASE_ID,
         SUBJECTS_COLLECTION_ID,
@@ -328,7 +360,8 @@ export const fileTypesService = {
           color: fileTypeData.color || '#6B7280',
           allowedFormats: Array.isArray(fileTypeData.allowedFormats) 
             ? fileTypeData.allowedFormats 
-            : (fileTypeData.allowedFormats || [])
+            : (fileTypeData.allowedFormats || []),
+          educationalPurposeId: fileTypeData.educationalPurposeId || '' // Required by database schema but managed from Educational Purposes side
         }
       );
       return response;
@@ -350,12 +383,16 @@ export const fileTypesService = {
       if (updates.nameEn !== undefined) updatePayload.nameEn = updates.nameEn;
       if (updates.icon !== undefined) updatePayload.icon = updates.icon;
       if (updates.color !== undefined) updatePayload.color = updates.color;
-      if (updates.educationalPurposeId !== undefined) updatePayload.educationalPurposeId = updates.educationalPurposeId;
       
       if (updates.allowedFormats !== undefined) {
         updatePayload.allowedFormats = Array.isArray(updates.allowedFormats) 
           ? updates.allowedFormats 
           : (updates.allowedFormats || []);
+      }
+      
+      // CRITICAL: Educational Purpose ID - managed from Educational Purposes page
+      if (updates.educationalPurposeId !== undefined) {
+        updatePayload.educationalPurposeId = updates.educationalPurposeId;
       }
       
       const response = await databases.updateDocument(
@@ -376,6 +413,17 @@ export const fileTypesService = {
    */
   async delete(fileTypeId) {
     try {
+      // Check if any materials are using this file type
+      const materialsCheck = await databases.listDocuments(
+        DATABASE_ID,
+        MATERIALS_COLLECTION_ID,
+        [Query.equal('fileTypeId', fileTypeId), Query.limit(1)]
+      );
+      
+      if (materialsCheck.total > 0) {
+        throw new Error('لا يمكن حذف نوع الملف هذا لأنه مرتبط بملفات موجودة. يجب حذف الملفات أولاً أو تغيير نوعها.');
+      }
+      
       await databases.deleteDocument(
         DATABASE_ID,
         FILE_TYPES_COLLECTION_ID,
@@ -407,7 +455,7 @@ export const materialsService = {
           Query.offset(offset)
         ]
       );
-      return response;
+      return response.documents;
     } catch (error) {
       console.error('❌ Error fetching materials:', error);
       throw error;
@@ -880,6 +928,104 @@ export const usersService = {
       console.error('❌ Error updating user:', error);
       throw error;
     }
+  },
+
+  /**
+   * Add user to team
+   * @param {string} userId - User ID to add
+   * @param {string} teamId - Team ID (reviewer-team or content_manager)
+   * @param {string[]} roles - Array of roles for the user in the team
+   */
+  async addToTeam(userId, teamId, roles = []) {
+    try {
+      // Create membership for the user in the team
+      const response = await teams.createMembership(
+        teamId,
+        roles, // Roles array
+        undefined, // No email (using existing user)
+        userId, // User ID
+        undefined, // No phone
+        undefined, // No URL redirect
+        undefined // No name (using existing)
+      );
+      console.log('✅ User added to team:', { userId, teamId, roles });
+      return response;
+    } catch (error) {
+      console.error('❌ Error adding user to team:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Remove user from team
+   * @param {string} teamId - Team ID
+   * @param {string} membershipId - Membership ID to remove
+   */
+  async removeFromTeam(teamId, membershipId) {
+    try {
+      await teams.deleteMembership(teamId, membershipId);
+      console.log('✅ User removed from team:', { teamId, membershipId });
+      return true;
+    } catch (error) {
+      console.error('❌ Error removing user from team:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get user's team memberships
+   * @param {string} userId - User ID
+   */
+  async getUserTeams(userId) {
+    try {
+      // Get all teams
+      const allTeams = await teams.list();
+      
+      // For each team, check if user is a member
+      const userTeams = [];
+      for (const team of allTeams.teams) {
+        try {
+          const memberships = await teams.listMemberships(team.$id);
+          const isMember = memberships.memberships.some(m => m.userId === userId);
+          if (isMember) {
+            const membership = memberships.memberships.find(m => m.userId === userId);
+            userTeams.push({
+              teamId: team.$id,
+              teamName: team.name,
+              membershipId: membership.$id,
+              roles: membership.roles || []
+            });
+          }
+        } catch (err) {
+          console.warn('Could not check membership for team:', team.$id);
+        }
+      }
+      
+      return userTeams;
+    } catch (error) {
+      console.error('❌ Error getting user teams:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Block/Unblock user by updating their status in database
+   * Note: Appwrite doesn't have built-in user blocking, so we use a custom field
+   */
+  async updateBlockStatus(userId, isBlocked) {
+    try {
+      const response = await databases.updateDocument(
+        DATABASE_ID,
+        USERS_COLLECTION_ID,
+        userId,
+        { blocked: isBlocked }
+      );
+      console.log(`✅ User ${isBlocked ? 'blocked' : 'unblocked'}:`, userId);
+      return response;
+    } catch (error) {
+      console.error('❌ Error updating block status:', error);
+      throw error;
+    }
   }
 };
 
@@ -1009,6 +1155,33 @@ export const bookmarksService = {
       return response.documents;
     } catch (error) {
       console.error('❌ Error fetching bookmarks:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get user bookmarks (alias for getByUser)
+   */
+  async getUserBookmarks(userId, limit = 50) {
+    return this.getByUser(userId, limit);
+  },
+
+  /**
+   * Get bookmarks for a specific material
+   */
+  async getByMaterial(materialId) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        BOOKMARKS_COLLECTION_ID,
+        [
+          Query.equal('fileId', materialId),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching bookmarks by material:', error);
       throw error;
     }
   },
@@ -1620,6 +1793,28 @@ export const educationalPurposesService = {
    */
   async delete(purposeId) {
     try {
+      // Check if any posts are using this educational purpose
+      const postsCheck = await databases.listDocuments(
+        DATABASE_ID,
+        POSTS_COLLECTION_ID,
+        [Query.equal('educationalPurposeId', purposeId), Query.limit(1)]
+      );
+      
+      if (postsCheck.total > 0) {
+        throw new Error('لا يمكن حذف هذا الغرض التعليمي لأنه مرتبط بمنشورات موجودة. يجب حذف المنشورات أولاً أو تغيير غرضها التعليمي.');
+      }
+      
+      // Check if any file types are using this educational purpose
+      const fileTypesCheck = await databases.listDocuments(
+        DATABASE_ID,
+        FILE_TYPES_COLLECTION_ID,
+        [Query.equal('educationalPurposeId', purposeId), Query.limit(1)]
+      );
+      
+      if (fileTypesCheck.total > 0) {
+        throw new Error('لا يمكن حذف هذا الغرض التعليمي لأنه مرتبط بأنواع ملفات موجودة. يجب حذف أنواع الملفات أولاً أو تغيير غرضها التعليمي.');
+      }
+      
       await databases.deleteDocument(
         DATABASE_ID,
         EDUCATIONAL_PURPOSES_COLLECTION_ID,
