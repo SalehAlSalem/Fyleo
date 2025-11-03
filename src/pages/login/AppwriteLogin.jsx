@@ -52,10 +52,11 @@ const AppwriteLogin = () => {
             setError('المستخدم غير موجود');
             break;
           case 'user_blocked':
-            setError('تم حظر هذا الحساب');
+          case 'account_blocked':
+            setError('⛔ تم حظر حسابك. يرجى التواصل مع الإدارة عبر البريد الإلكتروني.');
             break;
           default:
-            setError('حدث خطأ أثناء تسجيل الدخول');
+            setError(result.message || 'حدث خطأ أثناء تسجيل الدخول');
         }
       }
     } catch (error) {

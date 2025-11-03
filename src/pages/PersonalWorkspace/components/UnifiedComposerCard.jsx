@@ -178,10 +178,10 @@ const UnifiedComposerCard = ({ userId, onSuccess }) => {
           return;
         }
 
-        // Get educational purpose from selected file type
+        // Get file type to validate format
         const selectedFileType = fileTypes.find(ft => ft.$id === fileTypeId);
-        if (!selectedFileType || !selectedFileType.educationalPurposeId) {
-          setMessage('❌ File type must have an educational purpose assigned. Please contact admin.');
+        if (!selectedFileType) {
+          setMessage('❌ File type not found.');
           setLoading(false);
           return;
         }
@@ -202,13 +202,13 @@ const UnifiedComposerCard = ({ userId, onSuccess }) => {
 
         console.log(`✅ File format validated: .${fileExtension} is allowed for ${selectedFileType.nameEn}`);
 
-        // Upload file with metadata including auto-assigned educational purpose
+        // Upload file with metadata (educationalPurposeId optional from fileType)
         const uploadedFile = await StorageService.uploadFile(file, {
           title: fileTitle.trim(),
           description: fileDescription.trim(),
           subjectId: subjectId,
           fileTypeId: fileTypeId,
-          educationalPurposeId: selectedFileType.educationalPurposeId, // Auto-assign from fileType
+          educationalPurposeId: selectedFileType.educationalPurposeId || '', // Optional - for UI organization only
           onProgress: (progress) => {
             console.log(`🎯 UI Progress Update: ${progress}%`);
             setUploadProgress(progress);
