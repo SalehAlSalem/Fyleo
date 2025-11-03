@@ -1,0 +1,16 @@
+{
+  "name": "manage-team-membership",
+  "version": "1.0.0",
+  "description": "Appwrite Function to manage team memberships",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "node-appwrite": "^13.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  }
+}
