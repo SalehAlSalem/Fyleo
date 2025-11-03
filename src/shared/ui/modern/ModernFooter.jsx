@@ -89,15 +89,15 @@ const ModernFooter = () => {
         <div className="border-t border-gray-800 pt-8 mb-6">
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm mb-6">
             <Link to="/terms-of-service" className="text-gray-400 hover:text-white transition-colors">
-              {t('legal.termsOfService')}
+              {t('legal.termsOfServiceTitle')}
             </Link>
             <span className="text-gray-600">•</span>
             <Link to="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">
-              {t('legal.privacyPolicy')}
+              {t('legal.privacyPolicyTitle')}
             </Link>
             <span className="text-gray-600">•</span>
             <Link to="/disclaimer" className="text-gray-400 hover:text-white transition-colors">
-              {t('legal.disclaimer')}
+              {t('legal.disclaimerTitle')}
             </Link>
           </div>
           

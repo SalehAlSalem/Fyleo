@@ -1,149 +1,153 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ModernCard } from '@shared/ui/modern/ModernComponents';
 
 const Disclaimer = () => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 pt-20">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 py-12 max-w-4xl" dir={isRTL ? 'rtl' : 'ltr'}>
         <ModernCard className="p-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-            ⚠️ إخلاء المسؤولية
+            ⚠️ {t('legal.disclaimer.title')}
           </h1>
           
-          <div className="prose dark:prose-invert max-w-none">
+          <div className={`prose dark:prose-invert max-w-none ${!isRTL ? 'text-left' : ''}`}>
             <p className="text-gray-600 dark:text-gray-400 mb-8 text-center font-semibold">
-              آخر تحديث: 20 أكتوبر 2025
+              {t('legal.lastUpdated', { date: '20 October 2025' })}
             </p>
 
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
-              المعلومات والمواد المتاحة على منصة Fyleo ("نظام المعلومات" و"الشبكة المعلوماتية" بالمعنى المقصود في قانون الجرائم الإلكترونية الأردني) مقدمة من قبل مستخدمي المنصة وهي لأغراض تعليمية وتبادل معرفي فقط.
+              {t('legal.disclaimer.intro')}
             </p>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                1. طبيعة المنصة ودور المستخدمين
+                {t('legal.disclaimer.section1.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Fyleo هي منصة تعليمية تعمل كـ "مزود خدمة" (Service Provider) بالمعنى المقصود في قانون الجرائم الإلكترونية. نحن نوفر البنية التحتية التقنية فقط، بينما المحتوى يتم إنشاؤه ورفعه من قبل المستخدمين.
+                {t('legal.disclaimer.section1.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li><strong>المحتوى من المستخدمين:</strong> جميع الملفات والمنشورات والروابط المتاحة على المنصة يتم رفعها ومشاركتها من قبل المستخدمين المسجلين</li>
-                <li><strong>دورنا التقني:</strong> نوفر نظام تخزين الملفات (MinIO + Oracle Cloud)، قاعدة البيانات (Appwrite)، ونظام المصادقة فقط</li>
-                <li><strong>عدم المراجعة المسبقة:</strong> لا نقوم بمراجعة أو فحص المحتوى قبل نشره، ولكننا نستجيب للبلاغات فوراً</li>
+                <li><strong>{t('legal.disclaimer.section1.userContent')}</strong> {t('legal.disclaimer.section1.userContentDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section1.technicalRole')}</strong> {t('legal.disclaimer.section1.technicalRoleDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section1.noReview')}</strong> {t('legal.disclaimer.section1.noReviewDesc')}</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                2. دقة المحتوى وموثوقيته
+                {t('legal.disclaimer.section2.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Fyleo لا تضمن دقة، اكتمال، أو فائدة أي من الملفات أو الروابط أو المعلومات المنشورة:
+                {t('legal.disclaimer.section2.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li><strong>آراء شخصية:</strong> كل المحتوى يعبر عن آراء ناشريه من المستخدمين وليس بالضرورة عن رأي المنصة أو إدارتها</li>
-                <li><strong>عدم التحقق:</strong> لا نتحقق من صحة المعلومات الأكاديمية أو العلمية المنشورة</li>
-                <li><strong>التحديثات:</strong> المحتوى قد يكون قديماً أو غير محدث، ولا نضمن تحديثه</li>
-                <li><strong>الأخطاء:</strong> قد يحتوي المحتوى على أخطاء علمية أو معلومات غير دقيقة</li>
+                <li><strong>{t('legal.disclaimer.section2.personalOpinions')}</strong> {t('legal.disclaimer.section2.personalOpinionsDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section2.noVerification')}</strong> {t('legal.disclaimer.section2.noVerificationDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section2.updates')}</strong> {t('legal.disclaimer.section2.updatesDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section2.errors')}</strong> {t('legal.disclaimer.section2.errorsDesc')}</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                3. الروابط الخارجية والمواقع الإلكترونية
+                {t('legal.disclaimer.section3.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                قد تحتوي المنصة على روابط لمواقع إلكترونية خارجية ("الموقع الإلكتروني" بالمعنى القانوني):
+                {t('legal.disclaimer.section3.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li><strong>سهولة الوصول فقط:</strong> هذه الروابط متوفرة لسهولة الوصول للمستخدمين فقط</li>
-                <li><strong>عدم المسؤولية:</strong> Fyleo ليست مسؤولة عن محتوى أو سياسات الخصوصية أو ممارسات تلك المواقع</li>
-                <li><strong>فحص الروابط:</strong> نستخدم Google Safe Browsing API لفحص الروابط، لكن لا نضمن أمان جميع الروابط</li>
-                <li><strong>المسؤولية الشخصية:</strong> زيارتك لأي موقع خارجي تكون على مسؤوليتك الخاصة</li>
+                <li><strong>{t('legal.disclaimer.section3.easeOfAccess')}</strong> {t('legal.disclaimer.section3.easeOfAccessDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section3.noResponsibility')}</strong> {t('legal.disclaimer.section3.noResponsibilityDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section3.linkCheck')}</strong> {t('legal.disclaimer.section3.linkCheckDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section3.personalResponsibility')}</strong> {t('legal.disclaimer.section3.personalResponsibilityDesc')}</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                4. استخدام على مسؤوليتك الشخصية
+                {t('legal.disclaimer.section4.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                إن استخدامك لأي محتوى أو الاعتماد عليه من خلال المنصة يقع على مسؤوليتك الشخصية الكاملة:
+                {t('legal.disclaimer.section4.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li><strong>القرارات الأكاديمية:</strong> لا تعتمد على المحتوى المنشور في اتخاذ قرارات أكاديمية مهمة دون التحقق من مصادر رسمية</li>
-                <li><strong>الامتحانات:</strong> المحتوى لا يغني عن المراجع الرسمية والكتب المعتمدة من الجامعة</li>
-                <li><strong>حقوق النشر:</strong> تأكد من أن استخدامك للمحتوى لا ينتهك حقوق الملكية الفكرية</li>
-                <li><strong>الأضرار:</strong> Fyleo تخلي مسؤوليتها عن أي خسائر أو أضرار مادية أو معنوية قد تنجم عن استخدام المحتوى</li>
+                <li><strong>{t('legal.disclaimer.section4.academicDecisions')}</strong> {t('legal.disclaimer.section4.academicDecisionsDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section4.exams')}</strong> {t('legal.disclaimer.section4.examsDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section4.copyrights')}</strong> {t('legal.disclaimer.section4.copyrightsDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section4.damages')}</strong> {t('legal.disclaimer.section4.damagesDesc')}</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                5. حقوق الملكية الفكرية
+                {t('legal.disclaimer.section5.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                بخصوص حقوق النشر والملكية الفكرية:
+                {t('legal.disclaimer.section5.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li><strong>مسؤولية المستخدم:</strong> المستخدم الذي يرفع المحتوى هو المسؤول عن التأكد من عدم انتهاك حقوق النشر</li>
-                <li><strong>الاستجابة للبلاغات:</strong> نستجيب فوراً لأي بلاغ عن انتهاك حقوق النشر ونحذف المحتوى المخالف خلال 48 ساعة</li>
-                <li><strong>الاستخدام العادل:</strong> المحتوى المنشور يجب أن يكون للأغراض التعليمية ضمن مبدأ "الاستخدام العادل"</li>
-                <li><strong>الإبلاغ:</strong> إذا وجدت محتوى ينتهك حقوقك، يرجى الإبلاغ عنه فوراً عبر <a href="mailto:fyleo.bawa3neh.97@gmail.com" className="text-blue-600 dark:text-blue-400 hover:underline">fyleo.bawa3neh.97@gmail.com</a></li>
+                <li><strong>{t('legal.disclaimer.section5.userResponsibility')}</strong> {t('legal.disclaimer.section5.userResponsibilityDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section5.reportResponse')}</strong> {t('legal.disclaimer.section5.reportResponseDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section5.fairUse')}</strong> {t('legal.disclaimer.section5.fairUseDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section5.reporting')}</strong> {t('legal.disclaimer.section5.reportingDesc')} <a href={`mailto:${t('legal.contactEmail')}`} className="text-blue-600 dark:text-blue-400 hover:underline">{t('legal.contactEmail')}</a></li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                6. الأمان والفيروسات
+                {t('legal.disclaimer.section6.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                بخصوص أمان الملفات المرفوعة:
+                {t('legal.disclaimer.section6.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li><strong>فحص الملفات:</strong> نقوم بفحص نوع الملفات (File Type Validation) لكننا لا نضمن خلوها من الفيروسات أو البرمجيات الخبيثة</li>
-                <li><strong>استخدام برامج الحماية:</strong> ننصح بشدة باستخدام برامج مكافحة الفيروسات قبل فتح أي ملف</li>
-                <li><strong>التحميل الآمن:</strong> تأكد من تحميل الملفات من مصادر موثوقة فقط</li>
+                <li><strong>{t('legal.disclaimer.section6.fileCheck')}</strong> {t('legal.disclaimer.section6.fileCheckDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section6.antivirusUse')}</strong> {t('legal.disclaimer.section6.antivirusUseDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section6.safeDownload')}</strong> {t('legal.disclaimer.section6.safeDownloadDesc')}</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                7. التوفر والأداء التقني
+                {t('legal.disclaimer.section7.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                بخصوص توفر الخدمة والأداء:
+                {t('legal.disclaimer.section7.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li><strong>عدم ضمان التوفر:</strong> لا نضمن أن المنصة ستكون متاحة 24/7 دون انقطاع</li>
-                <li><strong>الصيانة:</strong> قد نقوم بإيقاف الخدمة مؤقتاً للصيانة أو التحديثات</li>
-                <li><strong>الأخطاء التقنية:</strong> قد تحدث أخطاء تقنية أو مشاكل في الأداء</li>
-                <li><strong>فقدان البيانات:</strong> ننصح بالاحتفاظ بنسخ احتياطية من ملفاتك المهمة</li>
+                <li><strong>{t('legal.disclaimer.section7.noGuarantee')}</strong> {t('legal.disclaimer.section7.noGuaranteeDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section7.maintenance')}</strong> {t('legal.disclaimer.section7.maintenanceDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section7.technicalErrors')}</strong> {t('legal.disclaimer.section7.technicalErrorsDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section7.dataLoss')}</strong> {t('legal.disclaimer.section7.dataLossDesc')}</li>
               </ul>
             </section>
 
             <section className="mb-8 p-6 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded-r-lg">
               <h2 className="text-2xl font-bold text-yellow-800 dark:text-yellow-400 mb-4">
-                ⚠️ تنبيه قانوني هام
+                {t('legal.disclaimer.warningBox.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                المحتوى المتاح على المنصة مقدم من المستخدمين ولأغراض تعليمية فقط:
+                {t('legal.disclaimer.warningBox.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li>يجب عليك التحقق من دقة المعلومات قبل الاعتماد عليها في أي قرارات أكاديمية أو مهنية</li>
-                <li>أنت مسؤول قانونياً عن أي محتوى تنشره وفقاً لقانون الجرائم الإلكترونية الأردني</li>
-                <li>استخدامك للمنصة يعني موافقتك على تحمل المسؤولية الكاملة عن أفعالك</li>
-                <li>في حال وجود أي محتوى مخالف، يرجى الإبلاغ عنه فوراً</li>
+                <li>{t('legal.disclaimer.warningBox.point1')}</li>
+                <li>{t('legal.disclaimer.warningBox.point2')}</li>
+                <li>{t('legal.disclaimer.warningBox.point3')}</li>
+                <li>{t('legal.disclaimer.warningBox.point4')}</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                8. التواصل والاستفسارات
+                {t('legal.disclaimer.section8.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                لأي استفسارات أو بلاغات عن محتوى مخالف، يرجى التواصل معنا عبر:<br/>
-                البريد الإلكتروني: <a href="mailto:fyleo.bawa3neh.97@gmail.com" className="text-blue-600 dark:text-blue-400 hover:underline">fyleo.bawa3neh.97@gmail.com</a>
+                {t('legal.disclaimer.section8.content')}<br/>
+                {t('legal.disclaimer.section8.email')} <a href={`mailto:${t('legal.contactEmail')}`} className="text-blue-600 dark:text-blue-400 hover:underline">{t('legal.contactEmail')}</a>
               </p>
             </section>
           </div>

@@ -1,163 +1,200 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ModernCard } from '@shared/ui/modern/ModernComponents';
 
 const TermsOfService = () => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 pt-20">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 py-12 max-w-4xl" dir={isRTL ? 'rtl' : 'ltr'}>
         <ModernCard className="p-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-            📜 شروط استخدام منصة Fyleo
+            📜 {t('legal.terms.title')}
           </h1>
           
-          <div className="prose dark:prose-invert max-w-none">
+          <div className={`prose dark:prose-invert max-w-none ${!isRTL ? 'text-left' : ''}`}>
             <p className="text-gray-600 dark:text-gray-400 mb-8 text-center font-semibold">
-              آخر تحديث: 20 أكتوبر 2025
+              {t('legal.lastUpdated', { date: '20 October 2025' })}
             </p>
 
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
-              أهلاً بك في Fyleo. باستخدامك لمنصتنا ("الخدمة")، فإنك توافق على الالتزام بهذه الشروط والأحكام ("الشروط") وجميع القوانين السارية في المملكة الأردنية الهاشمية، بما في ذلك قانون الجرائم الإلكترونية رقم (17) لسنة 2023 وقانون المعاملات الإلكترونية.
+              {t('legal.terms.intro')}
             </p>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                1. الأهلية القانونية (الحد الأدنى للعمر)
+                {t('legal.terms.section1.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                يجب ألا يقل عمرك عن 18 عاماً لإنشاء حساب واستخدام هذه الخدمة. باستخدامك للمنصة، فإنك تقر وتضمن أنك تبلغ من العمر 18 عاماً على الأقل وأن لديك الأهلية القانونية الكاملة للموافقة على هذه الشروط والالتزام بالقوانين الأردنية.
+                {t('legal.terms.section1.content')}
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                2. وصف الخدمة
+                {t('legal.terms.section2.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                Fyleo هي منصة تعليمية إلكترونية، مفتوحة المصدر، تهدف إلى تمكين المستخدمين من مشاركة الملفات التعليمية ومصادر الدراسة ("المحتوى") لأغراض تعليمية بحتة. المنصة تعمل كـ "نظام معلومات" و"شبكة معلوماتية" بالمعنى المقصود في قانون الجرائم الإلكترونية الأردني.
+                {t('legal.terms.section2.content')}
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                3. مسؤولية المستخدم والمحتوى
+                {t('legal.terms.section3.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                أنت وحدك المسؤول مسؤولية كاملة عن أي محتوى تقوم برفعه أو مشاركته. وتقر بأنك تملك جميع الحقوق اللازمة التي تسمح لك بمشاركة هذا المحتوى، وأن محتواك لا ينتهك أي قوانين سارية في المملكة الأردنية الهاشمية.
+                {t('legal.terms.section3.content')}
               </p>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                <strong>التزامك القانوني:</strong> بموجب قانون الجرائم الإلكترونية الأردني، أنت مسؤول قانونياً عن أي محتوى تنشره، وقد تتعرض للمساءلة القانونية في حال نشر محتوى مخالف.
+                <strong>{t('legal.terms.section3.legalCommitment')}</strong> {t('legal.terms.section3.legalCommitmentDesc')}
               </p>
             </section>
 
             <section className="mb-8 p-6 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r-lg">
               <h2 className="text-2xl font-bold text-red-800 dark:text-red-400 mb-4">
-                ⚠️ 4. المحتوى المحظور (إلزامي قانونياً)
+                {t('legal.terms.section4.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                وفقاً لقانون الجرائم الإلكترونية الأردني رقم (17) لسنة 2023، يُحظر بشكل صارم نشر أو مشاركة أي محتوى يتضمن:
+                {t('legal.terms.section4.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-3 mr-6">
-                <li><strong>المحتوى الإباحي أو الفاضح:</strong> أي محتوى يتعلق بالدعارة أو الفجور أو يخدش الحياء العام (المادة 14 - عقوبة: 6 أشهر + 9,000-15,000 دينار)</li>
-                <li><strong>الأخبار الكاذبة:</strong> نشر معلومات كاذبة أو مضللة تستهدف الأمن الوطني أو السلم المجتمعي (المادة 15 - عقوبة: 3 أشهر + 5,000-20,000 دينار)</li>
-                <li><strong>القدح والذم:</strong> أي محتوى يتضمن إهانة أو تشهير أو اغتيال شخصية الآخرين (المواد 15 و 16 - عقوبة: 3 أشهر + 5,000-20,000 دينار)</li>
-                <li><strong>إثارة الفتنة والكراهية:</strong> المحتوى الذي يثير النعرات الطائفية أو العرقية أو يحض على الكراهية أو العنف (المادة 17 - عقوبة: 1-3 سنوات + 5,000-20,000 دينار)</li>
-                <li><strong>الابتزاز الإلكتروني:</strong> أي محاولة لابتزاز أو تهديد الآخرين (المادة 18 - عقوبة: سنة + 3,000-6,000 دينار)</li>
-                <li><strong>المحتوى المتطرف:</strong> الترويج للأسلحة أو المتفجرات أو الأفكار المتطرفة (المادة 19 - عقوبة: سنتين + 10,000-30,000 دينار)</li>
-                <li><strong>انتهاك الخصوصية:</strong> نشر صور أو فيديوهات خاصة دون إذن (المادة 20 - عقوبة: 3 أشهر + 20,000-40,000 دينار)</li>
+                <li><strong>{t('legal.terms.section4.pornographic')}</strong> {t('legal.terms.section4.pornographicDesc')}</li>
+                <li><strong>{t('legal.terms.section4.falseNews')}</strong> {t('legal.terms.section4.falseNewsDesc')}</li>
+                <li><strong>{t('legal.terms.section4.defamation')}</strong> {t('legal.terms.section4.defamationDesc')}</li>
+                <li><strong>{t('legal.terms.section4.incitement')}</strong> {t('legal.terms.section4.incitementDesc')}</li>
+                <li><strong>{t('legal.terms.section4.extortion')}</strong> {t('legal.terms.section4.extortionDesc')}</li>
+                <li><strong>{t('legal.terms.section4.extremist')}</strong> {t('legal.terms.section4.extremistDesc')}</li>
+                <li><strong>{t('legal.terms.section4.privacyViolation')}</strong> {t('legal.terms.section4.privacyViolationDesc')}</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                5. سياسة حقوق النشر (الإبلاغ والحذف)
+                {t('legal.terms.section5.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                نحن نحترم حقوق الملكية الفكرية وفقاً لقانون حماية حق المؤلف الأردني. إذا كنت تعتقد أن محتوى ما ينتهك حقوقك، يرجى إرسال بلاغ مفصل يتضمن:
+                {t('legal.terms.section5.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6 mb-4">
-                <li>وصفاً دقيقاً للعمل المنتهك</li>
-                <li>رابط المحتوى على المنصة</li>
-                <li>إثبات ملكيتك للحقوق</li>
-                <li>معلومات الاتصال الخاصة بك</li>
+                <li>{t('legal.terms.section5.point1')}</li>
+                <li>{t('legal.terms.section5.point2')}</li>
+                <li>{t('legal.terms.section5.point3')}</li>
+                <li>{t('legal.terms.section5.point4')}</li>
               </ul>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                البريد الإلكتروني: <a href="mailto:fyleo.bawa3neh.97@gmail.com" className="text-blue-600 dark:text-blue-400 hover:underline">fyleo.bawa3neh.97@gmail.com</a>
+                {t('legal.terms.section5.email')} <a href={`mailto:${t('legal.contactEmail')}`} className="text-blue-600 dark:text-blue-400 hover:underline">{t('legal.contactEmail')}</a>
               </p>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-2">
-                نتعهد بمراجعة البلاغات وإزالة المحتوى المخالف خلال 48 ساعة من استلام البلاغ.
+                {t('legal.terms.section5.commitment')}
+              </p>
+            </section>
+
+            <section className="mb-8 p-6 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r-lg">
+              <h2 className="text-2xl font-bold text-red-800 dark:text-red-400 mb-4">
+                {t('legal.terms.section6.title')}
+              </h2>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                {t('legal.terms.section6.content')}
+              </p>
+              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-3 mr-6">
+                <li><strong className="text-red-600 dark:text-red-400">{t('legal.terms.section6.paidCourses')}</strong> {t('legal.terms.section6.paidCoursesDesc')}</li>
+                <li><strong className="text-red-600 dark:text-red-400">{t('legal.terms.section6.personalAds')}</strong> {t('legal.terms.section6.personalAdsDesc')}</li>
+                <li><strong className="text-red-600 dark:text-red-400">{t('legal.terms.section6.promoLinks')}</strong> {t('legal.terms.section6.promoLinksDesc')}</li>
+                <li><strong className="text-red-600 dark:text-red-400">{t('legal.terms.section6.platformExploitation')}</strong> {t('legal.terms.section6.platformExploitationDesc')}</li>
+                <li><strong className="text-red-600 dark:text-red-400">{t('legal.terms.section6.conditionalContent')}</strong> {t('legal.terms.section6.conditionalContentDesc')}</li>
+              </ul>
+              
+              <div className="mt-6 p-4 bg-red-100 dark:bg-red-900/40 rounded-lg">
+                <h3 className="text-xl font-bold text-red-900 dark:text-red-300 mb-3">
+                  {t('legal.terms.section6.penalties.title')}
+                </h3>
+                <ul className="list-disc list-inside text-gray-800 dark:text-gray-200 space-y-2 mr-6">
+                  <li><strong>{t('legal.terms.section6.penalties.first')}</strong> {t('legal.terms.section6.penalties.firstDesc')}</li>
+                  <li><strong>{t('legal.terms.section6.penalties.repeat')}</strong> {t('legal.terms.section6.penalties.repeatDesc')}</li>
+                  <li><strong>{t('legal.terms.section6.penalties.multiple')}</strong> {t('legal.terms.section6.penalties.multipleDesc')}</li>
+                  <li><strong>{t('legal.terms.section6.penalties.severe')}</strong> {t('legal.terms.section6.penalties.severeDesc')}</li>
+                </ul>
+              </div>
+
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 font-semibold">
+                🎓 <strong>{t('legal.terms.section6.purpose')}</strong> {t('legal.terms.section6.purposeDesc')}
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                6. التعاون مع السلطات
+                {t('legal.terms.section7.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                نحن ملتزمون بالتعاون الكامل مع السلطات الأردنية المختصة. في حال ورود طلب رسمي من النيابة العامة أو الجهات القضائية، سنقوم بتوفير:
+                {t('legal.terms.section7.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6 mt-2">
-                <li><strong>بيانات المستخدم:</strong> الاسم، البريد الإلكتروني، تاريخ التسجيل</li>
-                <li><strong>سجلات النشاط:</strong> عناوين IP، تواريخ الدخول، المحتوى المنشور</li>
-                <li><strong>المحتوى المخالف:</strong> نسخ من الملفات أو المنشورات المبلغ عنها</li>
+                <li><strong>{t('legal.terms.section7.userData')}</strong> {t('legal.terms.section7.userDataDesc')}</li>
+                <li><strong>{t('legal.terms.section7.activityLogs')}</strong> {t('legal.terms.section7.activityLogsDesc')}</li>
+                <li><strong>{t('legal.terms.section7.violatingContent')}</strong> {t('legal.terms.section7.violatingContentDesc')}</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                7. إخلاء المسؤولية عن الضمانات
+                {t('legal.terms.section8.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                الخدمة مقدمة "كما هي" و "كما هي متاحة" دون أي ضمانات من أي نوع. نحن لا نضمن أن الخدمة ستكون آمنة، أو خالية من الأخطاء، أو أن المحتوى المتاح عليها دقيق أو موثوق. المحتوى المنشور يعبر عن آراء ناشريه وليس بالضرورة عن رأي المنصة.
+                {t('legal.terms.section8.content')}
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                8. حدود المسؤولية
+                {t('legal.terms.section9.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                لن يكون مالك Fyleo مسؤولاً بأي حال من الأحوال عن أي أضرار مباشرة أو غير مباشرة تنشأ عن استخدامك أو عدم قدرتك على استخدام الخدمة، أو عن أي محتوى تم الحصول عليه من خلالها. المستخدم يتحمل كامل المسؤولية القانونية عن أفعاله على المنصة.
+                {t('legal.terms.section9.content')}
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                9. إنهاء الحساب
+                {t('legal.terms.section10.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                نحتفظ بالحق في تعليق أو إنهاء حسابك فوراً ودون إشعار مسبق في حال:
+                {t('legal.terms.section10.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6 mt-2">
-                <li>انتهاك أي من هذه الشروط</li>
-                <li>نشر محتوى محظور قانونياً</li>
-                <li>تلقي شكاوى متكررة ضدك</li>
-                <li>استخدام المنصة لأغراض غير قانونية</li>
+                <li>{t('legal.terms.section10.point1')}</li>
+                <li>{t('legal.terms.section10.point2')}</li>
+                <li><strong className="text-red-600 dark:text-red-400">{t('legal.terms.section10.point3')}</strong></li>
+                <li>{t('legal.terms.section10.point4')}</li>
+                <li>{t('legal.terms.section10.point5')}</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                10. القانون الحاكم والاختصاص القضائي
+                {t('legal.terms.section11.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                تخضع هذه الشروط وتُفسر وفقًا لقوانين المملكة الأردنية الهاشمية، بما في ذلك:
+                {t('legal.terms.section11.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6 mt-2">
-                <li>قانون الجرائم الإلكترونية رقم (17) لسنة 2023</li>
-                <li>قانون المعاملات الإلكترونية</li>
-                <li>قانون حماية حق المؤلف</li>
+                <li>{t('legal.terms.section11.law1')}</li>
+                <li>{t('legal.terms.section11.law2')}</li>
+                <li>{t('legal.terms.section11.law3')}</li>
               </ul>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-4">
-                تختص المحاكم الأردنية بالنظر في أي نزاع ينشأ عن استخدام هذه المنصة.
+                {t('legal.terms.section11.jurisdiction')}
               </p>
             </section>
 
             <section className="mb-8 p-6 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded-r-lg">
               <h2 className="text-2xl font-bold text-yellow-800 dark:text-yellow-400 mb-4">
-                ⚠️ تنبيه قانوني هام
+                {t('legal.terms.warningBox.title')}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                باستخدامك لهذه المنصة، فإنك تقر بأنك قرأت وفهمت جميع الشروط أعلاه، وتوافق على الالتزام بالقوانين الأردنية. أي مخالفة لهذه الشروط قد تعرضك للمساءلة القانونية والعقوبات المنصوص عليها في قانون الجرائم الإلكترونية الأردني.
+                {t('legal.terms.warningBox.content')}
               </p>
             </section>
           </div>
