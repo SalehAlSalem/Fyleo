@@ -7,7 +7,7 @@
   
   [![Ko-fi](https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/bawa3neh_97)
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-  [![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red)](https://github.com/SalehAlSalem)
+  [![Made with ❤️ by Saleh AlSalem](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red)](https://github.com/SalehAlSalem)
   
 </div>
 
@@ -282,8 +282,8 @@ The application implements hardware acceleration techniques to fix position:fixe
    VITE_APPWRITE_STORAGE_BUCKET_ID=files
    
    # MinIO Configuration
-   VITE_MINIO_ENDPOINT=minio97.chickenkiller.com
-   VITE_MINIO_PORT=9000
+   VITE_MINIO_ENDPOINT=your_minio_domain
+   VITE_MINIO_PORT=poort
    VITE_MINIO_USE_SSL=true
    VITE_MINIO_ACCESS_KEY=your_minio_access_key
    VITE_MINIO_SECRET_KEY=your_minio_secret_key
