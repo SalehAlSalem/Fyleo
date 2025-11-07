@@ -402,20 +402,37 @@ export function useTier3Posts(): UseQueryResult<Post[], Error> {
 }
 
 /**
- * 🔗 Get subjects for a specific category (filtered client-side)
+ * 🔗 Get subjects for a specific category (using Many-to-Many links)
+ * Now uses subject_categories collection instead of categoryId field
  */
 export function useSubjectsByCategory(categoryId: string | undefined) {
-  const { data: subjects, isLoading, error } = useTier2Subjects();
+  const { data: allSubjects, isLoading: subjectsLoading, error: subjectsError } = useTier2Subjects();
+  
+  // Query subject-category links
+  const { data: links, isLoading: linksLoading, error: linksError } = useQuery({
+    queryKey: ['subject-categories', 'by-category', categoryId],
+    queryFn: async () => {
+      if (!categoryId) return [];
+      
+      // @ts-ignore - appwriteService.js is not typed
+      const appwriteService = (await import('../../../services/appwriteService')).default;
+      return appwriteService.subjectCategories.getByCategory(categoryId);
+    },
+    enabled: !!categoryId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   const filteredSubjects = useMemo(() => {
-    if (!subjects || !categoryId) return [];
-    return subjects.filter(s => s.categoryId === categoryId);
-  }, [subjects, categoryId]);
+    if (!allSubjects || !links || !categoryId) return [];
+    
+    const subjectIds = links.map((link: any) => link.subjectId);
+    return allSubjects.filter(s => subjectIds.includes(s.$id));
+  }, [allSubjects, links, categoryId]);
 
   return {
     data: filteredSubjects,
-    isLoading,
-    error,
+    isLoading: subjectsLoading || linksLoading,
+    error: subjectsError || linksError,
   };
 }
 

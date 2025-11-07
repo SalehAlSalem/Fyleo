@@ -29,6 +29,9 @@ export const FILE_TYPES_COLLECTION_ID = import.meta.env.VITE_APPWRITE_FILE_TYPES
 export const POSTS_COLLECTION_ID = import.meta.env.VITE_APPWRITE_POSTS_COLLECTION_ID || 'posts';
 export const EDUCATIONAL_PURPOSES_COLLECTION_ID = import.meta.env.VITE_APPWRITE_EDUCATIONAL_PURPOSES_COLLECTION_ID || 'educationalPurposes';
 
+// Many-to-Many: Subjects ↔ Categories relationship
+export const SUBJECT_CATEGORIES_COLLECTION_ID = import.meta.env.VITE_APPWRITE_SUBJECT_CATEGORIES_COLLECTION_ID || 'subject_categories';
+
 // OAuth Providers - using string constants
 export const OAuthProvider = {
     Google: 'google',

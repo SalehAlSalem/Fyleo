@@ -238,8 +238,8 @@ const ModernNavbar = ({ showUserMenu, setShowUserMenu }) => {
           </div>
 
           {/* Right Section - Fixed Width */}
-          <div className="hidden md:flex items-center gap-1 gap-fixed w-[300px] min-w-[300px] justify-end md:justify-self-end flex-none" dir="ltr">
-            <div className="navbar-tools flex items-center gap-1 gap-fixed flex-none font-en">
+          <div className="hidden md:flex items-center gap-3 w-[300px] min-w-[300px] justify-end md:justify-self-end flex-none" dir="ltr">
+            <div className="navbar-tools flex items-center gap-3 flex-none font-en">
               <ThemeToggle />
               <LanguageSwitcher />
             </div>

@@ -54,6 +54,17 @@ const MobileBottomNav = ({ onProfileClick, showUserMenu, onSearchClick, showSear
     };
   }, []);
 
+  // Scroll to top when clicking on the same page
+  const handleNavClick = (path) => {
+    if (location.pathname === path) {
+      // إذا كنا بنفس الصفحة، ارفع للفوق
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (onNavigate) {
+      onNavigate();
+    }
+  };
+
   // Right side items (على اليمين): الرئيسية + المكتبة
   const rightItems = [
     { name: t('nav.home'), path: '/', icon: '🏠' },
@@ -81,11 +92,12 @@ const MobileBottomNav = ({ onProfileClick, showUserMenu, onSearchClick, showSear
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={onNavigate}
+                onClick={() => handleNavClick(item.path)}
                 className={`mobile-nav-item ${isActive ? 'active' : ''}`}
                 aria-label={item.name}
               >
                 <span className="icon">{item.icon}</span>
+                {isActive && <span className="active-indicator"></span>}
               </Link>
             );
           })}
@@ -123,11 +135,12 @@ const MobileBottomNav = ({ onProfileClick, showUserMenu, onSearchClick, showSear
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={onNavigate}
+                onClick={() => handleNavClick(item.path)}
                 className={`mobile-nav-item ${isActive ? 'active' : ''}`}
                 aria-label={item.name}
               >
                 <span className="icon">{item.icon}</span>
+                {isActive && <span className="active-indicator"></span>}
               </Link>
             );
           })}

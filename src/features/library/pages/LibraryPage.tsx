@@ -82,6 +82,7 @@ const LibraryPage: React.FC = () => {
   // State
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<string>('');
+  const [selectedLevel, setSelectedLevel] = useState<number | null>(null); // Level filter state
 
   // Prefetch functions
   const prefetchCategory = usePrefetchCategory();
@@ -153,11 +154,28 @@ const LibraryPage: React.FC = () => {
     navigate(`/library/${cat.$id}`);
   }, [navigate]);
 
-  const handleSubjectClick = useCallback((sub: Subject) => {
+  const handleSubjectClick = useCallback(async (sub: Subject) => {
     if (categoryId) {
+      // If we're already in a category view, use that category
       navigate(`/library/${categoryId}/${sub.$id}`);
     } else {
-      navigate(`/library/${sub.categoryId}/${sub.$id}`);
+      // If no category in URL, we need to fetch subject's categories
+      try {
+        // @ts-ignore - appwriteService.js is not typed
+        const appwriteService = (await import('../../../services/appwriteService')).default;
+        const links = await appwriteService.subjectCategories.getBySubject(sub.$id);
+        
+        if (links.length === 0) {
+          console.error('Subject has no categories!');
+          return;
+        }
+        
+        // Use the first category for URL
+        const firstCategoryId = links[0].categoryId;
+        navigate(`/library/${firstCategoryId}/${sub.$id}`);
+      } catch (error) {
+        console.error('Error fetching subject categories:', error);
+      }
     }
   }, [navigate, categoryId]);
 
@@ -300,9 +318,67 @@ const LibraryPage: React.FC = () => {
     categories: t('materials.categories'),
     subjects: t('materials.subjects'),
     materials: t('materials.title'),
-    posts: isArabic ? 'روابط' : 'Links',
-    noResults: isArabic ? 'لا توجد نتائج' : 'No results found',
+    posts: t('materials.posts'),
+    noResults: isArabic ? 'لا توجد نتائج' : 'No results',
   };
+
+  // 🆕 Filter and Sort subjects by level (Level 2 only)
+  const { sortedSubjects, availableLevels } = useMemo(() => {
+    if (!subjects || subjects.length === 0) {
+      return { sortedSubjects: [], availableLevels: [] };
+    }
+
+    // Debug: Check first few subjects
+    console.log('🔍 First 3 subjects:', subjects.slice(0, 3).map(s => ({
+      name: s.nameAr || s.nameEn,
+      level: s.level,
+      levelType: typeof s.level
+    })));
+
+    // Get all unique levels from subjects (ensure we get the level property)
+    const levelsSet = new Set<number>();
+    subjects.forEach((s: Subject) => {
+      const level = s.level;
+      if (level !== undefined && level !== null && typeof level === 'number') {
+        levelsSet.add(level);
+      } else if (level !== undefined && level !== null) {
+        // Try to convert to number if it's a string
+        const numLevel = parseInt(String(level), 10);
+        if (!isNaN(numLevel)) {
+          levelsSet.add(numLevel);
+        }
+      }
+    });
+    
+    const levels = Array.from(levelsSet).sort((a, b) => a - b);
+
+    // Sort subjects by level (ascending) by default
+    let sorted = [...subjects].sort((a: Subject, b: Subject) => {
+      const aLevel = typeof a.level === 'number' ? a.level : parseInt(String(a.level || 1), 10) || 1;
+      const bLevel = typeof b.level === 'number' ? b.level : parseInt(String(b.level || 1), 10) || 1;
+      return aLevel - bLevel;
+    });
+
+    // Apply level filter if selected
+    if (selectedLevel !== null) {
+      sorted = sorted.filter((s: Subject) => {
+        const sLevel = typeof s.level === 'number' ? s.level : parseInt(String(s.level || 0), 10);
+        return sLevel === selectedLevel;
+      });
+    }
+
+    console.log('🔍 Level Filter Debug:', {
+      totalSubjects: subjects.length,
+      availableLevels: levels,
+      selectedLevel,
+      sortedSubjectsCount: sorted.length
+    });
+
+    return { 
+      sortedSubjects: sorted, 
+      availableLevels: levels
+    };
+  }, [subjects, selectedLevel]);
 
   const materialLabels = {
     fileSize: isArabic ? 'حجم الملف' : 'File Size',
@@ -441,12 +517,63 @@ const LibraryPage: React.FC = () => {
               searchLevel="category"
             />
 
+            {/* 🆕 Level Filter Buttons (Dynamic based on available levels) */}
+            {!subjectsLoading && subjects && subjects.length > 0 && availableLevels.length > 0 && (
+              <div className="mb-6 flex flex-wrap items-center gap-3">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {isArabic ? 'فلترة حسب المستوى:' : 'Filter by Level:'}
+                </span>
+                
+                {/* All Button */}
+                <button
+                  onClick={() => setSelectedLevel(null)}
+                  className={`
+                    px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                    ${selectedLevel === null
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/50 border-2 border-indigo-700'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md'
+                    }
+                  `}
+                >
+                  {isArabic ? 'الكل' : 'All'} ({subjects.length})
+                </button>
+
+                {/* Dynamic Level Buttons (only show levels that exist) */}
+                {availableLevels.map(level => {
+                  const count = subjects.filter((s: Subject) => s.level === level).length;
+                  return (
+                    <button
+                      key={level}
+                      onClick={() => setSelectedLevel(level)}
+                      className={`
+                        w-10 h-10 flex items-center justify-center text-sm font-bold rounded-md
+                        transition-all duration-200 transform hover:scale-110
+                        ${selectedLevel === level
+                          ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/50 border-2 border-indigo-700 ring-2 ring-indigo-300 dark:ring-indigo-700'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md'
+                        }
+                      `}
+                      title={`${isArabic ? 'المستوى' : 'Level'} ${level} (${count})`}
+                    >
+                      {level}
+                    </button>
+                  );
+                })}
+
+                {selectedLevel !== null && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {sortedSubjects.length} {isArabic ? 'مواد' : 'subjects'}
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Subjects Grid */}
             {subjectsLoading ? (
               <LoaderSkeleton variant="grid" count={6} />
-            ) : subjects && subjects.length > 0 ? (
+            ) : sortedSubjects && sortedSubjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {subjects.map((subject: Subject) => (
+                {sortedSubjects.map((subject: Subject) => (
                   <SubjectCard
                     key={subject.$id}
                     subject={subject}
@@ -459,6 +586,12 @@ const LibraryPage: React.FC = () => {
                   />
                 ))}
               </div>
+            ) : selectedLevel !== null ? (
+              <EmptyState
+                icon="🔍"
+                title={isArabic ? 'لا توجد مواد' : 'No subjects'}
+                description={isArabic ? `لا توجد مواد في المستوى ${selectedLevel}` : `No subjects found in level ${selectedLevel}`}
+              />
             ) : (
               <EmptyState
                 icon="📚"

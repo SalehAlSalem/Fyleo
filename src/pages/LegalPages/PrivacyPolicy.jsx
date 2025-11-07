@@ -45,11 +45,11 @@ const PrivacyPolicy = () => {
                 {t('legal.privacy.section2.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li>{t('legal.privacy.section2.accountManagement')}</li>
-                <li>{t('legal.privacy.section2.communication')}</li>
-                <li>{t('legal.privacy.section2.security')}</li>
-                <li>{t('legal.privacy.section2.legalCompliance')}</li>
-                <li>{t('legal.privacy.section2.improvement')}</li>
+                <li>{t('legal.privacy.section2.point1')}</li>
+                <li>{t('legal.privacy.section2.point2')}</li>
+                <li>{t('legal.privacy.section2.point3')}</li>
+                <li>{t('legal.privacy.section2.point4')}</li>
+                <li>{t('legal.privacy.section2.point5')}</li>
               </ul>
             </section>
 
@@ -61,12 +61,12 @@ const PrivacyPolicy = () => {
                 {t('legal.privacy.section3.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li><strong>{t('legal.privacy.section3.sessionCookies')}</strong> {t('legal.privacy.section3.sessionCookiesDesc')}</li>
-                <li><strong>{t('legal.privacy.section3.authTokens')}</strong> {t('legal.privacy.section3.authTokensDesc')}</li>
-                <li><strong>{t('legal.privacy.section3.languagePref')}</strong> {t('legal.privacy.section3.languagePrefDesc')}</li>
+                <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section3.sessionCookies')}</span></strong> {t('legal.privacy.section3.sessionCookiesDesc')}</li>
+                <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section3.authTokens')}</span></strong> {t('legal.privacy.section3.authTokensDesc')}</li>
+                <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section3.langPreference')}</span></strong> {t('legal.privacy.section3.langPreferenceDesc')}</li>
               </ul>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-4">
-                <strong>{t('legal.privacy.section3.importantNote')}</strong> {t('legal.privacy.section3.importantNoteDesc')}
+                <strong>{t('legal.privacy.section3.note')}</strong> {t('legal.privacy.section3.noteDesc')}
               </p>
             </section>
 
@@ -78,8 +78,8 @@ const PrivacyPolicy = () => {
                 {t('legal.privacy.section4.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-3 mr-6">
-                <li><strong>{t('legal.privacy.section4.appwrite')}</strong> {t('legal.privacy.section4.appwriteDesc')}</li>
-                <li><strong>{t('legal.privacy.section4.oracleMinIO')}</strong> {t('legal.privacy.section4.oracleMinIODesc')}</li>
+                <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section4.appwrite')}</span></strong> {t('legal.privacy.section4.appwriteDesc')}</li>
+                <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section4.oracle')}</span></strong> {t('legal.privacy.section4.oracleDesc')}</li>
                 <li><strong>{t('legal.privacy.section4.analytics')}</strong> {t('legal.privacy.section4.analyticsDesc')}</li>
                 <li><strong>{t('legal.privacy.section4.dataSharing')}</strong> {t('legal.privacy.section4.dataSharingDesc')}</li>
               </ul>
@@ -92,11 +92,11 @@ const PrivacyPolicy = () => {
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                 {t('legal.privacy.section5.content')}
               </p>
-              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
+              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-3 mr-6">
                 <li><strong>{t('legal.privacy.section5.passwordEncryption')}</strong> {t('legal.privacy.section5.passwordEncryptionDesc')}</li>
-                <li><strong>{t('legal.privacy.section5.httpsTLS')}</strong> {t('legal.privacy.section5.httpsTLSDesc')}</li>
+                <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section5.httpsTLS')}</span></strong> {t('legal.privacy.section5.httpsTLSDesc')}</li>
                 <li><strong>{t('legal.privacy.section5.accessControl')}</strong> {t('legal.privacy.section5.accessControlDesc')}</li>
-                <li><strong>{t('legal.privacy.section5.sessionManagement')}</strong> {t('legal.privacy.section5.sessionManagementDesc')}</li>
+                <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section5.sessionManagement')}</span></strong> {t('legal.privacy.section5.sessionManagementDesc')}</li>
                 <li><strong>{t('legal.privacy.section5.fileValidation')}</strong> {t('legal.privacy.section5.fileValidationDesc')}</li>
               </ul>
             </section>
@@ -130,7 +130,7 @@ const PrivacyPolicy = () => {
                 <li><strong>{t('legal.privacy.section7.metadata')}</strong> {t('legal.privacy.section7.metadataDesc')}</li>
               </ul>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-4">
-                <strong>{t('legal.privacy.section7.importantNote')}</strong> {t('legal.privacy.section7.importantNoteDesc')}
+                <strong>{t('legal.privacy.section7.note')}</strong> {t('legal.privacy.section7.noteDesc')}
               </p>
             </section>
 
@@ -161,13 +161,13 @@ const PrivacyPolicy = () => {
                 {t('legal.privacy.section9.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li>{t('legal.privacy.section9.personalData')}</li>
-                <li>{t('legal.privacy.section9.uploadedFiles')}</li>
-                <li>{t('legal.privacy.section9.postsComments')}</li>
-                <li>{t('legal.privacy.section9.activityLogs')}</li>
+                <li>{t('legal.privacy.section9.point1')}</li>
+                <li>{t('legal.privacy.section9.point2')}</li>
+                <li>{t('legal.privacy.section9.point3')}</li>
+                <li>{t('legal.privacy.section9.point4')}</li>
               </ul>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-4">
-                <strong>{t('legal.privacy.section9.importantNote')}</strong> {t('legal.privacy.section9.importantNoteDesc')}
+                <strong>{t('legal.privacy.section9.note')}</strong> {t('legal.privacy.section9.noteDesc')}
               </p>
             </section>
 

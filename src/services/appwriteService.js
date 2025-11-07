@@ -14,6 +14,7 @@ import {
   PROFILES_COLLECTION_ID,
   POSTS_COLLECTION_ID,
   EDUCATIONAL_PURPOSES_COLLECTION_ID,
+  SUBJECT_CATEGORIES_COLLECTION_ID,
   STORAGE_BUCKET_ID,
   Query,
   ID,
@@ -1829,10 +1830,146 @@ export const educationalPurposesService = {
   }
 };
 
+// ============================================
+// 🔗 SUBJECT-CATEGORIES SERVICE (Many-to-Many)
+// ============================================
+export const subjectCategoriesService = {
+  /**
+   * Get all categories linked to a subject
+   * @param {string} subjectId - Subject ID
+   * @returns {Promise<Array>} Array of link documents {$id, subjectId, categoryId}
+   */
+  async getBySubject(subjectId) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        SUBJECT_CATEGORIES_COLLECTION_ID,
+        [Query.equal('subjectId', subjectId), Query.limit(100)]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching subject categories:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all subjects linked to a category
+   * @param {string} categoryId - Category ID
+   * @returns {Promise<Array>} Array of link documents {$id, subjectId, categoryId}
+   */
+  async getByCategory(categoryId) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        SUBJECT_CATEGORIES_COLLECTION_ID,
+        [Query.equal('categoryId', categoryId), Query.limit(1000)]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching category subjects:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create a link between subject and category
+   * @param {string} subjectId - Subject ID
+   * @param {string} categoryId - Category ID
+   * @returns {Promise<Object>} Created link document
+   */
+  async create(subjectId, categoryId) {
+    try {
+      // Check if link already exists
+      const existing = await databases.listDocuments(
+        DATABASE_ID,
+        SUBJECT_CATEGORIES_COLLECTION_ID,
+        [
+          Query.equal('subjectId', subjectId),
+          Query.equal('categoryId', categoryId),
+          Query.limit(1)
+        ]
+      );
+
+      if (existing.total > 0) {
+        console.warn('⚠️ Link already exists, returning existing');
+        return existing.documents[0];
+      }
+
+      const response = await databases.createDocument(
+        DATABASE_ID,
+        SUBJECT_CATEGORIES_COLLECTION_ID,
+        ID.unique(),
+        { subjectId, categoryId }
+      );
+      console.log('✅ Subject-Category link created:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error creating subject-category link:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Remove a link between subject and category
+   * @param {string} linkId - Link document ID
+   * @returns {Promise<boolean>}
+   */
+  async remove(linkId) {
+    try {
+      await databases.deleteDocument(
+        DATABASE_ID,
+        SUBJECT_CATEGORIES_COLLECTION_ID,
+        linkId
+      );
+      console.log('✅ Subject-Category link deleted');
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting subject-category link:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Remove all links for a subject (used when deleting subject)
+   * @param {string} subjectId - Subject ID
+   * @returns {Promise<number>} Number of links deleted
+   */
+  async removeAllBySubject(subjectId) {
+    try {
+      const links = await this.getBySubject(subjectId);
+      await Promise.all(links.map(link => this.remove(link.$id)));
+      console.log(`✅ Deleted ${links.length} subject-category links`);
+      return links.length;
+    } catch (error) {
+      console.error('❌ Error deleting subject links:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Remove all links for a category (used when deleting category)
+   * @param {string} categoryId - Category ID
+   * @returns {Promise<number>} Number of links deleted
+   */
+  async removeAllByCategory(categoryId) {
+    try {
+      const links = await this.getByCategory(categoryId);
+      await Promise.all(links.map(link => this.remove(link.$id)));
+      console.log(`✅ Deleted ${links.length} category-subject links`);
+      return links.length;
+    } catch (error) {
+      console.error('❌ Error deleting category links:', error);
+      throw error;
+    }
+  }
+};
+
 // Export all services as default
 export default {
   categories: categoriesService,
   subjects: subjectsService,
+  subjectCategories: subjectCategoriesService,
   fileTypes: fileTypesService,
   materials: materialsService,
   users: usersService,

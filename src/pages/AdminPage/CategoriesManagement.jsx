@@ -4,10 +4,10 @@ import { ModernCard, ModernButton, ModernInput, ModernAlert } from '@shared/ui/m
 import AdminService from '../../config/AdminService';
 
 const CategoriesManagement = ({ onUpdate }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -22,6 +22,8 @@ const CategoriesManagement = ({ onUpdate }) => {
     order: 0,
     isActive: true
   });
+
+  const isArabic = i18n.language === 'ar';
 
   useEffect(() => {
     loadCategories();
@@ -75,7 +77,7 @@ const CategoriesManagement = ({ onUpdate }) => {
       order: category.order || 0,
       isActive: category.isActive !== false
     });
-    setShowForm(true);
+    setShowModal(true);
   };
 
   const handleDelete = async (categoryId) => {
@@ -106,7 +108,7 @@ const CategoriesManagement = ({ onUpdate }) => {
       isActive: true
     });
     setEditingCategory(null);
-    setShowForm(false);
+    setShowModal(false);
   };
 
   if (loading) {
@@ -130,138 +132,160 @@ const CategoriesManagement = ({ onUpdate }) => {
           {t('admin.categories.title')}
         </h2>
         <ModernButton
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            resetForm();
+            setShowModal(true);
+          }}
           className="bg-blue-600 hover:bg-blue-700"
         >
-          {showForm ? `❌ ${t('admin.categories.actions.cancel')}` : `➕ ${t('admin.categories.addNew')}`}
+          ➕ {t('admin.categories.addNew')}
         </ModernButton>
       </div>
 
-      {/* Add/Edit Form */}
-      {showForm && (
-        <ModernCard>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-            {editingCategory ? t('admin.categories.editCategory') : t('admin.categories.addCategory')}
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('admin.categories.nameAr')} *
-                </label>
-                <ModernInput
-                  type="text"
-                  value={formData.nameAr}
-                  onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
-                  required
-                  placeholder={t('admin.categories.namePlaceholderAr')}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('admin.categories.nameEn')} *
-                </label>
-                <ModernInput
-                  type="text"
-                  value={formData.nameEn}
-                  onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
-                  required
-                  placeholder={t('admin.categories.namePlaceholderEn')}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('admin.categories.descriptionAr')}
-                </label>
-                <ModernInput
-                  type="text"
-                  value={formData.descriptionAr}
-                  onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
-                  placeholder={t('admin.categories.descriptionPlaceholderAr')}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('admin.categories.descriptionEn')}
-                </label>
-                <ModernInput
-                  type="text"
-                  value={formData.descriptionEn}
-                  onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
-                  placeholder={t('admin.categories.descriptionPlaceholderEn')}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('admin.categories.icon')}
-                </label>
-                <ModernInput
-                  type="text"
-                  value={formData.icon}
-                  onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  placeholder={t('admin.categories.iconPlaceholder')}
-                  maxLength={2}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('admin.categories.color')}
-                </label>
-                <input
-                  type="color"
-                  value={formData.color}
-                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('admin.categories.order')}
-                </label>
-                <ModernInput
-                  type="number"
-                  value={formData.order}
-                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                  min="0"
-                  placeholder={t('admin.categories.orderPlaceholder')}
-                />
-              </div>
-
-              <div className="flex items-center">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isActive}
-                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                  />
-                  <span className="mr-2 text-sm text-gray-700 dark:text-gray-300">
-                    {t('admin.categories.categoryActive')}
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <ModernButton type="submit" className="bg-green-600 hover:bg-green-700">
-                {editingCategory ? `💾 ${t('admin.categories.actions.save')}` : `➕ ${t('admin.categories.actions.add')}`}
-              </ModernButton>
-              <ModernButton
-                type="button"
+      {/* Modal for Add/Edit Category */}
+      {showModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) resetForm();
+          }}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto m-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                {editingCategory ? t('admin.categories.editCategory') : t('admin.categories.addCategory')}
+              </h3>
+              <button
                 onClick={resetForm}
-                className="bg-gray-500 hover:bg-gray-600"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                {t('admin.categories.actions.cancel')}
-              </ModernButton>
+                ×
+              </button>
             </div>
-          </form>
-        </ModernCard>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('admin.categories.nameAr')} *
+                  </label>
+                  <ModernInput
+                    type="text"
+                    value={formData.nameAr}
+                    onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
+                    required
+                    placeholder={t('admin.categories.namePlaceholderAr')}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('admin.categories.nameEn')} *
+                  </label>
+                  <ModernInput
+                    type="text"
+                    value={formData.nameEn}
+                    onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                    required
+                    placeholder={t('admin.categories.namePlaceholderEn')}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('admin.categories.descriptionAr')}
+                  </label>
+                  <ModernInput
+                    type="text"
+                    value={formData.descriptionAr}
+                    onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
+                    placeholder={t('admin.categories.descriptionPlaceholderAr')}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('admin.categories.descriptionEn')}
+                  </label>
+                  <ModernInput
+                    type="text"
+                    value={formData.descriptionEn}
+                    onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
+                    placeholder={t('admin.categories.descriptionPlaceholderEn')}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('admin.categories.icon')}
+                  </label>
+                  <ModernInput
+                    type="text"
+                    value={formData.icon}
+                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                    placeholder={t('admin.categories.iconPlaceholder')}
+                    maxLength={2}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('admin.categories.color')}
+                  </label>
+                  <input
+                    type="color"
+                    value={formData.color}
+                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                    className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('admin.categories.order')}
+                  </label>
+                  <ModernInput
+                    type="number"
+                    value={formData.order}
+                    onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                    min="0"
+                    placeholder={t('admin.categories.orderPlaceholder')}
+                  />
+                </div>
+
+                <div className="flex items-center">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isActive}
+                      onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                    />
+                    <span className="mr-2 text-sm text-gray-700 dark:text-gray-300">
+                      {t('admin.categories.categoryActive')}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <ModernButton type="submit" className="flex-1 bg-green-600 hover:bg-green-700">
+                  {editingCategory ? `💾 ${t('admin.categories.actions.save')}` : `➕ ${t('admin.categories.actions.add')}`}
+                </ModernButton>
+                <ModernButton
+                  type="button"
+                  onClick={resetForm}
+                  className="flex-1 bg-gray-500 hover:bg-gray-600"
+                >
+                  {t('admin.categories.actions.cancel')}
+                </ModernButton>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Categories List */}

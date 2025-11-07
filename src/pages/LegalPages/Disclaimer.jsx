@@ -119,7 +119,7 @@ const Disclaimer = () => {
                 {t('legal.disclaimer.section7.content')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
-                <li><strong>{t('legal.disclaimer.section7.noGuarantee')}</strong> {t('legal.disclaimer.section7.noGuaranteeDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section7.noAvailabilityGuarantee')}</strong> {t('legal.disclaimer.section7.noAvailabilityGuaranteeDesc')}</li>
                 <li><strong>{t('legal.disclaimer.section7.maintenance')}</strong> {t('legal.disclaimer.section7.maintenanceDesc')}</li>
                 <li><strong>{t('legal.disclaimer.section7.technicalErrors')}</strong> {t('legal.disclaimer.section7.technicalErrorsDesc')}</li>
                 <li><strong>{t('legal.disclaimer.section7.dataLoss')}</strong> {t('legal.disclaimer.section7.dataLossDesc')}</li>

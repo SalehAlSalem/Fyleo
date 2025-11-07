@@ -85,3 +85,33 @@ export const educationalPurposesService: {
   list(): Promise<any[]>;
   getById(id: string): Promise<any>;
 };
+
+export interface SubjectCategoryLink {
+  $id: string;
+  subjectId: string;
+  categoryId: string;
+  $createdAt?: string;
+  $updatedAt?: string;
+}
+
+export const subjectCategoriesService: {
+  getBySubject(subjectId: string): Promise<SubjectCategoryLink[]>;
+  getByCategory(categoryId: string): Promise<SubjectCategoryLink[]>;
+  create(subjectId: string, categoryId: string): Promise<SubjectCategoryLink>;
+  remove(linkId: string): Promise<boolean>;
+  removeAllBySubject(subjectId: string): Promise<number>;
+  removeAllByCategory(categoryId: string): Promise<number>;
+};
+
+declare const appwriteService: {
+  materials: typeof materialsService;
+  posts: typeof postsService;
+  bookmarks: typeof bookmarksService;
+  downloads: typeof downloadsService;
+  fileTypes: typeof fileTypesService;
+  educationalPurposes: typeof educationalPurposesService;
+  subjectCategories: typeof subjectCategoriesService;
+  [key: string]: any;
+};
+
+export default appwriteService;

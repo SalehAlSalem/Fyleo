@@ -12,6 +12,7 @@
 
 import { databases, Query } from '../../../config/appwrite';
 import { cacheManager } from '../utils/indexedDB';
+import appwriteService from '../../../services/appwriteService';
 import type { Category, Subject, Material, Post, EducationalPurpose } from '../../../types/database';
 
 const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
@@ -65,29 +66,31 @@ export const categoriesApi = {
 
   /**
    * 🟩 TIER 1: Get all categories WITH subjects count (optimized)
-   * Uses client-side linking instead of N+1 queries
+   * Now uses Many-to-Many relationship via subject_categories
    */
   async getAllWithSubjectsCount(): Promise<(Category & { subjectsCount: number })[]> {
     try {
       // Get categories (from cache or Appwrite)
       const categories = await this.getAll();
       
-      // Get ALL subjects in one request
-      const subjectsResponse = await databases.listDocuments(
-        DATABASE_ID,
-        SUBJECTS_COLLECTION_ID,
-        [
-          Query.equal('isActive', true),
-          Query.limit(1000)
-        ]
+      // Get ALL subject-category links in one request
+      const allLinks = await Promise.all(
+        categories.map(async (cat) => ({
+          categoryId: cat.$id,
+          links: await appwriteService.subjectCategories.getByCategory(cat.$id)
+        }))
       );
       
-      const subjects = subjectsResponse.documents as Subject[];
+      // Create a count map
+      const countMap = new Map<string, number>();
+      allLinks.forEach(({ categoryId, links }) => {
+        countMap.set(categoryId, links.length);
+      });
       
-      // Link client-side (no additional requests!)
+      // Add counts to categories
       const categoriesWithCount = categories.map(category => ({
         ...category,
-        subjectsCount: subjects.filter(s => s.categoryId === category.$id).length
+        subjectsCount: countMap.get(category.$id) || 0
       }));
       
       return categoriesWithCount;
@@ -115,15 +118,22 @@ export const categoriesApi = {
   },
 
   /**
-   * Get subjects for a category
+   * Get subjects for a category (using Many-to-Many relationship)
    */
   async getSubjects(categoryId: string): Promise<Subject[]> {
     try {
+      // Get subject IDs linked to this category
+      const links = await appwriteService.subjectCategories.getByCategory(categoryId);
+      const subjectIds = links.map(link => link.subjectId);
+      
+      if (subjectIds.length === 0) return [];
+      
+      // Fetch subjects by IDs
       const response = await databases.listDocuments(
         DATABASE_ID,
         SUBJECTS_COLLECTION_ID,
         [
-          Query.equal('categoryId', categoryId),
+          Query.equal('$id', subjectIds),
           Query.equal('isActive', true),
           Query.orderAsc('nameEn'),
           Query.limit(100)
@@ -646,6 +656,7 @@ export const searchApi = {
 
   /**
    * Category search - Search subjects, materials, and posts within a category (Level 2)
+   * Now uses Many-to-Many relationship via subject_categories
    */
   async searchInCategory(categoryId: string, query: string): Promise<{
     subjects: Subject[];
@@ -653,19 +664,26 @@ export const searchApi = {
     posts: Post[];
   }> {
     try {
-      // Get all subjects in this category first
+      // Get subject IDs linked to this category
+      const links = await appwriteService.subjectCategories.getByCategory(categoryId);
+      const subjectIds = links.map(link => link.subjectId);
+      
+      if (subjectIds.length === 0) {
+        return { subjects: [], materials: [], posts: [] };
+      }
+      
+      // Get all subjects in this category
       const subjectsResponse = await databases.listDocuments(
         DATABASE_ID,
         SUBJECTS_COLLECTION_ID,
         [
-          Query.equal('categoryId', categoryId),
+          Query.equal('$id', subjectIds),
           Query.equal('isActive', true),
           Query.limit(100)
         ]
       );
 
       const subjects = subjectsResponse.documents as Subject[];
-      const subjectIds = subjects.map(s => s.$id);
 
       console.log(`[Level 2 Search] Category: ${categoryId}, Query: "${query}"`);
       console.log(`[Level 2 Search] Found ${subjects.length} subjects in category`);
