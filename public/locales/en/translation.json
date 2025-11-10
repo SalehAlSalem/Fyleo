@@ -154,6 +154,7 @@
     "title": "Materials",
     "categories": "Categories",
     "subjects": "Subjects",
+    "posts": "Posts",
     "fileTypes": "File Types",
     "searchPlaceholder": "Search for a subject directly... (e.g., Programming, Math, Physics)",
     "noResults": "No results found",
@@ -745,7 +746,13 @@
     "fileTypeRequired": "File type is required",
     "purposeHint": "Choose the educational purpose of this link",
     "chooseFile": "Choose a file or drag it here",
-    "gpaCalculator": "Cumulative GPA Calculator"
+    "gpaCalculator": "Cumulative GPA Calculator",
+    "folderValidationError": "All files must have subject and file type",
+    "folderUploadSuccess": "Folder uploaded successfully",
+    "folderUploadError": "Error uploading folder",
+    "files": "files",
+    "failed": "failed",
+    "urlRequired": "URL is required"
   },
   "loading": {
     "initializing": "Initializing...",

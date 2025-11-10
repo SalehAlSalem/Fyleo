@@ -186,6 +186,7 @@
     "title": "المواد",
     "categories": "التصنيفات",
     "subjects": "المواد",
+    "posts": "المنشورات",
     "fileTypes": "أنواع الملفات",
     "searchPlaceholder": "ابحث عن مادة مباشرة... (مثال: برمجة، رياضيات، فيزياء)",
     "noResults": "لا توجد نتائج",
@@ -653,7 +654,12 @@
     "educationalPurpose": "الغرض التعليمي",
     "selectPurpose": "اختر الغرض التعليمي",
     "purposeRequired": "الغرض التعليمي مطلوب",
-    "purposeHint": "اختر الغرض التعليمي لهذا الرابط"
+    "purposeHint": "اختر الغرض التعليمي لهذا الرابط",
+    "folderValidationError": "يجب أن تحتوي جميع الملفات على موضوع ونوع ملف",
+    "folderUploadSuccess": "تم رفع الفولدر بنجاح",
+    "folderUploadError": "خطأ في رفع الفولدر",
+    "files": "ملفات",
+    "failed": "فشل"
   },
 
   "gpa": {

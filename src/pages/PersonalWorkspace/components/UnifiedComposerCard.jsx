@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { postsService, materialsService, fileTypesService, educationalPurposesService } from '../../../services/appwriteService';
 import { StorageService } from '../../../config/StorageService';
@@ -11,6 +12,7 @@ import './UnifiedComposerCard.css';
  */
 const UnifiedComposerCard = ({ userId, onSuccess }) => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [mode, setMode] = useState('file'); // 'link' or 'file'
   const [expanded, setExpanded] = useState(false);
   
@@ -96,6 +98,29 @@ const UnifiedComposerCard = ({ userId, onSuccess }) => {
       setFileTitle(nameWithoutExt);
       setExpanded(true);
     }
+  };
+
+  const handleFolderSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    // Prepare folder files with default values
+    const preparedFiles = files.map(file => ({
+      file,
+      title: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
+      description: '',
+      fileTypeId: '',
+      subjectId: subjectId || '' // Use current subject if set
+    }));
+
+    // Navigate to folder preview page
+    navigate('/folder-preview', {
+      state: {
+        files: preparedFiles,
+        userId: userId,
+        subjectId: subjectId
+      }
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -390,7 +415,6 @@ const UnifiedComposerCard = ({ userId, onSuccess }) => {
                         setFileTitle(nameWithoutExt);
                       }
                     }}
-                    required
                     className="file-input"
                     id="file-upload"
                   />
@@ -407,6 +431,22 @@ const UnifiedComposerCard = ({ userId, onSuccess }) => {
                         <span>{isDragging ? t('workspace.dropHere') : t('workspace.chooseFile')}</span>
                       </>
                     )}
+                  </label>
+                </div>
+                
+                {/* Folder Upload Button */}
+                <div style={{ marginTop: '0.5rem' }}>
+                  <input
+                    type="file"
+                    webkitdirectory=""
+                    directory=""
+                    multiple
+                    onChange={handleFolderSelect}
+                    style={{ display: 'none' }}
+                    id="folder-upload"
+                  />
+                  <label htmlFor="folder-upload" className="folder-upload-btn">
+                    📂 {i18n.language === 'ar' ? 'رفع فولدر كامل' : 'Upload Entire Folder'}
                   </label>
                 </div>
               </div>

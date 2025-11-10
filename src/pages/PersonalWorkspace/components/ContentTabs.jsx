@@ -25,6 +25,13 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
   
   // Download counts for each file
   const [downloadCounts, setDownloadCounts] = useState({});
+  
+  // Subject names cache
+  const [subjectNames, setSubjectNames] = useState({});
+  
+  // Search/filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState(null);
 
   // Fetch file types and educational purposes on mount
   useEffect(() => {
@@ -43,6 +50,46 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
     };
     fetchData();
   }, []);
+  
+  // Fetch subject names and objects for all content
+  useEffect(() => {
+    const fetchSubjectNames = async () => {
+      const subjectIds = new Set();
+      
+      // Collect subject IDs from all content
+      [...files, ...links, ...bookmarks].forEach(item => {
+        if (item.subjectId) subjectIds.add(item.subjectId);
+      });
+      
+      if (subjectIds.size === 0) return;
+      
+      try {
+        const { subjectsService } = await import('../../../services/appwriteService');
+        const names = {};
+        const objects = {};
+        
+        // Fetch each subject name and store the object
+        for (const id of subjectIds) {
+          try {
+            const subject = await subjectsService.getById(id);
+            names[id] = i18n.language === 'ar' ? subject.nameAr : subject.nameEn;
+            objects[id] = subject;
+          } catch (error) {
+            console.error(`Error fetching subject ${id}:`, error);
+            names[id] = '—';
+          }
+        }
+        
+        setSubjectNames(names);
+        // Store subjects in a ref or state for filter
+        window.__subjectsCache = objects;
+      } catch (error) {
+        console.error('Error loading subject names:', error);
+      }
+    };
+    
+    fetchSubjectNames();
+  }, [files, links, bookmarks, i18n.language]);
   
   // Load download counts for all files, including bookmarked files
   useEffect(() => {
@@ -404,9 +451,52 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
     handleClearSelection();
   }, [activeTab]);
 
-  const formatDate = (date) => {
+    // Filter content based on subject filter and search query
+  const filterContent = (items) => {
+    let filtered = items;
+    
+    // Apply subject filter first
+    if (selectedSubjectFilter) {
+      console.log('🔍 Filtering by subject:', selectedSubjectFilter.$id);
+      console.log('📊 Items before filter:', items.length);
+      filtered = filtered.filter(item => {
+        const match = item.subjectId === selectedSubjectFilter.$id;
+        if (match) {
+          console.log('✅ Match:', item.title, 'subjectId:', item.subjectId);
+        }
+        return match;
+      });
+      console.log('📊 Items after filter:', filtered.length);
+    }
+    
+    // Then apply text search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item => {
+        // Search in title
+        if (item.title?.toLowerCase().includes(query)) return true;
+        
+        // Search in description/contentText
+        if (item.description?.toLowerCase().includes(query)) return true;
+        if (item.contentText?.toLowerCase().includes(query)) return true;
+        
+        // Search in link URL
+        if (item.linkURL?.toLowerCase().includes(query)) return true;
+        
+        return false;
+      });
+    }
+    
+    return filtered;
+  };
+  
+  const filteredFiles = filterContent(files);
+  const filteredLinks = filterContent(links);
+  const filteredBookmarks = filterContent(bookmarks);
+
+  const formatDate = (dateString) => {
     // Convert to Gregorian format
-    const d = new Date(date);
+    const d = new Date(dateString);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = d.getFullYear();
@@ -647,20 +737,213 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
         <div className={`tab-indicator tab-${activeTab}`}></div>
       </div>
 
+      {/* Search & Filter Bar */}
+      <div style={{ 
+        padding: '1rem',
+        background: 'var(--card-bg, #1a2332)',
+        borderRadius: '12px',
+        marginBottom: '1rem'
+      }}>
+        <div style={{ 
+          display: 'grid',
+          gridTemplateColumns: i18n.language === 'ar' ? '1fr 2fr' : '2fr 1fr',
+          gap: '1rem',
+          marginBottom: '0.75rem'
+        }}>
+          {/* Text Search */}
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={i18n.language === 'ar' ? '🔍 ابحث في اسم الملف...' : '🔍 Search in file name...'}
+              style={{
+                width: '100%',
+                padding: '0.875rem 3rem 0.875rem 1rem',
+                background: 'var(--input-bg, rgba(255,255,255,0.05))',
+                border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                borderRadius: '8px',
+                color: 'var(--text-primary, #fff)',
+                fontSize: '0.95rem',
+                outline: 'none',
+                transition: 'all 0.2s ease'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#6366f1';
+                e.target.style.background = 'rgba(99, 102, 241, 0.05)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--border-color, rgba(255,255,255,0.1))';
+                e.target.style.background = 'var(--input-bg, rgba(255,255,255,0.05))';
+              }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute',
+                  right: '1rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '6px',
+                  padding: '0.25rem 0.5rem',
+                  color: '#ef4444',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(239, 68, 68, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(239, 68, 68, 0.1)';
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Subject Filter using SmartSubjectSearch */}
+          <div>
+            <SmartSubjectSearch
+              value={selectedSubjectFilter?.$id || ''}
+              onChange={(subjectId) => {
+                if (subjectId) {
+                  // Get subject object from cache
+                  const subjectObj = window.__subjectsCache?.[subjectId];
+                  if (subjectObj) {
+                    setSelectedSubjectFilter(subjectObj);
+                  } else {
+                    // Fallback: create minimal object
+                    setSelectedSubjectFilter({
+                      $id: subjectId,
+                      nameAr: subjectNames[subjectId] || '',
+                      nameEn: subjectNames[subjectId] || ''
+                    });
+                  }
+                } else {
+                  setSelectedSubjectFilter(null);
+                }
+              }}
+            />
+          </div>
+        </div>
+        
+        {/* Active Filters & Result Count */}
+        {(searchQuery || selectedSubjectFilter) && (
+          <div style={{ 
+            display: 'flex',
+            gap: '1rem',
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}>
+            {/* Result Count */}
+            <div style={{ 
+              fontSize: '0.875rem',
+              color: 'var(--text-secondary, #94a3b8)'
+            }}>
+              {activeTab === 'files' && `📁 ${filteredFiles.length} ${i18n.language === 'ar' ? 'ملف' : 'files'}`}
+              {activeTab === 'links' && `🔗 ${filteredLinks.length} ${i18n.language === 'ar' ? 'رابط' : 'links'}`}
+              {activeTab === 'bookmarks' && `⭐ ${filteredBookmarks.length} ${i18n.language === 'ar' ? 'مفضلة' : 'bookmarks'}`}
+            </div>
+            
+            {/* Active Subject Filter Badge */}
+            {selectedSubjectFilter && (
+              <div style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.375rem 0.75rem',
+                background: 'rgba(99, 102, 241, 0.1)',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                color: '#6366f1'
+              }}>
+                <span>📚 {i18n.language === 'ar' ? selectedSubjectFilter.nameAr : selectedSubjectFilter.nameEn}</span>
+                <button
+                  onClick={() => setSelectedSubjectFilter(null)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontSize: '1rem',
+                    lineHeight: 1
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+            
+            {/* Clear All Button */}
+            {(searchQuery || selectedSubjectFilter) && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedSubjectFilter(null);
+                }}
+                style={{
+                  padding: '0.375rem 0.75rem',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '6px',
+                  color: '#ef4444',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(239, 68, 68, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(239, 68, 68, 0.1)';
+                }}
+              >
+                {i18n.language === 'ar' ? 'مسح الكل' : 'Clear All'}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Tab Content */}
       <div className="tabs-content">
         {/* My Files Tab */}
         {activeTab === 'files' && (
           <div className="tab-panel">
-            {files.length === 0 ? (
+            {filteredFiles.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-icon">📁</span>
-                <p className="empty-title">{t('workspace.noFiles')}</p>
-                <p className="empty-desc">{t('workspace.noFilesDesc')}</p>
+                <span className="empty-icon">{searchQuery ? '�' : '�📁'}</span>
+                <p className="empty-title">
+                  {(searchQuery || selectedSubjectFilter) 
+                    ? (i18n.language === 'ar' ? 'لا توجد نتائج' : 'No results') 
+                    : t('workspace.noFiles')
+                  }
+                </p>
+                <p className="empty-desc">
+                  {(searchQuery || selectedSubjectFilter)
+                    ? (i18n.language === 'ar' ? 'جرب فلتر أو كلمات بحث مختلفة' : 'Try different filter or search') 
+                    : t('workspace.noFilesDesc')
+                  }
+                </p>
               </div>
             ) : (
-              <div className="links-feed" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {files.map((file) => (
+              <div className="links-feed" style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '1rem',
+                maxHeight: 'calc(4 * 135px)', // 4 items * reduced height (25% less)
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                paddingRight: '0.5rem'
+              }}>
+                {filteredFiles.map((file) => (
                   <div 
                     key={file.$id} 
                     className={`link-card ${selectedItems.includes(file.$id) ? 'selected' : ''}`}
@@ -708,6 +991,24 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                           <div className="file-desc" style={{ marginTop: '0.5rem' }}>{file.description}</div>
                         )}
                         
+                        {/* Subject Badge */}
+                        {file.subjectId && subjectNames[file.subjectId] && (
+                          <div style={{ 
+                            display: 'inline-block',
+                            padding: '4px 12px',
+                            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(59, 130, 246, 0.1))',
+                            border: '1px solid rgba(99, 102, 241, 0.2)',
+                            borderRadius: '6px',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            color: '#6366f1',
+                            marginTop: '0.5rem',
+                            marginBottom: '0.5rem'
+                          }}>
+                            📚 {subjectNames[file.subjectId]}
+                          </div>
+                        )}
+                        
                         {/* Meta Info Chips */}
                         <div className="meta-chips">
                           <span>📦 {formatFileSize(file.fileSize)}</span>
@@ -738,15 +1039,33 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
         {/* My Links Tab - Unified Table View */}
         {activeTab === 'links' && (
           <div className="tab-panel">
-            {links.length === 0 ? (
+            {filteredLinks.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-icon">🔗</span>
-                <p className="empty-title">{t('workspace.noLinks')}</p>
-                <p className="empty-desc">{t('workspace.noLinksDesc')}</p>
+                <span className="empty-icon">{searchQuery ? '�' : '�🔗'}</span>
+                <p className="empty-title">
+                  {(searchQuery || selectedSubjectFilter) 
+                    ? (i18n.language === 'ar' ? 'لا توجد نتائج' : 'No results') 
+                    : t('workspace.noLinks')
+                  }
+                </p>
+                <p className="empty-desc">
+                  {(searchQuery || selectedSubjectFilter)
+                    ? (i18n.language === 'ar' ? 'جرب فلتر أو كلمات بحث مختلفة' : 'Try different filter or search') 
+                    : t('workspace.noLinksDesc')
+                  }
+                </p>
               </div>
             ) : (
-              <div className="links-feed" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {links.map((link) => (
+              <div className="links-feed" style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '1rem',
+                maxHeight: 'calc(4 * 135px)', // 4 items * reduced height (25% less)
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                paddingRight: '0.5rem'
+              }}>
+                {filteredLinks.map((link) => (
                   <div 
                     key={link.$id} 
                     className={`link-card ${selectedItems.includes(link.$id) ? 'selected' : ''}`}
@@ -842,6 +1161,23 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                           </a>
                         )}
                         
+                        {/* Subject Badge */}
+                        {link.subjectId && subjectNames[link.subjectId] && (
+                          <div style={{ 
+                            display: 'inline-block',
+                            padding: '4px 12px',
+                            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(20, 184, 166, 0.1))',
+                            border: '1px solid rgba(16, 185, 129, 0.2)',
+                            borderRadius: '6px',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            color: '#10b981',
+                            marginBottom: '0.75rem'
+                          }}>
+                            📚 {subjectNames[link.subjectId]}
+                          </div>
+                        )}
+                        
                         {/* Meta Info */}
                         <div className="meta-chips">
                           <span>📅 {formatDate(link.$createdAt)}</span>
@@ -858,14 +1194,32 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
         {/* Bookmarks Tab - Unified Table View */}
         {activeTab === 'bookmarks' && (
           <div className="tab-panel">
-            {bookmarks.length === 0 ? (
+            {filteredBookmarks.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-icon">⭐</span>
-                <p className="empty-title">{t('workspace.noBookmarks')}</p>
-                <p className="empty-desc">{t('workspace.noBookmarksDesc')}</p>
+                <span className="empty-icon">{(searchQuery || selectedSubjectFilter) ? '🔍' : '⭐'}</span>
+                <p className="empty-title">
+                  {(searchQuery || selectedSubjectFilter) 
+                    ? (i18n.language === 'ar' ? 'لا توجد نتائج' : 'No results') 
+                    : t('workspace.noBookmarks')
+                  }
+                </p>
+                <p className="empty-desc">
+                  {(searchQuery || selectedSubjectFilter)
+                    ? (i18n.language === 'ar' ? 'جرب فلتر أو كلمات بحث مختلفة' : 'Try different filter or search') 
+                    : t('workspace.noBookmarksDesc')
+                  }
+                </p>
               </div>
             ) : (
-              <div className="links-feed" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="links-feed" style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '1rem',
+                maxHeight: 'calc(4 * 135px)', // 4 items * reduced height (25% less)
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                paddingRight: '0.5rem'
+              }}>
                 {bookmarks.map((item) => {
                   console.log('🔍 Bookmark item:', item.title, 'fileType:', item.fileType);
                   return (
@@ -921,6 +1275,25 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                             {item.description && (
                               <div className="file-desc" style={{ marginTop: '0.5rem' }}>{item.description}</div>
                             )}
+                            
+                            {/* Subject Badge */}
+                            {item.subjectId && subjectNames[item.subjectId] && (
+                              <div style={{ 
+                                display: 'inline-block',
+                                padding: '4px 12px',
+                                background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(251, 191, 36, 0.1))',
+                                border: '1px solid rgba(234, 179, 8, 0.2)',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                color: '#eab308',
+                                marginTop: '0.5rem',
+                                marginBottom: '0.5rem'
+                              }}>
+                                📚 {subjectNames[item.subjectId]}
+                              </div>
+                            )}
+                            
                             <div className="meta-chips">
                               <span>📦 {formatFileSize(item.fileSize)}</span>
                               <span>📥 {downloadCounts[item.$id] || 0}</span>
@@ -978,6 +1351,24 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                                 <span>→</span>
                               </a>
                             )}
+                            
+                            {/* Subject Badge */}
+                            {item.subjectId && subjectNames[item.subjectId] && (
+                              <div style={{ 
+                                display: 'inline-block',
+                                padding: '4px 12px',
+                                background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(251, 191, 36, 0.1))',
+                                border: '1px solid rgba(234, 179, 8, 0.2)',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                color: '#eab308',
+                                marginBottom: '0.75rem'
+                              }}>
+                                📚 {subjectNames[item.subjectId]}
+                              </div>
+                            )}
+                            
                             <div className="meta-chips">
                               <span>📅 {formatDate(item.$createdAt)}</span>
                             </div>

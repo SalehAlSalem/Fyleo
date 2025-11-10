@@ -1,12 +1,13 @@
 /**
  * SearchBar Component
  * Spotlight-style search with dropdown results
- * Dumb component - receives search results via props
+ * Now uses local fuzzy search with Fuse.js for instant results
  */
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Category, Subject, Material } from '../../../types/database';
+import { useLocalSearch } from '../hooks/useLocalSearch';
 
 interface Post {
   $id: string;
@@ -16,14 +17,6 @@ interface Post {
 }
 
 interface SearchBarProps {
-  onSearch: (query: string) => void;
-  results?: {
-    categories?: Category[];
-    subjects?: Subject[];
-    materials?: Material[];
-    posts?: Post[];
-  };
-  isSearching?: boolean;
   onCategoryClick?: (category: Category) => void;
   onSubjectClick?: (subject: Subject) => void;
   onMaterialClick?: (material: Material) => void;
@@ -39,13 +32,12 @@ interface SearchBarProps {
   nameKey: 'nameAr' | 'nameEn';
   className?: string;
   autoFocus?: boolean;
-  searchLevel: 'global' | 'category' | 'subject';
+  // Filter by context
+  categoryId?: string | null;
+  subjectId?: string | null;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
-  onSearch,
-  results,
-  isSearching,
   onCategoryClick,
   onSubjectClick,
   onMaterialClick,
@@ -55,7 +47,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   nameKey,
   className = '',
   autoFocus = false,
-  searchLevel: _searchLevel,
+  categoryId = null,
+  subjectId = null,
 }) => {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -64,11 +57,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const selectedItemRef = useRef<HTMLButtonElement>(null);
 
+  // Use local fuzzy search hook with context filters
+  const { isSearching, results, suggestions, search } = useLocalSearch(categoryId, subjectId);
+
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (query.length >= 2) {
-        onSearch(query);
+        search(query);
         setIsOpen(true);
       } else {
         setIsOpen(false);
@@ -76,7 +72,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, onSearch]);
+  }, [query, search]);
 
   // Click outside to close
   useEffect(() => {
@@ -235,6 +231,29 @@ const SearchBar: React.FC<SearchBarProps> = ({
           >
             {hasResults ? (
               <>
+                {/* Smart Suggestions Bar */}
+                {suggestions && suggestions.length > 0 && (
+                  <div className="mx-2 mt-2 mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-700">
+                    <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
+                      💡 {nameKey === 'nameAr' ? 'اقتراحات:' : 'Suggestions:'}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestions.map((suggestion: string, index: number) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setQuery(suggestion);
+                            search(suggestion);
+                          }}
+                          className="px-3 py-1 bg-white dark:bg-gray-800 text-yellow-700 dark:text-yellow-300 rounded-full text-xs hover:bg-yellow-100 dark:hover:bg-gray-700 transition-colors border border-yellow-300 dark:border-yellow-600"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Categories */}
                 {results.categories && results.categories.length > 0 && (
                   <div className="py-2">
@@ -431,7 +450,33 @@ const SearchBar: React.FC<SearchBarProps> = ({
               </>
             ) : (
               <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                {isSearching ? '⏳ جاري البحث...' : labels.noResults}
+                {isSearching ? (
+                  '⏳ جاري البحث...'
+                ) : (
+                  <>
+                    <div>{labels.noResults}</div>
+                    {/* Smart Suggestions */}
+                    {suggestions && suggestions.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm mb-2">💡 {nameKey === 'nameAr' ? 'هل تقصد:' : 'Did you mean:'}</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {suggestions.map((suggestion: string, index: number) => (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                setQuery(suggestion);
+                                search(suggestion);
+                              }}
+                              className="px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-sm hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </motion.div>

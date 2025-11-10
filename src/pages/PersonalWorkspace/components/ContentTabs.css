@@ -257,6 +257,8 @@
 
 .tab-btn.active {
   color: #6366f1;
+  font-weight: 700;
+  border-bottom: 3px solid #6366f1;
 }
 
 .tab-icon {

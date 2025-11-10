@@ -670,7 +670,7 @@ export const materialsService = {
   /**
    * Get materials by uploader (with fileType populated)
    */
-  async getByUploader(uploaderId, limit = 50) {
+  async getByUploader(uploaderId) {
     try {
       const response = await databases.listDocuments(
         DATABASE_ID,
@@ -678,7 +678,7 @@ export const materialsService = {
         [
           Query.equal('uploaderId', uploaderId),
           Query.orderDesc('$createdAt'),
-          Query.limit(limit)
+          Query.limit(5000) // Maximum allowed by Appwrite
         ]
       );
       
@@ -1142,7 +1142,7 @@ export const bookmarksService = {
   /**
    * Get user bookmarks
    */
-  async getByUser(userId, limit = 50) {
+  async getByUser(userId) {
     try {
       const response = await databases.listDocuments(
         DATABASE_ID,
@@ -1150,7 +1150,7 @@ export const bookmarksService = {
         [
           Query.equal('userId', userId),
           Query.orderDesc('$createdAt'),
-          Query.limit(limit)
+          Query.limit(5000) // Maximum allowed by Appwrite
         ]
       );
       return response.documents;
@@ -1592,7 +1592,7 @@ export const postsService = {
   /**
    * Get posts by uploader
    */
-  async getByUploader(uploaderId, limit = 100) {
+  async getByUploader(uploaderId) {
     try {
       const response = await databases.listDocuments(
         DATABASE_ID,
@@ -1600,7 +1600,7 @@ export const postsService = {
         [
           Query.equal('uploaderId', uploaderId),
           Query.orderDesc('$createdAt'),
-          Query.limit(limit)
+          Query.limit(5000) // Maximum allowed by Appwrite
         ]
       );
       return response.documents;
@@ -1844,7 +1844,7 @@ export const subjectCategoriesService = {
       const response = await databases.listDocuments(
         DATABASE_ID,
         SUBJECT_CATEGORIES_COLLECTION_ID,
-        [Query.equal('subjectId', subjectId), Query.limit(100)]
+        [Query.equal('subjectId', subjectId), Query.limit(5000)]
       );
       return response.documents;
     } catch (error) {
@@ -1863,7 +1863,7 @@ export const subjectCategoriesService = {
       const response = await databases.listDocuments(
         DATABASE_ID,
         SUBJECT_CATEGORIES_COLLECTION_ID,
-        [Query.equal('categoryId', categoryId), Query.limit(1000)]
+        [Query.equal('categoryId', categoryId), Query.limit(5000)]
       );
       return response.documents;
     } catch (error) {
@@ -1943,6 +1943,24 @@ export const subjectCategoriesService = {
       return links.length;
     } catch (error) {
       console.error('❌ Error deleting subject links:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all subject-category links
+   * @returns {Promise<Array>} Array of all link documents
+   */
+  async getAll() {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        SUBJECT_CATEGORIES_COLLECTION_ID,
+        [Query.limit(5000)]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('❌ Error fetching all subject-category links:', error);
       throw error;
     }
   },

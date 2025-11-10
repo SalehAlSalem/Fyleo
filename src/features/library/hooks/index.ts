@@ -45,3 +45,6 @@ export {
   // Realtime Sync
   useRealtimeSync,
 } from './useLibraryData';
+
+// Local Search Hook
+export { useLocalSearch } from './useLocalSearch';

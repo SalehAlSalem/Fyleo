@@ -7,7 +7,7 @@ import './WorkspaceHeader.css';
  * Workspace Header - Redesigned with inline editing
  * User info on the right, clean inline edit icons
  */
-const WorkspaceHeader = ({ user, onLogout, onDeleteAccount }) => {
+const WorkspaceHeader = ({ user, onLogout, onDeleteAccount, onUserUpdate }) => {
   const { t } = useTranslation();
   const [editingField, setEditingField] = useState(null); // 'name' or null
   const [editValue, setEditValue] = useState('');
@@ -46,7 +46,7 @@ const WorkspaceHeader = ({ user, onLogout, onDeleteAccount }) => {
       setMessage('✅ ' + t('profile.updateSuccess'));
       setTimeout(() => {
         setEditingField(null);
-        window.location.reload();
+        if (onUserUpdate) onUserUpdate();
       }, 1500);
     } catch (error) {
       console.error('Error updating name:', error);

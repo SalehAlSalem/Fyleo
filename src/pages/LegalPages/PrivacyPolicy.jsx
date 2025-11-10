@@ -94,7 +94,7 @@ const PrivacyPolicy = () => {
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-3 mr-6">
                 <li><strong>{t('legal.privacy.section5.passwordEncryption')}</strong> {t('legal.privacy.section5.passwordEncryptionDesc')}</li>
-                <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section5.httpsTLS')}</span></strong> {t('legal.privacy.section5.httpsTLSDesc')}</li>
+                <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section5.https')}</span></strong> {t('legal.privacy.section5.httpsDesc')}</li>
                 <li><strong>{t('legal.privacy.section5.accessControl')}</strong> {t('legal.privacy.section5.accessControlDesc')}</li>
                 <li><strong><span dir="ltr" className="inline-block">{t('legal.privacy.section5.sessionManagement')}</span></strong> {t('legal.privacy.section5.sessionManagementDesc')}</li>
                 <li><strong>{t('legal.privacy.section5.fileValidation')}</strong> {t('legal.privacy.section5.fileValidationDesc')}</li>

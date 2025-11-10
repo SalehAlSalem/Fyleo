@@ -978,6 +978,7 @@ export async function getAllSubjects(): Promise<Subject[]> {
 
 /**
  * 🟦 TIER 3: Get ALL Materials (for client-side linking)
+ * Includes uploader names for display
  */
 export async function getAllMaterials(): Promise<Material[]> {
   try {
@@ -988,7 +989,12 @@ export async function getAllMaterials(): Promise<Material[]> {
       [Query.limit(5000)]
     );
 
-    return response.documents as Material[];
+    const materials = response.documents as Material[];
+    
+    // Enrich with uploader names
+    const enrichedMaterials = await enrichMaterialsWithUploaderNames(materials);
+    
+    return enrichedMaterials;
   } catch (error) {
     console.error('Error fetching all materials:', error);
     throw error;
@@ -996,7 +1002,48 @@ export async function getAllMaterials(): Promise<Material[]> {
 }
 
 /**
+ * Enrich posts with uploader names
+ */
+async function enrichPostsWithUploaderNames(posts: Post[]): Promise<Post[]> {
+  const USERS_COLLECTION_ID = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID;
+  
+  // Get unique uploader IDs
+  const uploaderIds = [...new Set(posts.map(p => (p as any).uploaderId).filter(Boolean))];
+  
+  if (uploaderIds.length === 0) {
+    return posts;
+  }
+  
+  try {
+    // Fetch all users in one query
+    const usersResponse = await databases.listDocuments(
+      DATABASE_ID,
+      USERS_COLLECTION_ID,
+      [
+        Query.equal('$id', uploaderIds),
+        Query.limit(100)
+      ]
+    );
+    
+    // Create a map of userId -> userName
+    const userMap = new Map(
+      usersResponse.documents.map((user: any) => [user.$id, user.name])
+    );
+    
+    // Enrich posts with uploader names
+    return posts.map(post => ({
+      ...post,
+      uploaderName: userMap.get((post as any).uploaderId) || 'Unknown User'
+    }));
+  } catch (error) {
+    console.error('Error fetching uploader names for posts:', error);
+    return posts;
+  }
+}
+
+/**
  * 🟦 TIER 3: Get ALL Posts (for client-side linking)
+ * Includes uploader names for display
  */
 export async function getAllPosts(): Promise<Post[]> {
   try {
@@ -1007,7 +1054,12 @@ export async function getAllPosts(): Promise<Post[]> {
       [Query.limit(5000)]
     );
 
-    return response.documents as Post[];
+    const posts = response.documents as Post[];
+    
+    // Enrich with uploader names
+    const enrichedPosts = await enrichPostsWithUploaderNames(posts);
+    
+    return enrichedPosts;
   } catch (error) {
     console.error('Error fetching all posts:', error);
     throw error;

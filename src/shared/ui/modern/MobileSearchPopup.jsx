@@ -1,18 +1,55 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { hierarchyService } from '@/services';
+import localCache from '@/data/localCache';
+import {
+  createCategorySearch,
+  createSubjectSearch,
+  createMaterialSearch,
+  createPostSearch,
+  performFuzzySearch,
+  generateSuggestions
+} from '@/utils/fuzzySearch';
 import './ModernNavbar.css';
 
 const MobileSearchPopup = ({ isOpen, onClose, onMaterialClick, onPostClick }) => {
   const { t, i18n } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState({ categories: [], subjects: [], materials: [], posts: [] });
+  const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [cacheInitialized, setCacheInitialized] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const isArabic = i18n.language === 'ar';
+
+  // Initialize Fuse.js search instances once cache is loaded
+  const searchInstances = useMemo(() => {
+    if (!cacheInitialized) return null;
+
+    return {
+      categorySearch: createCategorySearch(localCache.getCategories()),
+      subjectSearch: createSubjectSearch(localCache.getSubjects()),
+      materialSearch: createMaterialSearch(localCache.getMaterials()),
+      postSearch: createPostSearch(localCache.getPosts())
+    };
+  }, [cacheInitialized]);
+
+  // Initialize local cache when popup opens
+  useEffect(() => {
+    if (isOpen && !localCache.isInitialized()) {
+      localCache.init().then(() => {
+        setCacheInitialized(true);
+        console.log('✅ Cache initialized for mobile search');
+      }).catch(error => {
+        console.error('❌ Failed to initialize cache:', error);
+      });
+    } else if (isOpen && localCache.isInitialized()) {
+      setCacheInitialized(true);
+    }
+  }, [isOpen]);
 
   // Focus input when popup opens & prevent body scroll
   useEffect(() => {
@@ -51,98 +88,68 @@ const MobileSearchPopup = ({ isOpen, onClose, onMaterialClick, onPostClick }) =>
     };
   }, [isOpen, onClose]);
 
-  // Search function - comprehensive search in all data
+  // Fuzzy search function using Fuse.js and local cache
   const handleSearch = async (query) => {
     if (!query.trim()) {
       setSearchResults({ categories: [], subjects: [], materials: [], posts: [] });
+      setSuggestions([]);
       return;
+    }
+
+    if (query.length < 2) {
+      return; // Wait for at least 2 characters
     }
 
     setIsLoading(true);
     
     try {
-      const searchLower = query.toLowerCase();
+      // Ensure cache is initialized
+      await localCache.init();
       
-      // Import services
-      const { categoriesService, subjectsService, materialsService } = await import('@/services');
-      const { postsService } = await import('@/services/appwriteService');
+      if (!searchInstances) {
+        console.error('Search instances not initialized');
+        return;
+      }
+
+      // Perform fuzzy search across all entity types
+      const results = performFuzzySearch(query, searchInstances, 10);
       
-      // Fetch all data in parallel
-      const [allCategories, allSubjects, allMaterials, allPosts] = await Promise.all([
-        categoriesService.getAll(),
-        subjectsService.getAll(),
-        materialsService.getAll(1000),
-        postsService.getAll(1000)
-      ]);
-      
-      // Search in categories (nameAr, nameEn, descriptionAr, descriptionEn)
-      const matchedCategories = allCategories.filter(cat => 
-        cat.nameAr?.toLowerCase().includes(searchLower) ||
-        cat.nameEn?.toLowerCase().includes(searchLower) ||
-        cat.descriptionAr?.toLowerCase().includes(searchLower) ||
-        cat.descriptionEn?.toLowerCase().includes(searchLower)
-      );
-      
-      // Search in subjects (nameAr, nameEn, descriptionAr, descriptionEn)
-      const matchedSubjects = allSubjects.filter(subj => 
-        subj.nameAr?.toLowerCase().includes(searchLower) ||
-        subj.nameEn?.toLowerCase().includes(searchLower) ||
-        subj.descriptionAr?.toLowerCase().includes(searchLower) ||
-        subj.descriptionEn?.toLowerCase().includes(searchLower)
-      );
-      
-      // Search in materials (title, description, fileName, tags)
-      const materials = allMaterials.documents || allMaterials;
-      const matchedMaterials = materials.filter(mat => 
-        mat.title?.toLowerCase().includes(searchLower) ||
-        mat.description?.toLowerCase().includes(searchLower) ||
-        mat.fileName?.toLowerCase().includes(searchLower) ||
-        mat.tags?.some(tag => tag.toLowerCase().includes(searchLower))
-      );
-      
-      // Search in posts (contentText, linkURL)
-      const posts = allPosts.documents || allPosts;
-      const matchedPosts = posts.filter(post => 
-        post.contentText?.toLowerCase().includes(searchLower) ||
-        post.linkURL?.toLowerCase().includes(searchLower)
-      );
-      
-      // Sort results by relevance (exact match first, then partial)
-      const sortByRelevance = (items, getTexts) => {
-        return items.sort((a, b) => {
-          const aTexts = getTexts(a).map(t => t?.toLowerCase() || '');
-          const bTexts = getTexts(b).map(t => t?.toLowerCase() || '');
-          
-          const aExact = aTexts.some(t => t === searchLower);
-          const bExact = bTexts.some(t => t === searchLower);
-          
-          if (aExact && !bExact) return -1;
-          if (!aExact && bExact) return 1;
-          
-          const aStarts = aTexts.some(t => t.startsWith(searchLower));
-          const bStarts = bTexts.some(t => t.startsWith(searchLower));
-          
-          if (aStarts && !bStarts) return -1;
-          if (!aStarts && bStarts) return 1;
-          
-          return 0;
-        });
-      };
-      
-      const sortedCategories = sortByRelevance(matchedCategories, cat => [cat.nameAr, cat.nameEn]);
-      const sortedSubjects = sortByRelevance(matchedSubjects, subj => [subj.nameAr, subj.nameEn]);
-      const sortedMaterials = sortByRelevance(matchedMaterials, mat => [mat.title, mat.fileName]);
-      const sortedPosts = sortByRelevance(matchedPosts, post => [post.contentText, post.linkURL]);
-      
+      // Update search results
       setSearchResults({
-        categories: sortedCategories,
-        subjects: sortedSubjects,
-        materials: sortedMaterials,
-        posts: sortedPosts
+        categories: results.categories,
+        subjects: results.subjects,
+        materials: results.materials,
+        posts: results.posts
+      });
+
+      // Generate suggestions for alternative search terms
+      // If results are poor or empty, suggest better terms
+      const totalResults = 
+        results.categories.length +
+        results.subjects.length +
+        results.materials.length +
+        results.posts.length;
+
+      if (totalResults < 3 && results._raw) {
+        // Low results - generate suggestions
+        const smartSuggestions = generateSuggestions(results._raw, query);
+        setSuggestions(smartSuggestions);
+      } else {
+        setSuggestions([]);
+      }
+
+      console.log('🔍 Fuzzy search completed:', {
+        query,
+        categories: results.categories.length,
+        subjects: results.subjects.length,
+        materials: results.materials.length,
+        posts: results.posts.length,
+        suggestions: suggestions.length
       });
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults({ categories: [], subjects: [], materials: [], posts: [] });
+      setSuggestions([]);
     } finally {
       setIsLoading(false);
     }
@@ -246,9 +253,46 @@ const MobileSearchPopup = ({ isOpen, onClose, onMaterialClick, onPostClick }) =>
                 <p className="text-lg">
                   {isArabic ? 'لا توجد نتائج' : 'No results found'}
                 </p>
+                {suggestions.length > 0 && (
+                  <div className="mt-6">
+                    <p className="text-sm mb-3">
+                      {isArabic ? 'هل تقصد:' : 'Did you mean:'}
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {suggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSearchQuery(suggestion)}
+                          className="px-4 py-2 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-sm hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
+                {/* Suggestions Bar */}
+                {suggestions.length > 0 && (
+                  <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-700">
+                    <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
+                      💡 {isArabic ? 'اقتراحات:' : 'Suggestions:'}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSearchQuery(suggestion)}
+                          className="px-3 py-1 bg-white dark:bg-gray-800 text-yellow-700 dark:text-yellow-300 rounded-full text-xs hover:bg-yellow-100 dark:hover:bg-gray-700 transition-colors border border-yellow-300 dark:border-yellow-600"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {/* Categories */}
                 {searchResults.categories?.length > 0 && (
                   <div>

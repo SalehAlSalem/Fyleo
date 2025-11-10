@@ -106,7 +106,7 @@ const Disclaimer = () => {
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 mr-6">
                 <li><strong>{t('legal.disclaimer.section6.fileCheck')}</strong> {t('legal.disclaimer.section6.fileCheckDesc')}</li>
-                <li><strong>{t('legal.disclaimer.section6.antivirusUse')}</strong> {t('legal.disclaimer.section6.antivirusUseDesc')}</li>
+                <li><strong>{t('legal.disclaimer.section6.antivirusSoftware')}</strong> {t('legal.disclaimer.section6.antivirusSoftwareDesc')}</li>
                 <li><strong>{t('legal.disclaimer.section6.safeDownload')}</strong> {t('legal.disclaimer.section6.safeDownloadDesc')}</li>
               </ul>
             </section>

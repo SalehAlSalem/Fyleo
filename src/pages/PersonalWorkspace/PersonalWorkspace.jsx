@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { materialsService, postsService, bookmarksService, downloadsService } from '../../services/appwriteService';
+import { useWorkspaceData, useWorkspaceRealtimeSync } from './hooks/useWorkspaceData';
+import { materialsService, postsService } from '../../services/appwriteService';
 import WorkspaceHeader from './components/WorkspaceHeader';
 import AnimatedStats from './components/AnimatedStats';
 import UnifiedComposerCard from './components/UnifiedComposerCard';
@@ -11,140 +13,129 @@ import './PersonalWorkspace.css';
 
 /**
  * Personal Workspace - Modern, Elegant, Minimalist
- * The ultimate user experience for content management
+ * ✅ Now with React Query + Realtime Sync (No page reloads!)
+ * - Auto-updates when data changes
+ * - Fast local cache
+ * - Optimistic updates
  */
 const PersonalWorkspace = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   
-  // Stats
-  const [stats, setStats] = useState({
-    myFiles: 0,
-    myLinks: 0,
-    downloads: 0,
-    bookmarks: 0,
-    storageUsed: 0
+  // ✅ Use React Query hooks instead of manual state
+  const { materials, posts, bookmarks, downloads, isLoading, isError, error } = useWorkspaceData(user?.$id);
+  
+  // ✅ Enable Realtime Sync (auto-updates when data changes in Appwrite)
+  useWorkspaceRealtimeSync(user?.$id);
+  
+  console.log('🚀 Workspace Data:', {
+    materials: materials?.length || 0,
+    posts: posts?.length || 0,
+    bookmarks: bookmarks?.length || 0,
+    downloads: downloads?.length || 0,
+    isLoading,
   });
   
-  // Content
-  const [files, setFiles] = useState([]);
-  const [links, setLinks] = useState([]);
-  const [bookmarkedContent, setBookmarkedContent] = useState([]);
+  // For backwards compatibility (ContentTabs expects these names)
+  const files = materials;
+  const links = posts;
   
-  // UI State
-  const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
+  // Loading state
+  const loading = isLoading;
+  
+  // Bookmarked content state
+  const [bookmarkedContentState, setBookmarkedContent] = useState([]);
+  
+  // ✅ Calculate stats from React Query data (reactive)
+  const stats = useMemo(() => {
+    const totalStorage = (materials || []).reduce((acc, file) => {
+      return acc + (file.fileSize || 0);
+    }, 0);
 
+    return {
+      myFiles: materials?.length || 0,
+      myLinks: posts?.length || 0,
+      downloads: downloads?.length || 0,
+      bookmarks: bookmarks?.length || 0,
+      storageUsed: totalStorage
+    };
+  }, [materials, posts, downloads, bookmarks]);
+
+  /**
+   * ✅ Process bookmarks to get full content (with React Query data)
+   */
   useEffect(() => {
-    if (user) {
-      fetchAllData();
-    }
-  }, [user, refreshKey]);
+    const fetchBookmarkedContent = async () => {
+      if (!bookmarks || bookmarks.length === 0) {
+        console.log('📌 No bookmarks to fetch');
+        setBookmarkedContent([]);
+        return;
+      }
 
-  const fetchAllData = async () => {
-    if (!user?.$id) return;
-    
-    setLoading(true);
-    try {
-      // Fetch all data in parallel
-      const [materials, posts, bookmarks, downloads] = await Promise.all([
-        materialsService.getByUploader(user.$id),
-        postsService.getByUploader(user.$id),
-        bookmarksService.getByUser(user.$id),
-        downloadsService.getByUser(user.$id)
-      ]);
-
-      // Set files and links
-      setFiles(materials || []);
-      setLinks(posts || []);
-
-      console.log('📊 Workspace Data Fetched:', {
-        materials: materials?.length || 0,
-        posts: posts?.length || 0,
-        bookmarks: bookmarks?.length || 0,
-        downloads: downloads?.length || 0
-      });
-
-      // Calculate stats
-      const totalStorage = (materials || []).reduce((sum, file) => sum + (file.fileSize || 0), 0);
+      console.log('📌 Fetching bookmarked content for', bookmarks.length, 'bookmarks');
       
-      setStats({
-        myFiles: (materials || []).length,
-        myLinks: (posts || []).length,
-        downloads: (downloads || []).length,
-        bookmarks: (bookmarks || []).length,
-        storageUsed: totalStorage
-      });
-
-      // Fetch bookmarked content
-      await fetchBookmarkedContent(bookmarks);
-      
-    } catch (error) {
-      console.error('Error fetching workspace data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchBookmarkedContent = async (bookmarks) => {
-    if (!bookmarks || bookmarks.length === 0) {
-      console.log('📌 No bookmarks to fetch');
-      setBookmarkedContent([]);
-      return;
-    }
-
-    console.log('📌 Fetching bookmarked content for', bookmarks.length, 'bookmarks');
-    
-    try {
-      const contentPromises = bookmarks.map(async (bookmark) => {
-        try {
-          const material = await materialsService.getById(bookmark.fileId);
-          console.log('✅ Found material:', material.title, 'fileType:', material.fileType);
-          return { 
-            ...material, 
-            contentType: 'file', 
-            bookmarkId: bookmark.$id,
-            bookmarkDate: bookmark.$createdAt 
-          };
-        } catch {
+      try {
+        const contentPromises = bookmarks.map(async (bookmark) => {
           try {
-            const post = await postsService.getById(bookmark.fileId);
-            console.log('✅ Found post:', post.$id);
+            const material = await materialsService.getById(bookmark.fileId);
+            console.log('✅ Found material:', material.title, 'fileType:', material.fileType);
             return { 
-              ...post, 
-              contentType: 'link', 
+              ...material, 
+              contentType: 'file', 
               bookmarkId: bookmark.$id,
               bookmarkDate: bookmark.$createdAt 
             };
           } catch {
-            console.warn('⚠️ Could not find content for bookmark:', bookmark.fileId);
-            return null;
+            try {
+              const post = await postsService.getById(bookmark.fileId);
+              console.log('✅ Found post:', post.$id);
+              return { 
+                ...post, 
+                contentType: 'link', 
+                bookmarkId: bookmark.$id,
+                bookmarkDate: bookmark.$createdAt 
+              };
+            } catch {
+              console.warn('⚠️ Could not find content for bookmark:', bookmark.fileId);
+              return null;
+            }
           }
-        }
-      });
+        });
 
-      const resolvedContent = await Promise.all(contentPromises);
-      const validContent = resolvedContent.filter(item => item !== null);
-      validContent.sort((a, b) => new Date(b.bookmarkDate) - new Date(a.bookmarkDate));
-      
-      console.log('📌 Total bookmarked content loaded:', validContent.length);
-      setBookmarkedContent(validContent);
-    } catch (error) {
-      console.error('❌ Error fetching bookmarked content:', error);
-    }
-  };
+        const resolvedContent = await Promise.all(contentPromises);
+        const validContent = resolvedContent.filter(item => item !== null);
+        validContent.sort((a, b) => new Date(b.bookmarkDate) - new Date(a.bookmarkDate));
+        
+        console.log('📌 Total bookmarked content loaded:', validContent.length);
+        setBookmarkedContent(validContent);
+      } catch (error) {
+        console.error('❌ Error fetching bookmarked content:', error);
+      }
+    };
 
+    fetchBookmarkedContent();
+  }, [bookmarks]);
+
+  /**
+   * ✅ No need for manual refresh - React Query + Realtime handles it automatically!
+   */
   const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
+    console.log('✨ Data refreshes automatically via Realtime Sync - no manual refresh needed!');
+    // React Query will refetch automatically when:
+    // 1. Window is refocused
+    // 2. Network reconnects
+    // 3. Appwrite Realtime event fires
+    // 4. staleTime expires (2 minutes)
   };
 
   const handleLogout = async () => {
     if (confirm(t('auth.logoutConfirm'))) {
       try {
         await logout();
-        window.location.href = '/';
+        navigate('/'); // ✅ Use navigate instead of window.location
       } catch (error) {
         console.error('Logout error:', error);
       }
@@ -152,12 +143,10 @@ const PersonalWorkspace = () => {
   };
 
   const handleDeleteAccount = () => {
-    // فتح Modal التحذير
     setShowDeleteModal(true);
   };
 
   const handleConfirmDelete = () => {
-    // إغلاق Modal وإعادة توجيه لصفحة Re-authentication
     setShowDeleteModal(false);
     navigate('/delete-account/reauth');
   };
@@ -198,6 +187,7 @@ const PersonalWorkspace = () => {
           user={user}
           onLogout={handleLogout}
           onDeleteAccount={handleDeleteAccount}
+          onUserUpdate={handleRefresh}
         />
 
         {/* Animated Stats */}
@@ -213,7 +203,7 @@ const PersonalWorkspace = () => {
         <ContentTabs
           files={files}
           links={links}
-          bookmarks={bookmarkedContent}
+          bookmarks={bookmarkedContentState}
           onRefresh={handleRefresh}
           userId={user.$id}
         />

@@ -28,9 +28,6 @@ import {
   useCategory,
   useSubject,
   useSubjectContent,
-  useGlobalSearch,
-  useCategorySearch,
-  useSubjectSearch,
   usePrefetchCategory,
 } from '../hooks';
 
@@ -80,7 +77,6 @@ const LibraryPage: React.FC = () => {
   const level = subjectId ? 3 : categoryId ? 2 : 1;
 
   // State
-  const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<string>('');
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null); // Level filter state
 
@@ -90,7 +86,7 @@ const LibraryPage: React.FC = () => {
 
   // Data fetching - NEW: Using Tiered Architecture (Optimized)
   // ✅ Level 1: Categories with subjects count (2 requests instead of 1+N)
-  const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useCategoriesWithSubjects();
+  const { data: categories, isLoading: categoriesLoading, error: categoriesError, refetch: refetchCategories } = useCategoriesWithSubjects();
   
   // ✅ Level 2: Subjects filtered client-side (0 additional requests!)
   const { data: subjects, isLoading: subjectsLoading } = useSubjectsByCategory(categoryId);
@@ -105,40 +101,8 @@ const LibraryPage: React.FC = () => {
   // Level 3: Content (materials + posts)
   const { materials, posts, isLoading: contentLoading } = useSubjectContent(subjectId, activeTab);
   
-  // Context-aware search
-  // Level 1: Global search (everything)
-  const { data: globalSearchResults, isLoading: isGlobalSearching } = useGlobalSearch(
-    searchQuery,
-    level === 1 && searchQuery.length >= 2
-  );
-
-  // Level 2: Category search (subjects, materials, posts)
-  const { data: categorySearchResults, isLoading: isCategorySearching } = useCategorySearch(
-    categoryId,
-    searchQuery,
-    level === 2 && searchQuery.length >= 2
-  );
-
-  // Level 3: Subject search (materials and posts)
-  const { data: subjectSearchResults, isLoading: isSubjectSearching } = useSubjectSearch(
-    subjectId,
-    searchQuery,
-    level === 3 && searchQuery.length >= 2
-  );
-
-  // Determine which search results to use based on level
-  const searchResults = level === 1 
-    ? globalSearchResults  // Level 1: All results (categories, subjects, materials, posts)
-    : level === 2 
-    ? { 
-        categories: [], 
-        subjects: categorySearchResults?.subjects || [], 
-        materials: categorySearchResults?.materials || [], 
-        posts: categorySearchResults?.posts || [] 
-      }  // Level 2: Subjects, Materials, Posts in category
-    : { categories: [], subjects: [], materials: subjectSearchResults?.materials || [], posts: subjectSearchResults?.posts || [] };  // Level 3: Materials & Posts
-
-  const isSearching = isGlobalSearching || isCategorySearching || isSubjectSearching;
+  // Note: Search is now handled internally by SearchBar component using local fuzzy search
+  // No need for external search hooks - SearchBar uses useLocalSearch hook internally
 
   // Set initial active tab when purposes load
   React.useEffect(() => {
@@ -416,11 +380,8 @@ const LibraryPage: React.FC = () => {
               </p>
             </div>
 
-            {/* Search Bar - Level 1: Global Search */}
+            {/* Search Bar - Level 1: Global Search (Now with local fuzzy search) */}
             <SearchBar
-              onSearch={setSearchQuery}
-              results={searchResults}
-              isSearching={isSearching}
               onCategoryClick={handleCategoryClick}
               onSubjectClick={handleSubjectClick}
               onMaterialClick={handleMaterialClick}
@@ -429,7 +390,8 @@ const LibraryPage: React.FC = () => {
               labels={searchLabels}
               nameKey={nameKey}
               className="mb-12 max-w-3xl mx-auto"
-              searchLevel="global"
+              categoryId={null}
+              subjectId={null}
             />
 
             {/* Categories Grid */}
@@ -439,7 +401,7 @@ const LibraryPage: React.FC = () => {
               <ErrorState
                 title={isArabic ? 'خطأ في تحميل التصنيفات' : 'Error loading categories'}
                 message={categoriesError.message}
-                onRetry={() => window.location.reload()}
+                onRetry={() => refetchCategories()}
                 retryLabel={isArabic ? 'إعادة المحاولة' : 'Try Again'}
               />
             ) : categories && categories.length > 0 ? (
@@ -502,11 +464,8 @@ const LibraryPage: React.FC = () => {
                 </div>
               )}
 
-            {/* Search Bar - Level 2: Category Search (Subjects, Materials, Posts) */}
+            {/* Search Bar - Level 2: Category Search (Now with local fuzzy search) */}
             <SearchBar
-              onSearch={setSearchQuery}
-              results={searchResults}
-              isSearching={isSearching}
               onSubjectClick={handleSubjectClick}
               onMaterialClick={handleMaterialClick}
               onPostClick={handlePostClick}
@@ -514,7 +473,8 @@ const LibraryPage: React.FC = () => {
               labels={searchLabels}
               nameKey={nameKey}
               className="mb-8 max-w-3xl mx-auto"
-              searchLevel="category"
+              categoryId={categoryId}
+              subjectId={null}
             />
 
             {/* 🆕 Level Filter Buttons (Dynamic based on available levels) */}
@@ -642,18 +602,16 @@ const LibraryPage: React.FC = () => {
               </div>
             )}
 
-            {/* Search Bar - Level 3: Subject Search (Materials & Posts only) */}
+            {/* Search Bar - Level 3: Subject Search (Now with local fuzzy search) */}
             <SearchBar
-              onSearch={setSearchQuery}
-              results={searchResults}
-              isSearching={isSearching}
               onMaterialClick={handleMaterialClick}
               onPostClick={handlePostClick}
               placeholder={isArabic ? 'ابحث في المحتوى...' : 'Search content...'}
               labels={searchLabels}
               nameKey={nameKey}
               className="mb-6 max-w-3xl mx-auto"
-              searchLevel="subject"
+              categoryId={null}
+              subjectId={subjectId}
             />
 
             {/* Data-Driven Purpose Tabs */}

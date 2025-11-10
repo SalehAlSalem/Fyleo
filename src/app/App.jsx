@@ -29,6 +29,7 @@ import CookieConsentBanner from '@shared/ui/CookieConsent/CookieConsentBanner.js
 import DeleteAccountReauth from '@/pages/DeleteAccount/DeleteAccountReauth.jsx';
 import DeleteAccountConfirm from '@/pages/DeleteAccount/DeleteAccountConfirm.jsx';
 import VerifyEmail from '@/pages/VerifyEmail/VerifyEmail.jsx';
+import FolderUploadPreview from '@/pages/FolderUploadPreview/FolderUploadPreview.jsx';
 
 // النظام الهرمي الجديد - المكونات المُحدّثة
 import LibraryPage from '@features/library/pages/LibraryPage';
@@ -197,6 +198,11 @@ const AppContent = () => {
               <Route path="/workspace" element={
                 <ProtectedRoute>
                   <PersonalWorkspace />
+                </ProtectedRoute>
+              } />
+              <Route path="/folder-preview" element={
+                <ProtectedRoute>
+                  <FolderUploadPreview />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
