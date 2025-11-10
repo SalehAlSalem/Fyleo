@@ -4,6 +4,7 @@ import { useTheme } from '@shared/ui/modern/ModernComponents.jsx';
 import { AuthProvider } from '@/hooks/useAuth.jsx';
 import { useTranslation } from 'react-i18next';
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 import ModernNavbar from '@shared/ui/modern/ModernNavbar.jsx';
 import MobileBottomNav from '@shared/ui/modern/MobileBottomNav.jsx';
 import MobileSearchPopup from '@shared/ui/modern/MobileSearchPopup.jsx';
@@ -372,6 +373,7 @@ const App = () => {
       <BrowserRouter>
         <AppContent />
         <SpeedInsights />
+        <Analytics />
       </BrowserRouter>
     </AuthProvider>
   )
