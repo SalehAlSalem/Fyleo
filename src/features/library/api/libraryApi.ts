@@ -8,11 +8,17 @@
  * - Tier 2 (Semi-Static): Subjects → React Query (5min cache)
  * - Tier 3 (Dynamic): Materials, Posts → React Query (2min cache)
  * - Tier 4 (Sensitive): User data → Server-only (No cache)
+ * 
+ * 🔍 Search Strategy:
+ * - All search operations now powered by Meilisearch for instant, typo-tolerant search
+ * - Meilisearch handles full-text search, filtering, and ranking
+ * - Appwrite still used for all CRUD operations
  */
 
 import { databases, Query } from '../../../config/appwrite';
 import { cacheManager } from '../utils/indexedDB';
 import appwriteService from '../../../services/appwriteService';
+import meilisearchService from '../../../services/meilisearchService';
 import type { Category, Subject, Material, Post, EducationalPurpose } from '../../../types/database';
 
 const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
@@ -349,7 +355,7 @@ export const materialsApi = {
   },
 
   /**
-   * Get material by ID (with fileType populated)
+   * Get material by ID (with fileType and uploader populated)
    */
   async getById(id: string): Promise<Material> {
     try {
@@ -361,21 +367,24 @@ export const materialsApi = {
       
       const material = response as any;
       
-      // Populate fileType if available
-      if (material.fileTypeId) {
-        try {
-          const fileType = await databases.getDocument(
-            DATABASE_ID,
-            FILETYPES_COLLECTION_ID,
-            material.fileTypeId
-          );
-          return { ...material, fileType } as Material;
-        } catch (err) {
-          console.warn(`⚠️ Could not fetch fileType for material ${id}:`, err);
-        }
-      }
+      // Fetch related data in parallel
+      const [fileType, uploader] = await Promise.all([
+        // Populate fileType if available
+        material.fileTypeId
+          ? databases.getDocument(DATABASE_ID, FILETYPES_COLLECTION_ID, material.fileTypeId).catch(() => null)
+          : null,
+        // Populate uploader if available
+        material.uploaderId
+          ? databases.getDocument(DATABASE_ID, USERS_COLLECTION_ID, material.uploaderId).catch(() => null)
+          : null
+      ]);
       
-      return material as Material;
+      return {
+        ...material,
+        fileType: fileType || undefined,
+        uploader: uploader || undefined,
+        uploaderName: uploader ? (uploader.name || uploader.email || 'Unknown User') : 'Unknown User'
+      } as Material;
     } catch (error) {
       console.error('Error fetching material:', error);
       throw error;
@@ -465,7 +474,7 @@ export const postsApi = {
   },
 
   /**
-   * Get post by ID
+   * Get post by ID (with uploader populated)
    */
   async getById(id: string): Promise<Post> {
     try {
@@ -474,7 +483,28 @@ export const postsApi = {
         POSTS_COLLECTION_ID,
         id
       );
-      return response as Post;
+      
+      const post = response as any;
+      
+      // Fetch uploader information
+      let uploader = null;
+      if (post.uploaderId) {
+        try {
+          uploader = await databases.getDocument(
+            DATABASE_ID,
+            USERS_COLLECTION_ID,
+            post.uploaderId
+          );
+        } catch (err) {
+          console.warn(`⚠️ Could not fetch uploader for post ${id}:`, err);
+        }
+      }
+      
+      return {
+        ...post,
+        uploader: uploader || undefined,
+        uploaderName: uploader ? (uploader.name || uploader.email || 'Unknown User') : 'Unknown User'
+      } as Post;
     } catch (error) {
       console.error('Error fetching post:', error);
       throw error;
@@ -483,11 +513,13 @@ export const postsApi = {
 };
 
 /**
- * Search API - Context-Aware
+ * Search API - Powered by Meilisearch
+ * Now using Meilisearch for instant, typo-tolerant, relevance-ranked search
  */
 export const searchApi = {
   /**
    * Global search - Search across everything (Level 1)
+   * 🔍 Now powered by Meilisearch
    */
   async globalSearch(query: string): Promise<{
     categories: Category[];
@@ -496,167 +528,74 @@ export const searchApi = {
     posts: Post[];
   }> {
     try {
-      // Fetch all data and filter client-side (more reliable than Appwrite search)
-      const [categoriesRes, subjectsRes, materialsRes, postsRes] = await Promise.all([
-        // Get all active categories
-        databases.listDocuments(
-          DATABASE_ID,
-          CATEGORIES_COLLECTION_ID,
-          [
-            Query.equal('isActive', true),
-            Query.limit(100)
-          ]
-        ),
-        // Get all active subjects
-        databases.listDocuments(
-          DATABASE_ID,
-          SUBJECTS_COLLECTION_ID,
-          [
-            Query.equal('isActive', true),
-            Query.limit(200)
-          ]
-        ),
-        // Get recent materials
-        databases.listDocuments(
-          DATABASE_ID,
-          MATERIALS_COLLECTION_ID,
-          [
-            Query.orderDesc('$createdAt'),
-            Query.limit(100)
-          ]
-        ),
-        // Get recent posts
-        databases.listDocuments(
-          DATABASE_ID,
-          POSTS_COLLECTION_ID,
-          [
-            Query.orderDesc('$createdAt'),
-            Query.limit(100)
-          ]
-        )
-      ]);
+      console.log(`🔍 Meilisearch global search: "${query}"`);
 
-      // Client-side filtering for better search results
-      const searchLower = query.toLowerCase();
-      
-      const filteredCategories = (categoriesRes.documents as Category[])
-        .filter(cat => 
-          cat.nameEn?.toLowerCase().includes(searchLower) ||
-          cat.nameAr?.toLowerCase().includes(searchLower) ||
-          cat.descriptionEn?.toLowerCase().includes(searchLower) ||
-          cat.descriptionAr?.toLowerCase().includes(searchLower)
-        )
-        .slice(0, 5);
+      // Use Meilisearch for instant search (returns only ID + title + description)
+      const results = await meilisearchService.globalSearch(query, { limit: 10 });
 
-      const filteredSubjects = (subjectsRes.documents as Subject[])
-        .filter(sub => 
-          sub.nameEn?.toLowerCase().includes(searchLower) ||
-          sub.nameAr?.toLowerCase().includes(searchLower) ||
-          sub.descriptionEn?.toLowerCase().includes(searchLower) ||
-          sub.descriptionAr?.toLowerCase().includes(searchLower)
-        )
-        .slice(0, 10);
-
-      // Populate fileType for materials
-      const materialsWithFileType = await Promise.all(
-        (materialsRes.documents as Material[]).map(async (material: any) => {
-          if (material.fileTypeId) {
-            try {
-              const fileType = await databases.getDocument(
-                DATABASE_ID,
-                FILETYPES_COLLECTION_ID,
-                material.fileTypeId
-              );
-              return { ...material, fileType };
-            } catch (err) {
-              return material;
-            }
-          }
-          return material;
-        })
-      );
-
-      const filteredMaterials = materialsWithFileType
-        .filter((mat: any) => 
-          mat.title?.toLowerCase().includes(searchLower) ||
-          mat.description?.toLowerCase().includes(searchLower)
-        )
-        .slice(0, 10);
-
-      const filteredPosts = (postsRes.documents as Post[])
-        .filter(post => 
-          post.contentText?.toLowerCase().includes(searchLower) ||
-          post.linkURL?.toLowerCase().includes(searchLower)
-        )
-        .slice(0, 10);
-
-      // Enrich materials with uploader names
-      const enrichedMaterials = await enrichMaterialsWithUploaderNames(filteredMaterials);
-      
-      // Add subject info to materials
-      const materialsWithSubject = await Promise.all(
-        enrichedMaterials.map(async (material: any) => {
-          if (material.subjectId) {
-            try {
-              const subject = await databases.getDocument(
-                DATABASE_ID,
-                SUBJECTS_COLLECTION_ID,
-                material.subjectId
-              );
-              return { ...material, subject };
-            } catch (err) {
-              return material;
-            }
-          }
-          return material;
-        })
-      );
-
-      // Fetch uploader information AND subject info for filtered posts
-      const postsWithUploaders = await Promise.all(
-        filteredPosts.map(async (post) => {
+      // ✅ Get full data from Appwrite using IDs (will use React Query cache)
+      const enrichedMaterials = await Promise.all(
+        (results.materials || []).map(async (searchResult: any) => {
           try {
-            const [uploader, subject] = await Promise.all([
-              databases.getDocument(
-                DATABASE_ID,
-                USERS_COLLECTION_ID,
-                post.uploaderId
-              ),
-              databases.getDocument(
-                DATABASE_ID,
-                SUBJECTS_COLLECTION_ID,
-                post.subjectId
-              )
-            ]);
+            // Get full material data from Appwrite (React Query will cache it)
+            const fullMaterial = await materialsApi.getById(searchResult.$id);
+            console.log('📦 Material with uploader:', fullMaterial.$id, 'Uploader:', (fullMaterial as any).uploaderName);
+            return fullMaterial;
+          } catch (err) {
+            console.warn('Error fetching material:', err);
+            // Return minimal data from search if full fetch fails
             return {
-              ...post,
-              uploaderName: uploader.name || uploader.email || 'Unknown User',
-              subject
+              $id: searchResult.$id,
+              title: searchResult.title || 'Untitled',
+              description: searchResult.description || '',
             };
-          } catch (error) {
+          }
+        })
+      );
+
+      // ✅ Get full post data from Appwrite using IDs (will use React Query cache)
+      const enrichedPosts = await Promise.all(
+        (results.posts || []).map(async (searchResult: any) => {
+          try {
+            // Get full post data from Appwrite (React Query will cache it)
+            const fullPost = await postsApi.getById(searchResult.$id);
+            console.log('📦 Post with uploader:', fullPost.$id, 'Uploader:', (fullPost as any).uploaderName);
+            return fullPost;
+          } catch (err) {
+            console.warn('Error fetching post:', err);
+            // Return minimal data from search if full fetch fails
             return {
-              ...post,
-              uploaderName: 'Unknown User'
+              $id: searchResult.$id,
+              title: searchResult.title || '',
+              contentText: searchResult.contentText || '',
             };
           }
         })
       );
 
       return {
-        categories: filteredCategories,
-        subjects: filteredSubjects,
-        materials: materialsWithSubject,
-        posts: postsWithUploaders
+        categories: results.categories as Category[] || [],
+        subjects: results.subjects as Subject[] || [],
+        materials: enrichedMaterials as Material[],
+        posts: enrichedPosts as Post[]
       };
     } catch (error) {
-      console.error('Error in global search:', error);
-      throw error;
+      console.error('❌ Error in Meilisearch global search:', error);
+      
+      // Fallback to empty results if Meilisearch fails
+      console.warn('⚠️ Meilisearch unavailable, returning empty results');
+      return {
+        categories: [],
+        subjects: [],
+        materials: [],
+        posts: []
+      };
     }
   },
 
   /**
    * Category search - Search subjects, materials, and posts within a category (Level 2)
-   * Now uses Many-to-Many relationship via subject_categories
+   * 🔍 Now powered by Meilisearch with category filtering
    */
   async searchInCategory(categoryId: string, query: string): Promise<{
     subjects: Subject[];
@@ -664,216 +603,139 @@ export const searchApi = {
     posts: Post[];
   }> {
     try {
-      // Get subject IDs linked to this category
-      const links = await appwriteService.subjectCategories.getByCategory(categoryId);
-      const subjectIds = links.map(link => link.subjectId);
-      
-      if (subjectIds.length === 0) {
-        return { subjects: [], materials: [], posts: [] };
-      }
-      
-      // Get all subjects in this category
-      const subjectsResponse = await databases.listDocuments(
-        DATABASE_ID,
-        SUBJECTS_COLLECTION_ID,
-        [
-          Query.equal('$id', subjectIds),
-          Query.equal('isActive', true),
-          Query.limit(100)
-        ]
-      );
+      console.log(`🔍 Meilisearch category search: Category="${categoryId}", Query="${query}"`);
 
-      const subjects = subjectsResponse.documents as Subject[];
+      // Use Meilisearch for filtered search within category
+      const results = await meilisearchService.searchInCategory(categoryId, query, { limit: 20 });
 
-      console.log(`[Level 2 Search] Category: ${categoryId}, Query: "${query}"`);
-      console.log(`[Level 2 Search] Found ${subjects.length} subjects in category`);
-
-      // Fetch materials for each subject (materials don't have categoryId, only subjectId)
-      let allMaterialsArray: any[] = [];
-      if (subjectIds.length > 0) {
-        const materialsPromises = subjectIds.map(subjectId =>
-          databases.listDocuments(
-            DATABASE_ID,
-            MATERIALS_COLLECTION_ID,
-            [
-              Query.equal('subjectId', subjectId),
-              Query.limit(50)
-            ]
-          )
-        );
-        const materialsResults = await Promise.all(materialsPromises);
-        allMaterialsArray = materialsResults.flatMap(res => res.documents);
-      }
-
-      console.log(`[Level 2 Search] Found ${allMaterialsArray.length} materials in category`);
-
-      // Fetch posts for each subject (Appwrite doesn't support array in Query.equal)
-      let allPosts: any[] = [];
-      if (subjectIds.length > 0) {
-        const postsPromises = subjectIds.map(subjectId =>
-          databases.listDocuments(
-            DATABASE_ID,
-            POSTS_COLLECTION_ID,
-            [
-              Query.equal('subjectId', subjectId),
-              Query.limit(50)
-            ]
-          )
-        );
-        const postsResults = await Promise.all(postsPromises);
-        allPosts = postsResults.flatMap(res => res.documents);
-      }
-
-      console.log(`[Level 2 Search] Found ${allPosts.length} posts in category`);
-
-      const searchLower = query.toLowerCase();
-
-      // Filter subjects
-      const filteredSubjects = subjects.filter(sub => 
-        sub.nameEn?.toLowerCase().includes(searchLower) ||
-        sub.nameAr?.toLowerCase().includes(searchLower) ||
-        sub.descriptionEn?.toLowerCase().includes(searchLower) ||
-        sub.descriptionAr?.toLowerCase().includes(searchLower)
-      );
-
-      // Enrich ALL materials first (don't filter yet)
-      const allMaterials = allMaterialsArray as Material[];
-      const enrichedMaterials = await enrichMaterialsWithUploaderNames(allMaterials);
-      
-      // Add subject and fileType info to ALL materials
-      const materialsWithInfo = await Promise.all(
-        enrichedMaterials.map(async (material: any) => {
+      // Enrich materials with additional data from Appwrite if needed
+      const enrichedMaterials = await Promise.all(
+        (results.materials || []).map(async (material: any) => {
           try {
-            const [subject, fileType] = await Promise.all([
-              material.subjectId ? databases.getDocument(DATABASE_ID, SUBJECTS_COLLECTION_ID, material.subjectId) : null,
-              material.fileTypeId ? databases.getDocument(DATABASE_ID, FILETYPES_COLLECTION_ID, material.fileTypeId) : null
-            ]);
-            return { ...material, subject, fileType };
+            // Fetch fileType if not already included
+            if (material.fileTypeId && !material.fileType) {
+              const fileType = await databases.getDocument(
+                DATABASE_ID,
+                FILETYPES_COLLECTION_ID,
+                material.fileTypeId
+              );
+              material.fileType = fileType;
+            }
+            
+            // Fetch subject if not already included
+            if (material.subjectId && !material.subject) {
+              const subject = await databases.getDocument(
+                DATABASE_ID,
+                SUBJECTS_COLLECTION_ID,
+                material.subjectId
+              );
+              material.subject = subject;
+            }
+            
+            return material;
           } catch (err) {
+            console.warn('Error enriching material:', err);
             return material;
           }
         })
       );
 
-      // NOW filter materials after enrichment
-      const filteredMaterials = materialsWithInfo.filter((mat: any) => 
-        mat.title?.toLowerCase().includes(searchLower) ||
-        mat.description?.toLowerCase().includes(searchLower)
-      );
-
-      // Enrich ALL posts first (don't filter yet)
-      const postsWithInfo = await Promise.all(
-        (allPosts as Post[]).map(async (post) => {
+      // Enrich posts with additional data from Appwrite if needed
+      const enrichedPosts = await Promise.all(
+        (results.posts || []).map(async (post: any) => {
           try {
-            const [uploader, subject] = await Promise.all([
-              databases.getDocument(DATABASE_ID, USERS_COLLECTION_ID, post.uploaderId),
-              databases.getDocument(DATABASE_ID, SUBJECTS_COLLECTION_ID, post.subjectId)
-            ]);
-            return {
-              ...post,
-              uploaderName: uploader.name || uploader.email || 'Unknown User',
-              subject
-            };
-          } catch (error) {
-            return {
-              ...post,
-              uploaderName: 'Unknown User'
-            };
+            // Fetch subject if not already included
+            if (post.subjectId && !post.subject) {
+              const subject = await databases.getDocument(
+                DATABASE_ID,
+                SUBJECTS_COLLECTION_ID,
+                post.subjectId
+              );
+              post.subject = subject;
+            }
+            
+            return post;
+          } catch (err) {
+            console.warn('Error enriching post:', err);
+            return post;
           }
         })
       );
 
-      // NOW filter posts after enrichment
-      const filteredPosts = postsWithInfo.filter((post: any) => 
-        post.contentText?.toLowerCase().includes(searchLower) ||
-        post.linkURL?.toLowerCase().includes(searchLower)
-      );
-
-      console.log(`[Level 2 Search] After filtering: ${filteredSubjects.length} subjects, ${filteredMaterials.length} materials, ${filteredPosts.length} posts`);
+      console.log(`✅ Found ${results.subjects?.length || 0} subjects, ${enrichedMaterials.length} materials, ${enrichedPosts.length} posts`);
 
       return {
-        subjects: filteredSubjects,
-        materials: filteredMaterials,
-        posts: filteredPosts
+        subjects: results.subjects as Subject[] || [],
+        materials: enrichedMaterials as Material[],
+        posts: enrichedPosts as Post[]
       };
     } catch (error) {
-      console.error('Error in category search:', error);
-      throw error;
+      console.error('❌ Error in Meilisearch category search:', error);
+      
+      // Fallback to empty results if Meilisearch fails
+      console.warn('⚠️ Meilisearch unavailable, returning empty results');
+      return {
+        subjects: [],
+        materials: [],
+        posts: []
+      };
     }
   },
 
   /**
    * Subject search - Search materials and posts within a subject (Level 3)
+   * 🔍 Now powered by Meilisearch with subject filtering
    */
   async searchInSubject(subjectId: string, query: string): Promise<{
     materials: Material[];
     posts: Post[];
   }> {
     try {
-      const [materialsRes, postsRes] = await Promise.all([
-        databases.listDocuments(
-          DATABASE_ID,
-          MATERIALS_COLLECTION_ID,
-          [
-            Query.equal('subjectId', subjectId),
-            Query.limit(100)
-          ]
-        ),
-        databases.listDocuments(
-          DATABASE_ID,
-          POSTS_COLLECTION_ID,
-          [
-            Query.equal('subjectId', subjectId),
-            Query.limit(100)
-          ]
-        )
-      ]);
+      console.log(`🔍 Meilisearch subject search: Subject="${subjectId}", Query="${query}"`);
 
-      const searchLower = query.toLowerCase();
+      // Use Meilisearch for filtered search within subject
+      const results = await meilisearchService.searchInSubject(subjectId, query, { limit: 20 });
 
-      const filteredMaterials = (materialsRes.documents as Material[])
-        .filter(mat => 
-          mat.title?.toLowerCase().includes(searchLower) ||
-          mat.description?.toLowerCase().includes(searchLower)
-        );
-
-      const filteredPosts = (postsRes.documents as Post[])
-        .filter(post => 
-          post.contentText?.toLowerCase().includes(searchLower)
-        );
-
-      // Enrich materials with uploader names
-      const enrichedMaterials = await enrichMaterialsWithUploaderNames(filteredMaterials);
-
-      // Fetch uploader information for filtered posts
-      const postsWithUploaders = await Promise.all(
-        filteredPosts.map(async (post) => {
+      // Enrich materials with additional data from Appwrite if needed
+      const enrichedMaterials = await Promise.all(
+        (results.materials || []).map(async (material: any) => {
           try {
-            const uploader = await databases.getDocument(
-              DATABASE_ID,
-              USERS_COLLECTION_ID,
-              post.uploaderId
-            );
-            return {
-              ...post,
-              uploaderName: uploader.name || uploader.email || 'Unknown User'
-            };
-          } catch (error) {
-            return {
-              ...post,
-              uploaderName: 'Unknown User'
-            };
+            // Fetch fileType if not already included
+            if (material.fileTypeId && !material.fileType) {
+              const fileType = await databases.getDocument(
+                DATABASE_ID,
+                FILETYPES_COLLECTION_ID,
+                material.fileTypeId
+              );
+              material.fileType = fileType;
+            }
+            
+            return material;
+          } catch (err) {
+            console.warn('Error enriching material:', err);
+            return material;
           }
         })
       );
 
+      // Posts are already enriched with uploader names from Meilisearch
+      const enrichedPosts = results.posts || [];
+
+      console.log(`✅ Found ${enrichedMaterials.length} materials, ${enrichedPosts.length} posts`);
+
       return {
-        materials: enrichedMaterials,
-        posts: postsWithUploaders
+        materials: enrichedMaterials as Material[],
+        posts: enrichedPosts as Post[]
       };
     } catch (error) {
-      console.error('Error in subject search:', error);
-      throw error;
+      console.error('❌ Error in Meilisearch subject search:', error);
+      
+      // Fallback to empty results if Meilisearch fails
+      console.warn('⚠️ Meilisearch unavailable, returning empty results');
+      return {
+        materials: [],
+        posts: []
+      };
     }
   }
 };

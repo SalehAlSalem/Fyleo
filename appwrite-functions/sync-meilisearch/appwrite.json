@@ -1,0 +1,38 @@
+{
+  "projectId": "68d979280007a4dfd3db",
+  "projectName": "Fyleo",
+  "functions": [
+    {
+      "$id": "sync-meilisearch",
+      "name": "Sync Meilisearch",
+      "runtime": "node-18.0",
+      "execute": ["any"],
+      "events": [
+        "databases.*.collections.materials.documents.*.create",
+        "databases.*.collections.materials.documents.*.update",
+        "databases.*.collections.materials.documents.*.delete",
+        "databases.*.collections.posts.documents.*.create",
+        "databases.*.collections.posts.documents.*.update",
+        "databases.*.collections.posts.documents.*.delete",
+        "databases.*.collections.subjects.documents.*.create",
+        "databases.*.collections.subjects.documents.*.update",
+        "databases.*.collections.subjects.documents.*.delete",
+        "databases.*.collections.categories.documents.*.create",
+        "databases.*.collections.categories.documents.*.update",
+        "databases.*.collections.categories.documents.*.delete"
+      ],
+      "schedule": "",
+      "timeout": 15,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "scopes": [],
+      "installationId": "",
+      "providerRepositoryId": "",
+      "providerBranch": "",
+      "providerSilentMode": false,
+      "providerRootDirectory": ""
+    }
+  ]
+}

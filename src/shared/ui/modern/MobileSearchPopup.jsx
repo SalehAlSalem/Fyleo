@@ -338,10 +338,10 @@ const MobileSearchPopup = ({ isOpen, onClose, onMaterialClick, onPostClick }) =>
                           <span className="text-2xl">📄</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                              {material.title}
+                              {material.title || 'Untitled'}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {material.fileName}
+                            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                              {material.description || 'No description'}
                             </p>
                           </div>
                           <span className="text-blue-600 dark:text-blue-400">→</span>
@@ -373,14 +373,12 @@ const MobileSearchPopup = ({ isOpen, onClose, onMaterialClick, onPostClick }) =>
                         >
                           <span className="text-2xl">🔗</span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                              {post.contentText?.substring(0, 50) || post.linkURL || 'Link'}
+                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
+                              {post.title || post.contentText?.substring(0, 80) || 'Post'}
                             </p>
-                            {post.linkURL && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                {post.linkURL}
-                              </p>
-                            )}
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {post.contentText?.substring(0, 100) || 'No content'}
+                            </p>
                           </div>
                           <span className="text-blue-600 dark:text-blue-400">→</span>
                         </button>

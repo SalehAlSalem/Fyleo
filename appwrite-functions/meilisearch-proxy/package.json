@@ -1,0 +1,13 @@
+{
+  "name": "meilisearch-proxy",
+  "version": "1.0.0",
+  "description": "Secure proxy for Meilisearch API - Hides API key from browser",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "node-appwrite": "^13.0.0"
+  }
+}

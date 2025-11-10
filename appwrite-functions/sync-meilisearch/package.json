@@ -1,0 +1,14 @@
+{
+  "name": "sync-meilisearch",
+  "version": "1.0.0",
+  "description": "Automatically syncs Appwrite data changes to Meilisearch",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "meilisearch": "^0.41.0",
+    "node-appwrite": "^14.1.0"
+  }
+}

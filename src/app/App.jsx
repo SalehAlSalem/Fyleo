@@ -37,6 +37,10 @@ import GPACalculatorPage from '@/pages/GPACalculatorPage/GPACalculatorPage';
 // 🔄 Tiered Caching System - Realtime Sync
 import { useRealtimeSync } from '@features/library/hooks';
 
+// 🔍 Meilisearch Automatic Sync
+import { useMeilisearchSync } from '@/hooks/useMeilisearchSync';
+import SyncStatusIndicator from '@/components/SyncStatusIndicator';
+
 // Component داخلي لاستخدام useLocation
 const AppContent = () => {
   const { theme } = useTheme();
@@ -64,6 +68,21 @@ const AppContent = () => {
   
   // ✅ Enable automatic cache synchronization with Appwrite Realtime
   useRealtimeSync();
+  
+  // 🔍 Initialize Meilisearch sync (initial indexing + realtime updates)
+  const meilisearchStatus = useMeilisearchSync({
+    autoStart: true,
+    skipIfComplete: true,
+    onProgress: (progress) => {
+      console.log(`📊 Indexing progress: ${progress.processed}/${progress.total} (${progress.percentage}%)`);
+    },
+    onComplete: () => {
+      console.log('✅ Meilisearch fully synchronized');
+    },
+    onError: (error) => {
+      console.error('❌ Meilisearch sync error:', error);
+    }
+  });
   
   // Handle Material Preview
   const handleMaterialPreview = async (material) => {
@@ -225,6 +244,9 @@ const AppContent = () => {
           </main>
           <ModernFooter />
           <CookieConsentBanner />
+          
+          {/* Meilisearch Sync Status Indicator */}
+          <SyncStatusIndicator status={meilisearchStatus} showDetails={false} />
           
           {/* Mobile Search Popup */}
           <MobileSearchPopup 

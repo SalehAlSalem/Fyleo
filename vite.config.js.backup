@@ -1,0 +1,31 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      // Proxy Meilisearch requests through Vite dev server
+      '/meili-proxy': {
+        target: 'https://minio97.chickenkiller.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/meili-proxy/, '/meili'),
+        secure: true,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('🔄 Proxying request:', req.method, req.url);
+            // Add API key to requests
+            proxyReq.setHeader('Authorization', 'Bearer StrongSearchKey123');
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log('✅ Proxy response:', proxyRes.statusCode, req.url);
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('❌ Proxy error:', err.message);
+          });
+        }
+      }
+    }
+  }
+})

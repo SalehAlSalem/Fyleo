@@ -32,7 +32,27 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: true
+    host: true,
+    proxy: {
+      // Proxy Meilisearch requests to bypass browser CORS/SSL issues
+      '/api/meili': {
+        target: 'https://minio97.chickenkiller.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/meili/, '/meili'),
+        secure: false, // Allow self-signed certificates
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('Sending Request:', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log('Received Response:', proxyRes.statusCode, req.url);
+          });
+        }
+      }
+    }
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'appwrite', '@tanstack/react-query']
