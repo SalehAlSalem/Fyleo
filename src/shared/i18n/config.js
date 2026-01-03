@@ -1,24 +1,24 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-
-// Initialize with empty resources; we'll load from public/locales at runtime
-const resources = {
-  en: { translation: {} },
-  ar: { translation: {} }
-};
+import HttpBackend from 'i18next-http-backend';
 
 i18n
+  // Load translations from public folder
+  .use(HttpBackend)
   // detect user language
   .use(LanguageDetector)
   // pass the i18n instance to react-i18next.
   .use(initReactI18next)
   // init i18next
   .init({
-    resources,
     fallbackLng: 'ar', // default language
     lng: localStorage.getItem('language') || 'ar', // initial language
     debug: false,
+    
+    backend: {
+      loadPath: '/locales/{{lng}}/translation.json',
+    },
     
     interpolation: {
       escapeValue: false // react already safes from xss
@@ -27,32 +27,12 @@ i18n
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage']
+    },
+    
+    react: {
+      useSuspense: false // Disable suspense to avoid loading issues
     }
   });
-
-// Load translations from public folder asynchronously
-async function loadTranslations() {
-  try {
-    const [enResp, arResp] = await Promise.all([
-      fetch('/locales/en/translation.json'),
-      fetch('/locales/ar/translation.json')
-    ]);
-    const [enJson, arJson] = await Promise.all([
-      enResp.ok ? enResp.json() : Promise.resolve({}),
-      arResp.ok ? arResp.json() : Promise.resolve({})
-    ]);
-    if (enJson && Object.keys(enJson).length) {
-      i18n.addResourceBundle('en', 'translation', enJson, true, true);
-    }
-    if (arJson && Object.keys(arJson).length) {
-      i18n.addResourceBundle('ar', 'translation', arJson, true, true);
-    }
-  } catch (e) {
-    console.warn('i18n: Failed to load translation files from public/locales', e);
-  }
-}
-
-loadTranslations();
 
 // Update HTML attributes when language changes
 i18n.on('languageChanged', (lng) => {

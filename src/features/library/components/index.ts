@@ -13,3 +13,6 @@ export { default as LoaderSkeleton } from './LoaderSkeleton';
 export { default as Breadcrumb } from './Breadcrumb';
 export { default as EmptyState } from './EmptyState';
 export { default as ErrorState } from './ErrorState';
+export { ControlsBar } from './ControlsBar';
+export { CollapsibleGroup } from './CollapsibleGroup';
+export { GroupedContent } from './GroupedContent';

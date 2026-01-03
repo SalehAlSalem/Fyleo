@@ -19,12 +19,18 @@ const LanguageSwitcher = ({ className = '' }) => {
 
   const toggleLanguage = () => {
     const newLang = currentLang === 'ar' ? 'en' : 'ar';
-    i18n.changeLanguage(newLang);
+    const newDir = newLang === 'ar' ? 'rtl' : 'ltr';
     
-    // Force a small delay to ensure all components re-render
-    setTimeout(() => {
-      window.dispatchEvent(new Event('languageChanged'));
-    }, 100);
+    // Update immediately for better UX
+    document.documentElement.dir = newDir;
+    document.documentElement.lang = newLang;
+    localStorage.setItem('language', newLang);
+    
+    // Change language
+    i18n.changeLanguage(newLang).then(() => {
+      // Force page reload to ensure all components update
+      window.location.reload();
+    });
   };
 
   return (

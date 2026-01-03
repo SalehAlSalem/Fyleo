@@ -186,9 +186,12 @@ export function useMaterials(
   subjectId: string | undefined,
   purposeId?: string
 ): UseQueryResult<Material[], Error> {
+  // ✨ Treat 'all' as undefined to fetch all content without purpose filter
+  const actualPurposeId = purposeId === 'all' ? undefined : purposeId;
+  
   return useQuery({
-    queryKey: libraryKeys.materials.bySubject(subjectId || '', purposeId),
-    queryFn: () => materialsApi.getBySubject(subjectId!, purposeId || undefined),
+    queryKey: libraryKeys.materials.bySubject(subjectId || '', actualPurposeId),
+    queryFn: () => materialsApi.getBySubject(subjectId!, actualPurposeId),
     enabled: !!subjectId,
     staleTime: 3 * 60 * 1000, // 3 minutes
   });
@@ -217,9 +220,12 @@ export function usePosts(
   subjectId: string | undefined,
   purposeId?: string
 ): UseQueryResult<Post[], Error> {
+  // ✨ Treat 'all' as undefined to fetch all content without purpose filter
+  const actualPurposeId = purposeId === 'all' ? undefined : purposeId;
+  
   return useQuery({
-    queryKey: libraryKeys.posts.bySubject(subjectId || '', purposeId),
-    queryFn: () => postsApi.getBySubject(subjectId!, purposeId || undefined),
+    queryKey: libraryKeys.posts.bySubject(subjectId || '', actualPurposeId),
+    queryFn: () => postsApi.getBySubject(subjectId!, actualPurposeId),
     enabled: !!subjectId,
     staleTime: 2 * 60 * 1000, // 2 minutes (more dynamic)
   });

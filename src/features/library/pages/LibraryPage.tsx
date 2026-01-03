@@ -35,6 +35,7 @@ import {
 import {
   useCategoriesWithSubjects,
   useTier1Purposes,
+  useTier1FileTypes,
   useSubjectsByCategory,
 } from '../hooks';
 
@@ -42,19 +43,22 @@ import {
 import {
   CategoryCard,
   SubjectCard,
-  MaterialCard,
-  PostCard,
   SearchBar,
-  PurposeTabs,
   LoaderSkeleton,
   Breadcrumb,
   EmptyState,
   ErrorState,
+  ControlsBar,
+  GroupedContent,
 } from '../components';
 import CardModal from '../components/CardModal';
 import FilePreviewModal from '../components/FilePreviewModal';
 
-import type { Category, Subject, Material } from '../../../types/database';
+// Utils
+import { sortContent, groupContent } from '../utils';
+import type { SortBy, GroupBy, ViewMode, EnrichedContent } from '../utils/contentHelpers';
+
+import type { Category, Subject, Material, FileType, EducationalPurpose } from '../../../types/database';
 
 /**
  * Main LibraryPage Component
@@ -77,8 +81,13 @@ const LibraryPage: React.FC = () => {
   const level = subjectId ? 3 : categoryId ? 2 : 1;
 
   // State
-  const [activeTab, setActiveTab] = useState<string>('');
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null); // Level filter state
+  
+  // 🎨 View Controls State (Level 3 only)
+  const [sortBy, setSortBy] = useState<SortBy>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [groupBy, setGroupBy] = useState<GroupBy>('type'); // Default: Group by FileType
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   // Prefetch functions
   const prefetchCategory = usePrefetchCategory();
@@ -95,23 +104,15 @@ const LibraryPage: React.FC = () => {
   const { data: category, isLoading: categoryLoading } = useCategory(categoryId);
   const { data: subject, isLoading: subjectLoading } = useSubject(subjectId);
   
-  // ✅ Tier 1: Purposes (IndexedDB cached)
-  const { data: purposes, isLoading: purposesLoading } = useTier1Purposes();
+  // ✅ Tier 1: FileTypes & Purposes (IndexedDB cached)
+  const { data: fileTypes } = useTier1FileTypes();
+  const { data: purposes } = useTier1Purposes();
   
-  // Level 3: Content (materials + posts)
-  const { materials, posts, isLoading: contentLoading } = useSubjectContent(subjectId, activeTab);
+  // Level 3: Content (materials + posts) - No purpose filtering
+  const { materials, posts, isLoading: contentLoading } = useSubjectContent(subjectId);
   
   // Note: Search is now handled internally by SearchBar component using local fuzzy search
   // No need for external search hooks - SearchBar uses useLocalSearch hook internally
-
-  // Set initial active tab when purposes load
-  React.useEffect(() => {
-    if (purposes && purposes.length > 0 && !activeTab) {
-      setActiveTab(purposes[0].$id);
-    } else if (purposes && purposes.length === 0 && !activeTab) {
-      setActiveTab('');
-    }
-  }, [purposes, activeTab]);
 
   // Navigation handlers
   const handleCategoryClick = useCallback((cat: Category) => {
@@ -251,6 +252,38 @@ const LibraryPage: React.FC = () => {
     });
   }, [materials, posts]);
 
+  // 🎨 Enrich content with FileType & Purpose (Level 3 only)
+  const enrichedContent = useMemo<EnrichedContent[]>(() => {
+    if (!fileTypes || !purposes) return [];
+
+    return combinedContent.map((item) => {
+      const enriched: EnrichedContent = { ...item };
+
+      // Add FileType
+      if ('fileTypeId' in item && item.fileTypeId) {
+        enriched.fileType = fileTypes.find((ft: FileType) => ft.$id === item.fileTypeId);
+      }
+
+      // Add Purpose
+      if ('educationalPurposeId' in item && item.educationalPurposeId) {
+        // Direct purpose (Posts or Materials with direct purpose)
+        enriched.purpose = purposes.find((p: EducationalPurpose) => p.$id === item.educationalPurposeId);
+      } else if (enriched.fileType?.educationalPurposeId) {
+        // Purpose through FileType (Materials)
+        enriched.purpose = purposes.find((p: EducationalPurpose) => p.$id === enriched.fileType?.educationalPurposeId);
+      }
+
+      return enriched;
+    });
+  }, [combinedContent, fileTypes, purposes]);
+
+  // 🎨 Apply sorting and grouping (Level 3 only)
+  const processedContent = useMemo(() => {
+    const sorted = sortContent(enrichedContent, sortBy, sortOrder);
+    const grouped = groupContent(sorted, groupBy, isArabic);
+    return grouped;
+  }, [enrichedContent, sortBy, sortOrder, groupBy, isArabic]);
+
   // Breadcrumb items
   const breadcrumbItems = useMemo(() => {
     const items = [
@@ -350,6 +383,7 @@ const LibraryPage: React.FC = () => {
     preview: isArabic ? 'معاينة' : 'Preview',
     download: isArabic ? 'تحميل' : 'Download',
     bookmark: isArabic ? 'حفظ' : 'Bookmark',
+    bookmarked: isArabic ? 'محفوظ' : 'Bookmarked',
     info: isArabic ? 'معلومات' : 'Info',
     description: isArabic ? 'الوصف' : 'Description',
     size: isArabic ? 'الحجم' : 'Size',
@@ -614,47 +648,41 @@ const LibraryPage: React.FC = () => {
               subjectId={subjectId}
             />
 
-            {/* Data-Driven Purpose Tabs */}
-            {purposesLoading ? (
-              <LoaderSkeleton variant="text" count={1} className="mb-6" />
-            ) : purposes && purposes.length > 0 ? (
-              <PurposeTabs
-                purposes={purposes}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                nameKey={nameKey}
-                className="mb-8"
+            {/* 🎨 View Controls Bar (Level 3) */}
+            {!contentLoading && enrichedContent.length > 0 && (
+              <ControlsBar
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                groupBy={groupBy}
+                viewMode={viewMode}
+                onChange={(updates) => {
+                  if (updates.sortBy !== undefined) setSortBy(updates.sortBy);
+                  if (updates.sortOrder !== undefined) setSortOrder(updates.sortOrder);
+                  if (updates.groupBy !== undefined) setGroupBy(updates.groupBy);
+                  if (updates.viewMode !== undefined) setViewMode(updates.viewMode);
+                }}
+                showPurposeGroup={true}
+                isArabic={isArabic}
               />
-            ) : null}
+            )}
 
             {/* Content Grid */}
             {contentLoading ? (
               <LoaderSkeleton variant="grid" count={6} />
-            ) : combinedContent.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {combinedContent.map((item) =>
-                  'fileName' in item ? (
-                    <MaterialCard
-                      key={item.$id}
-                      material={item as Material}
-                      onPreview={() => handleMaterialPreview(item as Material)}
-                      onBookmark={() => handleBookmark(item.$id)}
-                      isBookmarked={bookmarkedMaterials.has(item.$id)}
-                      labels={materialLabels}
-                      className="card-container"
-                    />
-                  ) : (
-                    <PostCard
-                      key={item.$id}
-                      post={item as any}
-                      labels={{
-                        link: isArabic ? 'رابط' : 'Link',
-                        viewPost: isArabic ? 'عرض المنشور' : 'View Post',
-                      }}
-                    />
-                  )
-                )}
-              </div>
+            ) : enrichedContent.length > 0 ? (
+              <GroupedContent
+                groupedData={processedContent}
+                viewMode={viewMode}
+                onMaterialClick={handleMaterialPreview}
+                onPostClick={handlePostClick}
+                onBookmark={handleBookmark}
+                bookmarkedIds={bookmarkedMaterials}
+                materialLabels={materialLabels}
+                postLabels={{
+                  link: isArabic ? 'رابط' : 'Link',
+                  viewPost: isArabic ? 'عرض المنشور' : 'View Post',
+                }}
+              />
             ) : (
               <EmptyState
                 icon="📭"

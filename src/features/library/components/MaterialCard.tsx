@@ -454,7 +454,7 @@ export const MaterialCard: React.FC<MaterialCardProps> = ({
                 {labels.description ? 'No description available' : 'لا يوجد وصف'}
               </p>
             </div>
-          )}
+          )}  
 
           {/* File Details Grid - Compact at bottom */}
           <div className="grid grid-cols-2 gap-2 mt-4">

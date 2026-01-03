@@ -2,10 +2,12 @@
  * PurposeTabs Component
  * Data-driven tabs based on Educational Purposes
  * Dumb component - receives all data via props
+ * Includes dynamic "All" tab to show all content
  */
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import type { EducationalPurpose } from '../../../types/database';
 
 interface PurposeTabsProps {
@@ -14,6 +16,7 @@ interface PurposeTabsProps {
   onTabChange: (purposeId: string) => void;
   nameKey: 'nameAr' | 'nameEn';
   className?: string;
+  showAllTab?: boolean; // New: Show "All" tab
 }
 
 const PurposeTabs: React.FC<PurposeTabsProps> = ({
@@ -22,28 +25,42 @@ const PurposeTabs: React.FC<PurposeTabsProps> = ({
   onTabChange,
   nameKey,
   className = '',
+  showAllTab = false,
 }) => {
+  const { t } = useTranslation();
+
+  // Create "All" tab object
+  const allTab = {
+    $id: 'all',
+    nameAr: 'الكل',
+    nameEn: 'All',
+    icon: '📚',
+  };
+
+  // Prepend "All" tab if enabled
+  const allTabs = showAllTab ? [allTab, ...purposes] : purposes;
+
   const handleKeyDown = (e: React.KeyboardEvent, _purposeId: string, index: number) => {
     switch (e.key) {
       case 'ArrowLeft':
         e.preventDefault();
         if (index > 0) {
-          onTabChange(purposes[index - 1].$id);
+          onTabChange(allTabs[index - 1].$id);
         }
         break;
       case 'ArrowRight':
         e.preventDefault();
-        if (index < purposes.length - 1) {
-          onTabChange(purposes[index + 1].$id);
+        if (index < allTabs.length - 1) {
+          onTabChange(allTabs[index + 1].$id);
         }
         break;
       case 'Home':
         e.preventDefault();
-        onTabChange(purposes[0].$id);
+        onTabChange(allTabs[0].$id);
         break;
       case 'End':
         e.preventDefault();
-        onTabChange(purposes[purposes.length - 1].$id);
+        onTabChange(allTabs[allTabs.length - 1].$id);
         break;
     }
   };
@@ -59,7 +76,7 @@ const PurposeTabs: React.FC<PurposeTabsProps> = ({
         role="tablist"
         aria-label="Educational Purposes"
       >
-        {purposes.map((purpose, index) => {
+        {allTabs.map((purpose, index) => {
           const isActive = purpose.$id === activeTab;
           
           return (
