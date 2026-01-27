@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaceData, useWorkspaceRealtimeSync } from './hooks/useWorkspaceData';
 import { materialsService, postsService } from '../../services/appwriteService';
@@ -12,8 +13,11 @@ import ContentTabs from './components/ContentTabs';
 import './PersonalWorkspace.css';
 
 /**
- * Personal Workspace - Modern, Elegant, Minimalist
- * ✅ Now with React Query + Realtime Sync (No page reloads!)
+ * ✨ Personal Workspace - Premium Edition
+ * Glass Morphism + 3D Effects + Smooth Animations
+ * Inspired by Landing Page & GPA Calculator
+ * 
+ * ✅ React Query + Realtime Sync (No page reloads!)
  * - Auto-updates when data changes
  * - Fast local cache
  * - Optimistic updates
@@ -55,13 +59,23 @@ const PersonalWorkspace = () => {
       return acc + (file.fileSize || 0);
     }, 0);
 
-    return {
+    const calculatedStats = {
       myFiles: materials?.length || 0,
       myLinks: posts?.length || 0,
       downloads: downloads?.length || 0,
       bookmarks: bookmarks?.length || 0,
       storageUsed: totalStorage
     };
+    
+    console.log('📊 PersonalWorkspace calculated stats:', calculatedStats);
+    console.log('📊 Raw data:', { 
+      materials: materials?.length, 
+      posts: posts?.length, 
+      downloads: downloads?.length, 
+      bookmarks: bookmarks?.length 
+    });
+    
+    return calculatedStats;
   }, [materials, posts, downloads, bookmarks]);
 
   /**

@@ -159,6 +159,53 @@ export const StorageService = {
       return null;
     }
   },
+
+  /**
+   * Get presigned download URL that forces download (Content-Disposition: attachment)
+   * @param {string} fileId - MinIO object name
+   * @param {string} fileName - Original file name for download
+   * @returns {Promise<string>}
+   */
+  async getDownloadURL(fileId, fileName = null) {
+    try {
+      if (!UPLOAD_FUNCTION_ID) {
+        // Fallback to public URL
+        return this.getPublicURL(fileId);
+      }
+
+      const execution = await functions.createExecution(
+        UPLOAD_FUNCTION_ID,
+        JSON.stringify({
+          action: 'getDownloadUrl',
+          objectName: fileId,
+          fileName: fileName || fileId.split('/').pop()
+        }),
+        false,
+        '/',
+        'POST'
+      );
+
+      let data;
+      try {
+        data = JSON.parse(execution.responseBody || '{}');
+      } catch (e) {
+        console.warn('Failed to parse presign response, using public URL');
+        return this.getPublicURL(fileId);
+      }
+
+      const { downloadUrl } = data || {};
+      if (downloadUrl) {
+        return downloadUrl;
+      }
+
+      // Fallback to public URL
+      return this.getPublicURL(fileId);
+    } catch (error) {
+      console.error('خطأ في الحصول على رابط التحميل:', error);
+      // Fallback to public URL
+      return this.getPublicURL(fileId);
+    }
+  },
   
   getFileView(fileId) {
     // ✅ Return permanent public URL

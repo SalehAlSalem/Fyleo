@@ -1,0 +1,394 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/hooks/useAuth';
+import { account, teams } from '@/config/appwrite';
+import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
+import { 
+  ModernButton, 
+  ThemeToggle
+} from '../modern/ModernComponents';
+import './ModernNavbar.css';
+
+const ModernNavbar = ({ showUserMenu, setShowUserMenu }) => {
+  const { user, loading, logout } = useAuth();
+  const { t, i18n } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const userMenuRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+  const navbarRef = useRef(null);
+
+  // iOS Safari Fix - Force navbar to stay fixed
+  useEffect(() => {
+    if (navbarRef.current) {
+      const navbar = navbarRef.current;
+      navbar.style.position = 'fixed';
+      navbar.style.top = '0';
+      navbar.style.left = '0';
+      navbar.style.right = '0';
+      navbar.style.transform = 'translateZ(0)';
+      navbar.style.webkitTransform = 'translateZ(0)';
+      navbar.style.webkitBackfaceVisibility = 'hidden';
+      navbar.style.backfaceVisibility = 'hidden';
+    }
+  }, []);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close mobile menu when clicking outside - only on mobile
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (event) => {
+      // Only close on mobile (screen width < 768px)
+      if (window.innerWidth < 768 && !event.target.closest('.navbar-modern')) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile menu on scroll (no body overflow lock)
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnScroll = () => {
+      if (window.innerWidth < 768) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener('scroll', closeOnScroll, { passive: true });
+    window.addEventListener('wheel', closeOnScroll, { passive: true });
+    window.addEventListener('touchmove', closeOnScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll);
+      window.removeEventListener('wheel', closeOnScroll);
+      window.removeEventListener('touchmove', closeOnScroll);
+    };
+  }, [isOpen]);
+
+  // Allow interaction inside the mobile menu without instant close
+  // (Scroll-to-close handled on window only)
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen]);
+
+  // Check if user has admin access (admin label OR reviewer/content_manager team)
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      if (!user) {
+        setHasAdminAccess(false);
+        return;
+      }
+      
+      // Check for admin label first
+      const labels = user.labels || [];
+      if (labels.includes('admin')) {
+        setHasAdminAccess(true);
+        return;
+      }
+      
+      // Check for team membership
+      try {
+        const userTeamsList = await teams.list();
+        const teamIds = userTeamsList.teams.map(t => t.$id);
+        const isReviewer = teamIds.includes('reviewer-team');
+        const isContentManager = teamIds.includes('content_manager');
+        
+        if (isReviewer || isContentManager) {
+          setHasAdminAccess(true);
+        } else {
+          setHasAdminAccess(false);
+        }
+      } catch (err) {
+        console.error('Error checking teams:', err);
+        setHasAdminAccess(false);
+      }
+    };
+    
+    checkAdminAccess();
+  }, [user]);
+  
+  // For backward compatibility
+  const isAdmin = hasAdminAccess;
+
+  // Close user menu when clicking outside or scrolling
+  useEffect(() => {
+    if (!showUserMenu) return;
+    
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+    
+    const handleScroll = () => {
+      setShowUserMenu(false);
+    };
+    
+    // Use setTimeout to allow button clicks to register first
+    setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 0);
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('touchmove', handleScroll, { passive: true });
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('touchmove', handleScroll);
+    };
+  }, [showUserMenu]);
+
+
+  // Navigation items
+  const navItems = [
+    { name: t('nav.home'), path: '/', icon: '🏠' },
+    { name: t('nav.materials'), path: '/library', icon: '📚' },
+    { name: t('nav.gpaCalculator'), path: '/gpa-calculator', icon: '🎓' },
+    { name: t('nav.workspace'), path: '/workspace', icon: '💼', authRequired: true },
+    { name: t('nav.admin'), path: '/admin', icon: '⚙️', authRequired: true, adminOnly: true },
+  ];
+
+  const handleLogout = async () => {
+    try {
+      const result = await logout();
+      if (result.success) {
+        navigate('/');
+      } else {
+        console.error('Logout error:', result.error);
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  return (
+    <nav 
+      ref={navbarRef}
+      className={`navbar-modern fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled 
+          ? 'navbar-scrolled' 
+          : ''
+      }`}
+    >
+      {/* Animated Background Blobs */}
+      <div className="navbar-bg-blobs">
+        <div className="blob blob-1"></div>
+        <div className="blob blob-2"></div>
+        <div className="blob blob-3"></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="relative flex h-14 items-center justify-between">
+          
+          {/* Logo - Enhanced with Glassmorphism */}
+          <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+            <Link to="/" className="logo-container group flex shrink-0 items-center" dir="ltr">
+              <div className="logo-wrapper">
+                <div className="logo-icon-wrapper">
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className="logo-icon"
+                    fill="currentColor"
+                  >
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                  </svg>
+                  <div className="logo-glow"></div>
+                </div>
+                <span className="logo-text font-en">Fyleo</span>
+              </div>
+            </Link>
+
+            {/* Desktop Navigation - Creative Floating Pills */}
+            <div className="hidden md:flex md:ml-6 items-center">
+              <div className="nav-pills-container">
+                {navItems.map((item) => {
+                  if (item.authRequired && !user) return null;
+                  if (item.adminOnly && !isAdmin) return null;
+                  
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`nav-pill ${isActive ? 'nav-pill-active' : ''}`}
+                    >
+                      <span className="nav-pill-icon">{item.icon}</span>
+                      <span className="nav-pill-text">{item.name}</span>
+                      {isActive && <div className="nav-pill-glow"></div>}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Section - Enhanced Creative Style */}
+          <div className="absolute inset-y-0 right-0 flex items-center gap-3 pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+            <div className="navbar-actions-group">
+              <div className="action-btn-wrapper">
+                <ThemeToggle />
+              </div>
+              <div className="action-btn-wrapper">
+                <LanguageSwitcher />
+              </div>
+            </div>
+            
+            {loading ? (
+              <div className="loading-spinner-wrapper">
+                <div className="loading-spinner"></div>
+              </div>
+            ) : user ? (
+              <div className="relative" ref={userMenuRef} data-lang={i18n.language}>
+                <button 
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="profile-avatar-btn"
+                  aria-label="User Profile"
+                >
+                  <span className="profile-avatar-text">
+                    {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+                  </span>
+                  <div className="avatar-ring"></div>
+                </button>
+                
+                {/* Enhanced Dropdown Menu with Glassmorphism */}
+                {showUserMenu && (
+                  <div className="user-dropdown-menu">
+                    <div className="user-dropdown-header">
+                      <div className="user-dropdown-avatar">
+                        <span className="user-dropdown-avatar-text">
+                          {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+                        </span>
+                      </div>
+                      <div className="user-dropdown-info">
+                        <p className="user-dropdown-name">{user.name || 'User'}</p>
+                        <p className="user-dropdown-email">{user.email}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Logout Button */}
+                    <button
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleLogout();
+                        setShowUserMenu(false);
+                      }}
+                      className="user-dropdown-logout"
+                      type="button"
+                    >
+                      <span className="text-lg">🚪</span>
+                      <span>{t('nav.logout')}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="auth-buttons-group font-en">
+                <Link to="/login">
+                  <button className="auth-btn-modern auth-btn-login-modern">
+                    <span>{t('nav.login')}</span>
+                  </button>
+                </Link>
+                <Link to="/signup">
+                  <button className="auth-btn-modern auth-btn-signup-modern">
+                    <span>{t('nav.signup')}</span>
+                    <div className="btn-shine"></div>
+                  </button>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile: Theme, Language & Profile Buttons */}
+          <div className="md:hidden flex items-center justify-center gap-2">
+            {/* Mobile Profile - Show FIRST */}
+            {!loading && user && (
+              <div className="relative mobile-profile-wrapper" ref={userMenuRef}>
+                <button 
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="profile-avatar-btn mobile-avatar"
+                  aria-label="User Profile"
+                >
+                  <span className="profile-avatar-text">
+                    {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+                  </span>
+                  <div className="avatar-ring"></div>
+                </button>
+
+                {/* Mobile User Menu Dropdown */
+                {showUserMenu && (
+                  <div className="user-dropdown-menu user-dropdown-mobile">
+                    <div className="user-dropdown-header">
+                      <div className="user-dropdown-avatar">
+                        <span className="user-dropdown-avatar-text">
+                          {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+                        </span>
+                      </div>
+                      <div className="user-dropdown-info">
+                        <p className="user-dropdown-name">{user.name || 'User'}</p>
+                        <p className="user-dropdown-email">{user.email}</p>
+                      </div>
+                    </div>
+                    
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setShowUserMenu(false)}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 text-sm font-medium"
+                      >
+                        <span className="text-lg">⚙️</span>
+                        <span>{t('nav.admin')}</span>
+                      </Link>
+                    )}
+                    
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setShowUserMenu(false);
+                      }}
+                      className="user-dropdown-logout"
+                    >
+                      <span className="text-lg">🚪</span>
+                      <span>{t('nav.logout')}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default ModernNavbar;

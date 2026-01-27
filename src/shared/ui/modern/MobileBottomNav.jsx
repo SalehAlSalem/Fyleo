@@ -82,9 +82,9 @@ const MobileBottomNav = ({ onProfileClick, showUserMenu, onSearchClick, showSear
 
   return (
     <div className="mobile-bottom-nav-wrapper md:hidden" ref={navRef}>
-      {/* Navigation Bar - Simple centered layout */}
+      {/* Navigation Bar - Enhanced Modern Design */}
       <div className="mobile-bottom-nav">
-        {/* Right Side: Home + Library */}
+        {/* Right Side: Home + Library - Enhanced */}
         <div className="nav-section right">
           {rightItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -96,14 +96,25 @@ const MobileBottomNav = ({ onProfileClick, showUserMenu, onSearchClick, showSear
                 className={`mobile-nav-item ${isActive ? 'active' : ''}`}
                 aria-label={item.name}
               >
-                <span className="icon">{item.icon}</span>
-                {isActive && <span className="active-indicator"></span>}
+                <div className={`icon-wrapper ${
+                  isActive 
+                    ? 'bg-gradient-to-br from-orange-100 to-purple-100 dark:from-orange-900/30 dark:to-purple-900/30' 
+                    : 'bg-transparent'
+                }`}>
+                  <span className="icon">{item.icon}</span>
+                </div>
+                {isActive && (
+                  <>
+                    <span className="active-indicator"></span>
+                    <div className="active-glow"></div>
+                  </>
+                )}
               </Link>
             );
           })}
         </div>
 
-        {/* Center: Search Button */}
+        {/* Center: Search Button - Super Enhanced FAB */}
         <div className="nav-center">
           <button
             onClick={onSearchClick}
@@ -111,6 +122,13 @@ const MobileBottomNav = ({ onProfileClick, showUserMenu, onSearchClick, showSear
             aria-label={t('nav.search')}
           >
             <div className={`search-circle ${showSearch ? 'active' : ''}`}>
+              {/* Rotating Gradient Ring */}
+              <div className="gradient-ring"></div>
+              
+              {/* Pulsing Background */}
+              <div className="pulse-bg"></div>
+              
+              {/* Search Icon */}
               <svg 
                 className="search-icon" 
                 viewBox="0 0 24 24" 
@@ -123,11 +141,16 @@ const MobileBottomNav = ({ onProfileClick, showUserMenu, onSearchClick, showSear
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.35-4.35" />
               </svg>
+              
+              {/* Sparkles */}
+              <div className="sparkle sparkle-1"></div>
+              <div className="sparkle sparkle-2"></div>
+              <div className="sparkle sparkle-3"></div>
             </div>
           </button>
         </div>
 
-        {/* Left Side: Calculator + Workspace */}
+        {/* Left Side: Calculator + Workspace - Enhanced */}
         <div className="nav-section left">
           {leftItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -139,8 +162,19 @@ const MobileBottomNav = ({ onProfileClick, showUserMenu, onSearchClick, showSear
                 className={`mobile-nav-item ${isActive ? 'active' : ''}`}
                 aria-label={item.name}
               >
-                <span className="icon">{item.icon}</span>
-                {isActive && <span className="active-indicator"></span>}
+                <div className={`icon-wrapper ${
+                  isActive 
+                    ? 'bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30' 
+                    : 'bg-transparent'
+                }`}>
+                  <span className="icon">{item.icon}</span>
+                </div>
+                {isActive && (
+                  <>
+                    <span className="active-indicator"></span>
+                    <div className="active-glow"></div>
+                  </>
+                )}
               </Link>
             );
           })}

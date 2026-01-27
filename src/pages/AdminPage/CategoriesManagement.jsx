@@ -122,25 +122,41 @@ const CategoriesManagement = ({ onUpdate }) => {
 
   return (
     <div className="space-y-6">
-      {/* Alerts */}
-      {error && <ModernAlert variant="error">{error}</ModernAlert>}
-      {success && <ModernAlert variant="success">{success}</ModernAlert>}
-
-      {/* Add Category Button */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {t('admin.categories.title')}
-        </h2>
-        <ModernButton
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg">
+            📁
+          </div>
+          <div>
+            <h2 className="text-3xl font-black text-white">{t('admin.categories.title')}</h2>
+            <p className="text-white/60">إدارة وتنظيم فئات المواد التعليمية</p>
+          </div>
+        </div>
+        <button
           onClick={() => {
             resetForm();
             setShowModal(true);
           }}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="backdrop-blur-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:scale-105 transition-all flex items-center gap-2"
         >
           ➕ {t('admin.categories.addNew')}
-        </ModernButton>
+        </button>
       </div>
+
+      {/* Alerts */}
+      {error && (
+        <div className="backdrop-blur-sm bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex items-center justify-between">
+          <p className="text-red-200">{error}</p>
+          <button onClick={() => setError('')} className="text-red-200 hover:text-white">✕</button>
+        </div>
+      )}
+      {success && (
+        <div className="backdrop-blur-sm bg-green-500/10 border border-green-500/30 rounded-2xl p-4 flex items-center justify-between">
+          <p className="text-green-200">{success}</p>
+          <button onClick={() => setSuccess('')} className="text-green-200 hover:text-white">✕</button>
+        </div>
+      )}
 
       {/* Modal for Add/Edit Category */}
       {showModal && (

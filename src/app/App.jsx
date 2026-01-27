@@ -17,7 +17,6 @@ import Modern404 from '@/pages/404page/Modern404.jsx';
 import ModernForgotPassword from '@/pages/forgotpassword/ModernForgotPassword.jsx';
 import ScrollToTop from '@/components/ScrollToTop.jsx';
 
-import LoadingScreen from '@shared/ui/LoadingScreen.jsx';
 import ProtectedRoute from '@shared/ui/ProtectedRoute.jsx';
 import AdminRoleGuard from '@/components/AdminRoleGuard.jsx';
 import PersonalWorkspace from '@/pages/PersonalWorkspace/PersonalWorkspace.jsx';
@@ -31,9 +30,7 @@ import CookieConsentBanner from '@shared/ui/CookieConsent/CookieConsentBanner.js
 import DeleteAccountReauth from '@/pages/DeleteAccount/DeleteAccountReauth.jsx';
 import DeleteAccountConfirm from '@/pages/DeleteAccount/DeleteAccountConfirm.jsx';
 import VerifyEmail from '@/pages/VerifyEmail/VerifyEmail.jsx';
-import FolderUploadPreview from '@/pages/FolderUploadPreview/FolderUploadPreview.jsx';
-
-// النظام الهرمي الجديد - المكونات المُحدّثة
+import FolderUploadPreview from '@/pages/FolderUploadPreview/FolderUploadPreview.jsx';import FilePreview from '@/pages/FilePreview/FilePreview';// النظام الهرمي الجديد - المكونات المُحدّثة
 import LibraryPage from '@features/library/pages/LibraryPage';
 import GPACalculatorPage from '@/pages/GPACalculatorPage/GPACalculatorPage';
 
@@ -109,7 +106,6 @@ const AppContent = () => {
   };
   
   useEffect(() => {
-    // Simulate initialization time and check for critical errors
     const initApp = async () => {
       try {
         // Check if Appwrite environment variables are available
@@ -118,21 +114,30 @@ const AppContent = () => {
           console.warn('⚠️ Appwrite configuration missing - authentication may not work');
         }
         
-        // Small delay to show loading screen
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Small delay for smooth loading
+        await new Promise(resolve => setTimeout(resolve, 800));
         setIsLoading(false);
       } catch (error) {
-        console.error('❌ App initialization error:', error);
+        console.error('App initialization error:', error);
         setHasError(true);
         setIsLoading(false);
       }
     };
-    
     initApp();
   }, []);
   
+  // Simple loading spinner
   if (isLoading) {
-    return <LoadingScreen />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300 text-sm">
+            {i18n.language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
+          </p>
+        </div>
+      </div>
+    );
   }
   
   if (hasError) {
@@ -155,30 +160,38 @@ const AppContent = () => {
   return (
       <div data-theme={theme} className="min-h-screen transition-colors duration-300">
           <ScrollToTop />
-          <ModernNavbar showUserMenu={showUserMenu} setShowUserMenu={setShowUserMenu} />
-          <MobileBottomNav 
-            onProfileClick={() => {
-              setShowSearch(false);
-              setCardModalOpen(false);
-              setIsPreviewOpen(false);
-              setShowUserMenu(!showUserMenu);
-            }} 
-            showUserMenu={showUserMenu}
-            onSearchClick={() => {
-              setCardModalOpen(false);
-              setIsPreviewOpen(false);
-              setShowSearch(!showSearch);
-            }}
-            showSearch={showSearch}
-            onNavigate={() => {
-              setShowSearch(false);
-              setCardModalOpen(false);
-              setIsPreviewOpen(false);
-            }}
-          />
+          {/* Hide navbar on preview page */}
+          {location.pathname !== '/preview' && (
+            <ModernNavbar showUserMenu={showUserMenu} setShowUserMenu={setShowUserMenu} />
+          )}
+          {location.pathname !== '/preview' && (
+            <MobileBottomNav 
+              onProfileClick={() => {
+                setShowSearch(false);
+                setCardModalOpen(false);
+                setIsPreviewOpen(false);
+                setShowUserMenu(!showUserMenu);
+              }} 
+              showUserMenu={showUserMenu}
+              onSearchClick={() => {
+                setCardModalOpen(false);
+                setIsPreviewOpen(false);
+                setShowSearch(!showSearch);
+              }}
+              showSearch={showSearch}
+              onNavigate={() => {
+                setShowSearch(false);
+                setCardModalOpen(false);
+                setIsPreviewOpen(false);
+              }}
+            />
+          )}
           <main className="min-h-screen pt-12 md:pt-16">
             <Routes>
               <Route path="/" element={<ModernLandingPage />} />
+              
+              {/* File Preview - نظام المعاينة الجديد */}
+              <Route path="/preview" element={<FilePreview />} />
               
               {/* النظام الهرمي الجديد - المسارات المحدثة */}
               <Route path="/library" element={<LibraryPage />} />
@@ -231,7 +244,8 @@ const AppContent = () => {
               <Route path="*" element={<Modern404 />} />
             </Routes>
           </main>
-          <ModernFooter />
+          {/* Hide footer on preview page */}
+          {location.pathname !== '/preview' && <ModernFooter />}
           <CookieConsentBanner />
           
           {/* Mobile Search Popup */}

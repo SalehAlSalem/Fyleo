@@ -23,15 +23,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Force RTL styling -->
+    <!-- Dynamic RTL/LTR styling based on language -->
     <style>
-      html, body {
-        direction: rtl !important;
-        text-align: right !important;
+      /* RTL styling for Arabic */
+      html[dir="rtl"], html[dir="rtl"] body {
+        direction: rtl;
+        text-align: right;
       }
-      * {
-        direction: inherit;
+      
+      /* LTR styling for English */
+      html[dir="ltr"], html[dir="ltr"] body {
+        direction: ltr;
+        text-align: left;
       }
+      
       /* Prevent scroll restoration */
       html {
         scroll-behavior: auto !important;

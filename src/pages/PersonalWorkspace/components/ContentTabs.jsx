@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 import { materialsService, postsService, bookmarksService, fileTypesService, educationalPurposesService } from '../../../services/appwriteService';
 import SmartSubjectSearch from '../../../components/SmartSubjectSearch/SmartSubjectSearch';
 import './ContentTabs.css';
@@ -7,8 +8,9 @@ import CardModal from '../../../features/library/components/CardModal';
 import FilePreviewModal from '../../../features/library/components/FilePreviewModal';
 
 /**
- * Content Management Tabs
- * Clean tab system with elegant table/list views
+ * ✨ Content Management Tabs - Premium Edition
+ * Animated Tabs with Sliding Indicator + Smooth Transitions
+ * Inspired by Landing Page & GPA Calculator
  */
 const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
   const { t, i18n } = useTranslation();
@@ -31,7 +33,6 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
   
   // Search/filter state
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState(null);
 
   // Fetch file types and educational purposes on mount
   useEffect(() => {
@@ -451,43 +452,33 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
     handleClearSelection();
   }, [activeTab]);
 
-    // Filter content based on subject filter and search query
+    // 🎯 Smart Filter - Searches in File Name + Subject Name
   const filterContent = (items) => {
-    let filtered = items;
-    
-    // Apply subject filter first
-    if (selectedSubjectFilter) {
-      console.log('🔍 Filtering by subject:', selectedSubjectFilter.$id);
-      console.log('📊 Items before filter:', items.length);
-      filtered = filtered.filter(item => {
-        const match = item.subjectId === selectedSubjectFilter.$id;
-        if (match) {
-          console.log('✅ Match:', item.title, 'subjectId:', item.subjectId);
-        }
-        return match;
-      });
-      console.log('📊 Items after filter:', filtered.length);
+    if (!searchQuery.trim()) {
+      return items;
     }
+
+    const query = searchQuery.toLowerCase();
     
-    // Then apply text search
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(item => {
-        // Search in title
-        if (item.title?.toLowerCase().includes(query)) return true;
-        
-        // Search in description/contentText
-        if (item.description?.toLowerCase().includes(query)) return true;
-        if (item.contentText?.toLowerCase().includes(query)) return true;
-        
-        // Search in link URL
-        if (item.linkURL?.toLowerCase().includes(query)) return true;
-        
-        return false;
-      });
-    }
-    
-    return filtered;
+    return items.filter(item => {
+      // Search in file/link title
+      if (item.title?.toLowerCase().includes(query)) return true;
+      
+      // Search in description/contentText
+      if (item.description?.toLowerCase().includes(query)) return true;
+      if (item.contentText?.toLowerCase().includes(query)) return true;
+      
+      // Search in link URL
+      if (item.linkURL?.toLowerCase().includes(query)) return true;
+      
+      // 🎓 Search in subject name (Arabic + English)
+      if (item.subjectId) {
+        const subjectName = subjectNames[item.subjectId];
+        if (subjectName?.toLowerCase().includes(query)) return true;
+      }
+      
+      return false;
+    });
   };
   
   const filteredFiles = filterContent(files);
@@ -737,176 +728,47 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
         <div className={`tab-indicator tab-${activeTab}`}></div>
       </div>
 
-      {/* Search & Filter Bar */}
-      <div style={{ 
-        padding: '1rem',
-        background: 'var(--card-bg, #1a2332)',
-        borderRadius: '12px',
-        marginBottom: '1rem'
-      }}>
-        <div style={{ 
-          display: 'grid',
-          gridTemplateColumns: i18n.language === 'ar' ? '1fr 2fr' : '2fr 1fr',
-          gap: '1rem',
-          marginBottom: '0.75rem'
-        }}>
-          {/* Text Search */}
-          <div style={{ position: 'relative' }}>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={i18n.language === 'ar' ? '🔍 ابحث في اسم الملف...' : '🔍 Search in file name...'}
-              style={{
-                width: '100%',
-                padding: '0.875rem 3rem 0.875rem 1rem',
-                background: 'var(--input-bg, rgba(255,255,255,0.05))',
-                border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
-                borderRadius: '8px',
-                color: 'var(--text-primary, #fff)',
-                fontSize: '0.95rem',
-                outline: 'none',
-                transition: 'all 0.2s ease'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#6366f1';
-                e.target.style.background = 'rgba(99, 102, 241, 0.05)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'var(--border-color, rgba(255,255,255,0.1))';
-                e.target.style.background = 'var(--input-bg, rgba(255,255,255,0.05))';
-              }}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                style={{
-                  position: 'absolute',
-                  right: '1rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '6px',
-                  padding: '0.25rem 0.5rem',
-                  color: '#ef4444',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'rgba(239, 68, 68, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(239, 68, 68, 0.1)';
-                }}
-              >
-                ✕
-              </button>
-            )}
-          </div>
+      {/* 🎨 Unified Smart Search - Searches in File Name + Subject */}
+      <div className="premium-filter-bar">
+        <div className="unified-smart-search">
+          <span className="search-icon-unified">🔍</span>
+          
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={i18n.language === 'ar' ? 'ابحث في اسم الملف أو المادة...' : 'Search in file name or subject...'}
+            className="smart-search-input"
+          />
 
-          {/* Subject Filter using SmartSubjectSearch */}
-          <div>
-            <SmartSubjectSearch
-              value={selectedSubjectFilter?.$id || ''}
-              onChange={(subjectId) => {
-                if (subjectId) {
-                  // Get subject object from cache
-                  const subjectObj = window.__subjectsCache?.[subjectId];
-                  if (subjectObj) {
-                    setSelectedSubjectFilter(subjectObj);
-                  } else {
-                    // Fallback: create minimal object
-                    setSelectedSubjectFilter({
-                      $id: subjectId,
-                      nameAr: subjectNames[subjectId] || '',
-                      nameEn: subjectNames[subjectId] || ''
-                    });
-                  }
-                } else {
-                  setSelectedSubjectFilter(null);
-                }
-              }}
-            />
-          </div>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="clear-search-btn-smart"
+              title={i18n.language === 'ar' ? 'مسح' : 'Clear'}
+            >
+              ✕
+            </button>
+          )}
         </div>
         
-        {/* Active Filters & Result Count */}
-        {(searchQuery || selectedSubjectFilter) && (
-          <div style={{ 
-            display: 'flex',
-            gap: '1rem',
-            alignItems: 'center',
-            flexWrap: 'wrap'
-          }}>
-            {/* Result Count */}
-            <div style={{ 
-              fontSize: '0.875rem',
-              color: 'var(--text-secondary, #94a3b8)'
-            }}>
-              {activeTab === 'files' && `📁 ${filteredFiles.length} ${i18n.language === 'ar' ? 'ملف' : 'files'}`}
-              {activeTab === 'links' && `🔗 ${filteredLinks.length} ${i18n.language === 'ar' ? 'رابط' : 'links'}`}
-              {activeTab === 'bookmarks' && `⭐ ${filteredBookmarks.length} ${i18n.language === 'ar' ? 'مفضلة' : 'bookmarks'}`}
-            </div>
-            
-            {/* Active Subject Filter Badge */}
-            {selectedSubjectFilter && (
-              <div style={{ 
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.375rem 0.75rem',
-                background: 'rgba(99, 102, 241, 0.1)',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
-                borderRadius: '6px',
-                fontSize: '0.875rem',
-                color: '#6366f1'
-              }}>
-                <span>📚 {i18n.language === 'ar' ? selectedSubjectFilter.nameAr : selectedSubjectFilter.nameEn}</span>
-                <button
-                  onClick={() => setSelectedSubjectFilter(null)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#ef4444',
-                    cursor: 'pointer',
-                    padding: 0,
-                    fontSize: '1rem',
-                    lineHeight: 1
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
+        {/* Search Result Count */}
+        {searchQuery && (
+          <div className="search-results-badge">
+            {activeTab === 'files' && (
+              <span>
+                📁 {filteredFiles.length} {i18n.language === 'ar' ? 'نتيجة' : 'results'}
+              </span>
             )}
-            
-            {/* Clear All Button */}
-            {(searchQuery || selectedSubjectFilter) && (
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedSubjectFilter(null);
-                }}
-                style={{
-                  padding: '0.375rem 0.75rem',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '6px',
-                  color: '#ef4444',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'rgba(239, 68, 68, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(239, 68, 68, 0.1)';
-                }}
-              >
-                {i18n.language === 'ar' ? 'مسح الكل' : 'Clear All'}
-              </button>
+            {activeTab === 'links' && (
+              <span>
+                🔗 {filteredLinks.length} {i18n.language === 'ar' ? 'نتيجة' : 'results'}
+              </span>
+            )}
+            {activeTab === 'bookmarks' && (
+              <span>
+                ⭐ {filteredBookmarks.length} {i18n.language === 'ar' ? 'نتيجة' : 'results'}
+              </span>
             )}
           </div>
         )}

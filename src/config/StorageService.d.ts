@@ -26,6 +26,7 @@ export const StorageService: {
   deleteFile(fileId: string): Promise<boolean>;
   getPublicURL(fileId: string): string;
   getFileDownload(fileId: string): Promise<string | null>;
+  getDownloadURL(fileId: string, fileName?: string | null): Promise<string>;
   getFileView(fileId: string): string;
   getFilePreview(fileId: string): string;
   isValidFileType(mimeType: string): boolean;

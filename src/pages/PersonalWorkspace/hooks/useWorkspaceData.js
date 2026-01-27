@@ -168,6 +168,14 @@ export function useWorkspaceData(userId) {
   const bookmarks = useUserBookmarks(userId);
   const downloads = useUserDownloads(userId);
 
+  console.log('🔍 useWorkspaceData Debug:', {
+    userId,
+    materials: { data: materials.data, loading: materials.isLoading, error: materials.error },
+    posts: { data: posts.data, loading: posts.isLoading, error: posts.error },
+    bookmarks: { data: bookmarks.data, loading: bookmarks.isLoading, error: bookmarks.error },
+    downloads: { data: downloads.data, loading: downloads.isLoading, error: downloads.error },
+  });
+
   return {
     materials: materials.data || [],
     posts: posts.data || [],

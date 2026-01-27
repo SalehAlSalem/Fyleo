@@ -1,44 +1,829 @@
-/* Modern Navbar Styles */
+/* ========================================
+   🎨 CREATIVE DESKTOP NAVBAR DESIGN
+   Modern Glassmorphism with Floating Elements
+   ======================================== */
 
 .navbar-modern {
-  /* Use sticky for mobile to prevent iOS Safari jumping */
   position: sticky;
   top: 0;
   left: 0;
   right: 0;
   z-index: 10000 !important;
-  background: rgb(255, 255, 255) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
-  /* iOS Safari Fix - Force hardware acceleration and prevent jitter */
+  /* Glassmorphism Effect */
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Hardware acceleration */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  will-change: transform;
+  will-change: transform, background;
 }
 
-/* Desktop can use fixed positioning */
+/* Desktop fixed positioning */
 @media (min-width: 769px) {
   .navbar-modern {
     position: fixed;
   }
 }
 
+/* Scrolled State - Enhanced Glassmorphism */
+.navbar-modern.navbar-scrolled {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(139, 92, 246, 0.1);
+}
+
+/* Dark Theme */
 [data-theme="dark"] .navbar-modern {
-  background: rgb(15, 23, 42) !important;
+  background: rgba(15, 23, 42, 0.85) !important;
   border-bottom-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-.navbar-modern.shadow-modern {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+[data-theme="dark"] .navbar-modern.navbar-scrolled {
+  background: rgba(15, 23, 42, 0.7) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(139, 92, 246, 0.2);
 }
 
-[data-theme="dark"] .navbar-modern.shadow-modern {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+/* ========================================
+   🌊 ANIMATED BACKGROUND BLOBS
+   ======================================== */
+
+.navbar-bg-blobs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.15;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  animation: blob-float 20s infinite ease-in-out;
+}
+
+.blob-1 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, #ff6b35 0%, #f97316 100%);
+  top: -150px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.blob-2 {
+  width: 250px;
+  height: 250px;
+  background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+  top: -100px;
+  right: 20%;
+  animation-delay: -7s;
+}
+
+.blob-3 {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  top: -80px;
+  right: -50px;
+  animation-delay: -14s;
+}
+
+@keyframes blob-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 10px) scale(0.9);
+  }
+}
+
+[data-theme="dark"] .navbar-bg-blobs {
+  opacity: 0.08;
+}
+
+/* ========================================
+   ✨ CREATIVE LOGO DESIGN
+   ======================================== */
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo-container:hover .logo-wrapper {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 30px rgba(139, 92, 246, 0.15),
+    0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="dark"] .logo-wrapper {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .logo-container:hover .logo-wrapper {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.logo-icon-wrapper {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ff6b35 0%, #a855f7 50%, #3b82f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 12px rgba(139, 92, 246, 0.2),
+    0 2px 6px rgba(59, 130, 246, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo-container:hover .logo-icon-wrapper {
+  transform: rotate(-5deg) scale(1.05);
+  box-shadow: 
+    0 12px 30px rgba(139, 92, 246, 0.35),
+    0 6px 16px rgba(59, 130, 246, 0.25);
+}
+
+.logo-icon {
+  width: 20px;
+  height: 20px;
+  color: white;
+  position: relative;
+  z-index: 2;
+}
+
+.logo-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ff6b35 0%, #a855f7 50%, #3b82f6 100%);
+  filter: blur(12px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.logo-container:hover .logo-glow {
+  opacity: 0.6;
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff6b35 0%, #a855f7 50%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.3px;
+}
+
+@media (max-width: 640px) {
+  .logo-text {
+    display: none;
+  }
+}
+
+/* ========================================
+   🚀 FLOATING NAVIGATION PILLS
+   ======================================== */
+
+.nav-pills-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .nav-pills-container {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.nav-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.nav-pill:hover {
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"] .nav-pill {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .nav-pill:hover {
+  color: #e2e8f0;
+  background: rgba(51, 65, 85, 0.6);
+}
+
+.nav-pill-active {
+  color: white !important;
+  background: linear-gradient(135deg, #ff6b35 0%, #a855f7 50%, #3b82f6 100%);
+  box-shadow: 
+    0 8px 20px rgba(139, 92, 246, 0.3),
+    0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.nav-pill-active:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 12px 28px rgba(139, 92, 246, 0.4),
+    0 6px 16px rgba(59, 130, 246, 0.3);
+}
+
+.nav-pill-icon {
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-pill-text {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nav-pill-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ff6b35 0%, #a855f7 50%, #3b82f6 100%);
+  filter: blur(16px);
+  opacity: 0.5;
+  z-index: -1;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+/* ========================================
+   💎 CREATIVE ACTION BUTTONS (Theme & Language)
+   ======================================== */
+
+.navbar-actions-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 100%;
+}
+
+.action-btn-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b35, #a855f7, #3b82f6);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  filter: blur(6px);
+}
+
+.action-btn-wrapper:hover::before {
+  opacity: 0.4;
+}
+
+.modern-tool-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #64748b !important;
+  font-size: 16px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+.modern-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #1e293b !important;
+  transform: translateY(-1px) scale(1.03) !important;
+  box-shadow: 
+    0 8px 20px rgba(139, 92, 246, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.modern-tool-btn:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+[data-theme="dark"] .modern-tool-btn {
+  background: rgba(30, 41, 59, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="dark"] .modern-tool-btn:hover {
+  background: rgba(30, 41, 59, 0.9) !important;
+  color: #e2e8f0 !important;
+}
+
+.modern-tool-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-tool-btn:hover svg {
+  transform: rotate(10deg) scale(1.1);
+}
+
+/* ========================================
+   👤 PROFILE AVATAR BUTTON
+   ======================================== */
+
+.profile-avatar-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  overflow: visible;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Glass Ring Border */
+  box-shadow: 
+    0 0 0 2px rgba(255, 255, 255, 0.3),
+    0 2px 8px rgba(139, 92, 246, 0.3),
+    0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .profile-avatar-btn {
+  box-shadow: 
+    0 0 0 2px rgba(255, 255, 255, 0.15),
+    0 2px 8px rgba(139, 92, 246, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.profile-avatar-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 0 2px rgba(255, 255, 255, 0.5),
+    0 4px 12px rgba(139, 92, 246, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .profile-avatar-btn:hover {
+  box-shadow: 
+    0 0 0 2px rgba(255, 255, 255, 0.25),
+    0 4px 12px rgba(139, 92, 246, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.profile-avatar-btn:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 2px;
+}
+
+.profile-avatar-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* Animated Ring Effect */
+.avatar-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b35, #a855f7, #3b82f6);
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.profile-avatar-btn:hover .avatar-ring {
+  opacity: 0.6;
+  animation: ring-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ring-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+/* ========================================
+   📋 USER DROPDOWN MENU - Glassmorphism
+   ======================================== */
+
+.user-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  width: 260px;
+  
+  /* Enhanced Glassmorphism */
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 20px 50px rgba(0, 0, 0, 0.1),
+    0 10px 30px rgba(139, 92, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  
+  padding: 20px;
+  z-index: 60;
+  
+  animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* RTL Support for Dropdown Menu */
+[data-lang="ar"] .user-dropdown-menu {
+  right: 0;
+  left: auto;
+  transform-origin: top right;
+}
+
+[data-lang="en"] .user-dropdown-menu {
+  left: 0;
+  right: auto;
+  transform-origin: top left;
+}
+
+/* Mobile: Always align to right edge */
+@media (max-width: 768px) {
+  .user-dropdown-menu {
+    right: 0;
+    left: auto;
+    transform-origin: top right;
+  }
+  
+  .user-dropdown-mobile {
+    width: 280px;
+  }
+}
+
+[data-theme="dark"] .user-dropdown-menu {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 20px 50px rgba(0, 0, 0, 0.4),
+    0 10px 30px rgba(139, 92, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.user-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .user-dropdown-header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.user-dropdown-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+}
+
+.user-dropdown-avatar-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+}
+
+.user-dropdown-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-dropdown-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .user-dropdown-name {
+  color: #f1f5f9;
+}
+
+.user-dropdown-email {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .user-dropdown-email {
+  color: #94a3b8;
+}
+
+.user-dropdown-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-dropdown-logout:hover {
+  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.2);
+}
+
+.user-dropdown-logout:active {
+  transform: translateY(0);
+}
+
+[data-theme="dark"] .user-dropdown-logout {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.2) 100%);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+[data-theme="dark"] .user-dropdown-logout:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.3) 100%);
+}
+
+/* ========================================
+   🔐 AUTH BUTTONS - Modern Creative Design
+   ======================================== */
+
+.auth-buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-btn-modern {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.auth-btn-login-modern {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #64748b;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.auth-btn-login-modern:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e293b;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .auth-btn-login-modern {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .auth-btn-login-modern:hover {
+  background: rgba(30, 41, 59, 0.9);
+  color: #e2e8f0;
+}
+
+.auth-btn-signup-modern {
+  background: linear-gradient(135deg, #ff6b35 0%, #a855f7 50%, #3b82f6 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 20px rgba(139, 92, 246, 0.3),
+    0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.auth-btn-signup-modern:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 12px 30px rgba(139, 92, 246, 0.4),
+    0 6px 16px rgba(59, 130, 246, 0.3);
+}
+
+.auth-btn-signup-modern:active {
+  transform: translateY(-1px);
+}
+
+/* Shine Effect on Signup Button */
+.btn-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shine-sweep 3s infinite;
+}
+
+@keyframes shine-sweep {
+  0% {
+    left: -100%;
+  }
+  20%, 100% {
+    left: 100%;
+  }
+}
+
+/* ========================================
+   ⏳ LOADING SPINNER
+   ======================================== */
+
+.loading-spinner-wrapper {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid rgba(139, 92, 246, 0.1);
+  border-top-color: #a855f7;
+  animation: spinner-rotate 0.8s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+[data-theme="dark"] .loading-spinner {
+  border-color: rgba(139, 92, 246, 0.2);
+  border-top-color: #c4b5fd;
 }
 
 .container-modern {
@@ -228,6 +1013,74 @@
 }
 
 /* ========================================
+   📱 MOBILE TOP NAV ENHANCEMENTS - Creative Neon Style
+   ======================================== */
+
+/* Neon Button Wrapper with Glow */
+.mobile-neon-btn {
+  position: relative;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-neon-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* Slow Spin Animation for Gradient Rings */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Blob Animation for Background Elements */
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+/* Shimmer Effect for Profile Button */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-200%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+/* Pulsing Glow for Active Elements */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* ========================================
    🚀 MOBILE BOTTOM NAVIGATION - MODERN STYLE
    Floating Action Button with Curved Notch
    ======================================== */
@@ -263,28 +1116,68 @@
   pointer-events: auto;
 }
 
-/* Navigation Bar - Simple with centered button */
+/* Navigation Bar - Enhanced Modern Design with Gradient */
 .mobile-bottom-nav {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: white;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  padding: 8px;
-  /* iOS PWA Safe Area - Add extra padding for home indicator */
-  padding-bottom: calc(8px + env(safe-area-inset-bottom));
-  height: 65px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 
+    0 -4px 20px rgba(0, 0, 0, 0.08),
+    0 -2px 10px rgba(139, 92, 246, 0.1);
+  padding: 10px 8px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  height: 70px;
+  
+  /* Glass morphism effect */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   
   /* iOS Safari Fix - Ensure nav stays fixed */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
+  
+  /* Subtle gradient overlay */
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.95) 0%, 
+    rgba(255, 255, 255, 0.98) 100%
+  );
 }
 
+/* Decorative Gradient Line on Top */
+.mobile-bottom-nav::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    #ff6b35 20%,
+    #a855f7 50%,
+    #3b82f6 80%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* Dark Mode - Enhanced */
 [data-theme="dark"] .mobile-bottom-nav {
-  background: rgb(15, 23, 42);
-  border-top-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, 
+    rgba(15, 23, 42, 0.95) 0%, 
+    rgba(15, 23, 42, 0.98) 100%
+  );
+  border-top-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    0 -4px 20px rgba(0, 0, 0, 0.3),
+    0 -2px 10px rgba(139, 92, 246, 0.2);
+}
+
+[data-theme="dark"] .mobile-bottom-nav::before {
+  opacity: 0.8;
 }
 
 /* Navigation Item Groups */
@@ -316,7 +1209,7 @@
 }
 
 /* Navigation Items */
-/* Mobile Navigation Items - Icon Only */
+/* Mobile Navigation Items - Icon Only with Enhanced Design */
 .mobile-nav-item {
   position: relative;
   display: flex;
@@ -324,40 +1217,97 @@
   justify-content: center;
   flex-direction: column;
   padding: 10px;
-  border-radius: 12px;
-  transition: all 0.2s;
+  border-radius: 16px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   color: #64748b;
   text-decoration: none;
+  width: 52px;
+  height: 52px;
+  overflow: visible;
+}
+
+/* Icon Wrapper for Better Control */
+.mobile-nav-item .icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 48px;
   height: 48px;
+  border-radius: 14px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mobile-nav-item .icon {
-  font-size: 24px;
-  transition: transform 0.2s;
+  font-size: 26px;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2;
+  position: relative;
 }
 
-/* Active Indicator - خط تحت العنصر النشط */
+/* Active Indicator - Enhanced Gradient Line */
 .mobile-nav-item .active-indicator {
   position: absolute;
-  bottom: 2px;
+  bottom: -2px;
   left: 50%;
   transform: translateX(-50%);
-  width: 24px;
-  height: 3px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-  border-radius: 2px 2px 0 0;
-  animation: slideIn 0.3s ease-out;
+  width: 32px;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6b35, #8b5cf6, #3b82f6);
+  border-radius: 4px 4px 0 0;
+  animation: slideInGrow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
 }
 
-@keyframes slideIn {
-  from {
+/* Active Glow Effect */
+.mobile-nav-item .active-glow {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulseGlow 2s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes slideInGrow {
+  0% {
     width: 0;
     opacity: 0;
+    height: 2px;
   }
-  to {
-    width: 24px;
+  50% {
+    width: 36px;
+    opacity: 0.8;
+  }
+  100% {
+    width: 32px;
     opacity: 1;
+    height: 4px;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(-50%) scale(0.9);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateX(-50%) scale(1.1);
+  }
+}
+
+/* Floating Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
   }
 }
 
@@ -366,47 +1316,70 @@
   display: none;
 }
 
+/* Hover State - Enhanced */
 .mobile-nav-item:hover {
-  background: rgba(59, 130, 246, 0.1);
+  background: transparent;
   color: #3b82f6;
+  transform: translateY(-4px);
+}
+
+.mobile-nav-item:hover .icon-wrapper {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(139, 92, 246, 0.15));
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
 }
 
 .mobile-nav-item:hover .icon {
-  transform: scale(1.1);
+  transform: scale(1.2) rotate(-5deg);
 }
 
+/* Active State - Enhanced with Gradient */
 .mobile-nav-item.active {
   color: #3b82f6;
-  background: rgba(59, 130, 246, 0.08);
+  background: transparent;
+}
+
+.mobile-nav-item.active .icon-wrapper {
+  box-shadow: 
+    0 4px 12px rgba(139, 92, 246, 0.3),
+    inset 0 1px 3px rgba(255, 255, 255, 0.5);
 }
 
 .mobile-nav-item.active .icon {
-  transform: scale(1.15);
+  transform: scale(1.25);
+  filter: drop-shadow(0 2px 4px rgba(139, 92, 246, 0.3));
 }
 
+/* Dark Mode Support */
 [data-theme="dark"] .mobile-nav-item {
   color: #94a3b8;
 }
 
 [data-theme="dark"] .mobile-nav-item:hover {
-  background: rgba(96, 165, 250, 0.1);
   color: #60a5fa;
+}
+
+[data-theme="dark"] .mobile-nav-item:hover .icon-wrapper {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(139, 92, 246, 0.2));
 }
 
 [data-theme="dark"] .mobile-nav-item.active {
   color: #60a5fa;
-  background: rgba(96, 165, 250, 0.08);
 }
 
 [data-theme="dark"] .mobile-nav-item .active-indicator {
-  background: linear-gradient(90deg, #60a5fa, #a78bfa);
+  background: linear-gradient(90deg, #ff6b35, #a78bfa, #60a5fa);
+  box-shadow: 0 2px 8px rgba(167, 139, 250, 0.5);
+}
+
+[data-theme="dark"] .mobile-nav-item .active-glow {
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.4) 0%, transparent 70%);
 }
 
 /* ========================================
-   ✨ FLOATING SEARCH BUTTON - FAB Style
+   ✨ FLOATING SEARCH BUTTON - Super Enhanced FAB
    ======================================== */
 
-/* Center Search Button - Simple in the middle */
+/* Center Search Button - Enhanced with Multiple Effects */
 .center-search-btn {
   background: transparent;
   border: none;
@@ -414,55 +1387,182 @@
   padding: 0;
   outline: none;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
 
 .center-search-btn:focus {
   outline: none;
 }
 
+/* Search Circle - Main FAB */
 .search-circle {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FF6B6B 0%, #A855F7 50%, #3B82F6 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #a855f7 50%, #3b82f6 100%);
   box-shadow: 
-    0 4px 12px rgba(168, 85, 247, 0.4),
-    0 8px 20px rgba(168, 85, 247, 0.3);
-  transition: all 0.3s ease;
+    0 6px 16px rgba(168, 85, 247, 0.5),
+    0 10px 30px rgba(168, 85, 247, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: visible;
 }
 
-/* Search Icon (SVG) */
+/* Rotating Gradient Ring */
+.search-circle .gradient-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #ff6b35,
+    #a855f7,
+    #3b82f6,
+    #ff6b35
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: rotate 4s linear infinite;
+  filter: blur(8px);
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pulsing Background */
+.search-circle .pulse-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+/* Search Icon (SVG) - Enhanced */
 .search-icon {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   color: white;
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+  z-index: 10;
+  position: relative;
+}
+
+/* Sparkles Around FAB */
+.sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0;
+  animation: sparkle 3s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.sparkle-1 {
+  top: 10%;
+  right: 10%;
+  animation-delay: 0s;
+}
+
+.sparkle-2 {
+  bottom: 15%;
+  left: 10%;
+  animation-delay: 1s;
+}
+
+.sparkle-3 {
+  top: 50%;
+  left: -5%;
+  animation-delay: 2s;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Active State - When Search is Open */
 .search-circle.active {
-  background: linear-gradient(135deg, #3B82F6 0%, #A855F7 50%, #FF6B6B 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #a855f7 50%, #ff6b35 100%);
+  transform: rotate(90deg);
 }
 
-/* Hover State */
+.search-circle.active .search-icon {
+  transform: rotate(-90deg) scale(0.9);
+}
+
+.search-circle.active .gradient-ring {
+  opacity: 0.8;
+}
+
+/* Hover State - Super Enhanced */
 .center-search-btn:hover .search-circle {
-  transform: scale(1.1);
+  transform: scale(1.15) translateY(-2px);
   box-shadow: 
-    0 6px 20px rgba(168, 85, 247, 0.5),
-    0 10px 30px rgba(168, 85, 247, 0.4);
+    0 8px 24px rgba(168, 85, 247, 0.6),
+    0 12px 40px rgba(168, 85, 247, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.center-search-btn:hover .gradient-ring {
+  opacity: 0.6;
 }
 
 .center-search-btn:hover .search-icon {
-  transform: scale(1.1);
+  transform: scale(1.2) rotate(10deg);
 }
 
 /* Active/Press State */
 .center-search-btn:active .search-circle {
-  transform: scale(0.95);
+  transform: scale(0.9);
+  box-shadow: 
+    0 4px 12px rgba(168, 85, 247, 0.4),
+    0 6px 20px rgba(168, 85, 247, 0.3);
+}
+
+/* Dark Mode Adjustments */
+[data-theme="dark"] .search-circle {
+  box-shadow: 
+    0 6px 16px rgba(168, 85, 247, 0.7),
+    0 10px 30px rgba(168, 85, 247, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .center-search-btn:hover .search-circle {
+  box-shadow: 
+    0 8px 24px rgba(168, 85, 247, 0.8),
+    0 12px 40px rgba(168, 85, 247, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 
@@ -509,6 +1609,9 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     z-index: 9999;
+    /* Prevent scroll propagation */
+    overscroll-behavior: contain;
+    touch-action: pan-y;
   }
 
   [data-theme="dark"] .mobile-search-popup {
@@ -728,4 +1831,14 @@
 
 [dir="rtl"] .navbar-modern .flex.items-center.space-x-8 {
   gap: 1.5rem;  /* ← أقل بالعربي */
+}
+
+/* Hide scrollbar for filters */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

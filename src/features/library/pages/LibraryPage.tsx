@@ -87,7 +87,12 @@ const LibraryPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortBy>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [groupBy, setGroupBy] = useState<GroupBy>('type'); // Default: Group by FileType
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  
+  // Default view mode: 'list' on mobile, 'grid' on desktop
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const isMobile = window.innerWidth < 768;
+    return isMobile ? 'list' : 'grid';
+  });
 
   // Prefetch functions
   const prefetchCategory = usePrefetchCategory();
@@ -394,8 +399,15 @@ const LibraryPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8 px-4">
+      {/* Decorative Background Elements - Like Homepage */}
+      <div className="fixed inset-0 opacity-5 pointer-events-none">
+        <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-72 h-72 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
         
         {/* Level 1: Smart Explorer */}
         {level === 1 && (
@@ -404,14 +416,57 @@ const LibraryPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-5xl font-bold text-gray-800 dark:text-white mb-4">
-                📚 {t('nav.materials')}
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                {t('exploreDescription')}
-              </p>
+            {/* Header - Hero Style like Homepage */}
+            <div className="relative text-center mb-16">
+              {/* Logo with 3D Effect & Glow */}
+              <div className="relative inline-block mb-8">
+                {/* Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 via-purple-500/30 to-blue-500/30 rounded-full blur-3xl scale-150 animate-pulse"></div>
+                
+                {/* Main Icon */}
+                <div className="relative group">
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-orange-500 via-purple-500 to-blue-500 flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                    <span className="text-6xl md:text-7xl transform group-hover:scale-110 transition-transform duration-300">📚</span>
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute -top-4 -right-4 text-3xl animate-bounce" style={{ animationDuration: '2s' }}>✨</div>
+                  <div className="absolute -bottom-4 -left-4 text-3xl animate-bounce" style={{ animationDuration: '2.5s', animationDelay: '0.3s' }}>🎯</div>
+                </div>
+              </div>
+
+              {/* Brand Title with Modern Typography */}
+              <div className="mb-6">
+                <motion.h1 
+                  className="text-6xl md:text-8xl font-black mb-4 tracking-tight"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <span className="inline-block bg-gradient-to-r from-orange-500 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    {t('nav.materials')}
+                  </span>
+                </motion.h1>
+                
+                {/* Decorative Line */}
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <div className="h-1 w-12 bg-gradient-to-r from-transparent to-orange-500 rounded-full"></div>
+                  <div className="h-1.5 w-16 bg-gradient-to-r from-orange-500 via-purple-500 to-blue-500 rounded-full"></div>
+                  <div className="h-1 w-12 bg-gradient-to-r from-blue-500 to-transparent rounded-full"></div>
+                </div>
+              </div>
+
+              {/* Tagline */}
+              <div className="max-w-2xl mx-auto">
+                <motion.p 
+                  className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 leading-tight"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.6 }}
+                >
+                  {t('exploreDescription')}
+                </motion.p>
+              </div>
             </div>
 
             {/* Search Bar - Level 1: Global Search (Now with local fuzzy search) */}
@@ -480,22 +535,66 @@ const LibraryPage: React.FC = () => {
               {categoryLoading ? (
                 <LoaderSkeleton variant="text" count={3} className="mb-12" />
               ) : category && (
-                <div className="text-center mb-12">
-                  <div className="flex items-center justify-center gap-4 mb-4">
-                    <span className="text-6xl">{category.icon}</span>
-                    <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
-                      {category[nameKey]}
-                    </h1>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="relative text-center mb-12 overflow-hidden"
+                >
+                  {/* Gradient Glow Background */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-3xl"></div>
+                  
+                  <div className="relative">
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                      {/* Animated Icon */}
+                      <motion.span
+                        className="text-6xl"
+                        animate={{
+                          scale: [1, 1.1, 1],
+                          rotate: [0, 5, 0, -5, 0]
+                        }}
+                        transition={{
+                          duration: 4,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        {category.icon}
+                      </motion.span>
+                      
+                      {/* Animated Title */}
+                      <motion.h1
+                        className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        {category[nameKey]}
+                      </motion.h1>
+                    </div>
+                    
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
+                    >
+                      {category[descriptionKey]}
+                    </motion.p>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="mt-4"
+                    >
+                      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-800 dark:text-blue-200 shadow-lg">
+                        <span>📚</span>
+                        <span>{subjects?.length || 0} {t('subjects')}</span>
+                      </span>
+                    </motion.div>
                   </div>
-                  <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                    {category[descriptionKey]}
-                  </p>
-                  <div className="mt-4">
-                    <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      {subjects?.length || 0} {t('subjects')}
-                    </span>
-                  </div>
-                </div>
+                </motion.div>
               )}
 
             {/* Search Bar - Level 2: Category Search (Now with local fuzzy search) */}

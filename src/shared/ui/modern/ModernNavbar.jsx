@@ -81,9 +81,6 @@ const ModernNavbar = ({ showUserMenu, setShowUserMenu }) => {
     };
   }, [isOpen]);
 
-  // Allow interaction inside the mobile menu without instant close
-  // (Scroll-to-close handled on window only)
-
   // Close on Escape key
   useEffect(() => {
     if (!isOpen) return;
@@ -190,187 +187,145 @@ const ModernNavbar = ({ showUserMenu, setShowUserMenu }) => {
   return (
     <nav 
       ref={navbarRef}
-      className={`navbar-modern fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`navbar-modern fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled 
-          ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-lg' 
-          : 'bg-white dark:bg-gray-900'
+          ? 'navbar-scrolled' 
+          : ''
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-[1fr_auto] md:grid-cols-[300px_1fr_300px] items-center h-12 md:h-16">
-          
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group md:w-[300px] w-auto flex-none justify-self-start logo" dir="ltr">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-orange-500 via-purple-500 to-blue-500 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
-              <svg 
-                viewBox="0 0 24 24" 
-                className="w-4 h-4 md:w-6 md:h-6 text-white"
-                fill="currentColor"
-              >
-                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-              </svg>
-            </div>
-            <span className="text-base md:text-xl font-bold gradient-text hidden sm:block whitespace-nowrap overflow-hidden text-ellipsis font-en">Fyleo</span>
-          </Link>
+      {/* Animated Background Blobs */}
+      <div className="navbar-bg-blobs">
+        <div className="blob blob-1"></div>
+        <div className="blob blob-2"></div>
+        <div className="blob blob-3"></div>
+      </div>
 
-          {/* Desktop Navigation - Material Tailwind Style */}
-          <div className="hidden md:flex items-center justify-center md:justify-self-center min-w-0">
-            {navItems.map((item) => {
-              if (item.authRequired && !user) return null;
-              if (item.adminOnly && !isAdmin) return null;
-              
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`nav-item flex items-center ${isActive ? 'gap-2 px-4' : 'gap-0 px-3'} py-2 rounded-full font-medium text-sm transition-all duration-300 ${
-                    isActive 
-                      ? 'text-white bg-gradient-to-r from-orange-500 via-purple-500 to-blue-500 shadow-lg' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  <span className="text-lg leading-none flex-shrink-0">{item.icon}</span>
-                  <span className={`overflow-hidden whitespace-nowrap transition-all duration-300 will-change-transform ${isActive ? 'max-w-[10rem] opacity-100 translate-y-0 ml-2' : 'max-w-0 opacity-0 translate-y-1'}`}>{item.name}</span>
-                </Link>
-              );
-            })}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="relative flex h-14 items-center justify-between">
+          
+          {/* Logo - Enhanced with Glassmorphism */}
+          <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+            <Link to="/" className="logo-container group flex shrink-0 items-center" dir="ltr">
+              <div className="logo-wrapper">
+                <div className="logo-icon-wrapper">
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className="logo-icon"
+                    fill="currentColor"
+                  >
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                  </svg>
+                  <div className="logo-glow"></div>
+                </div>
+                <span className="logo-text font-en">Fyleo</span>
+              </div>
+            </Link>
+
+            {/* Desktop Navigation - Creative Floating Pills */}
+            <div className="hidden md:flex md:ml-6 items-center">
+              <div className="nav-pills-container">
+                {navItems.map((item) => {
+                  if (item.authRequired && !user) return null;
+                  if (item.adminOnly && !isAdmin) return null;
+                  
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`nav-pill ${isActive ? 'nav-pill-active' : ''}`}
+                    >
+                      <span className="nav-pill-icon">{item.icon}</span>
+                      <span className="nav-pill-text">{item.name}</span>
+                      {isActive && <div className="nav-pill-glow"></div>}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
-          {/* Right Section - Fixed Width */}
-          <div className="hidden md:flex items-center gap-3 w-[300px] min-w-[300px] justify-end md:justify-self-end flex-none" dir="ltr">
-            <div className="navbar-tools flex items-center gap-3 flex-none font-en">
-              <ThemeToggle />
-              <LanguageSwitcher />
+          {/* Right Section - Enhanced Creative Style */}
+          <div className="absolute inset-y-0 right-0 flex items-center gap-3 pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+            <div className="navbar-actions-group">
+              <div className="action-btn-wrapper">
+                <ThemeToggle />
+              </div>
+              <div className="action-btn-wrapper">
+                <LanguageSwitcher />
+              </div>
             </div>
             
             {loading ? (
-              <div className="w-8 h-8 rounded-full loading-pulse"></div>
+              <div className="loading-spinner-wrapper">
+                <div className="loading-spinner"></div>
+              </div>
             ) : user ? (
-              <div className="flex items-center" dir="ltr">
-                <div className="relative" ref={userMenuRef}>
-                  <button 
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold hover:shadow-lg transition-all duration-200 flex-shrink-0"
-                    style={{ fontSize: '16px', lineHeight: '16px', padding: 0 }}
-                    aria-label="User Profile"
-                  >
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                      {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
-                    </span>
-                  </button>
-                  
-                  {/* Dropdown Menu */}
-                  {showUserMenu && (
-                    <div className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 z-[60] animate-slideDown border border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                          <span style={{ fontSize: '20px', lineHeight: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                            {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{user.name || 'User'}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                        </div>
+              <div className="relative" ref={userMenuRef}>
+                <button 
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="profile-avatar-btn"
+                  aria-label="User Profile"
+                >
+                  <span className="profile-avatar-text">
+                    {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+                  </span>
+                  <div className="avatar-ring"></div>
+                </button>
+                
+                {/* Enhanced Dropdown Menu with Glassmorphism */}
+                {showUserMenu && (
+                  <div className="user-dropdown-menu">
+                    <div className="user-dropdown-header">
+                      <div className="user-dropdown-avatar">
+                        <span className="user-dropdown-avatar-text">
+                          {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+                        </span>
                       </div>
-                      
-                      {/* Logout Button */}
-                      <button
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleLogout();
-                          setShowUserMenu(false);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 text-sm font-medium cursor-pointer"
-                        type="button"
-                      >
-                        <span className="text-lg">🚪</span>
-                        <span>{t('nav.logout')}</span>
-                      </button>
+                      <div className="user-dropdown-info">
+                        <p className="user-dropdown-name">{user.name || 'User'}</p>
+                        <p className="user-dropdown-email">{user.email}</p>
+                      </div>
                     </div>
-                  )}
-                </div>
+                    
+                    {/* Logout Button */}
+                    <button
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleLogout();
+                        setShowUserMenu(false);
+                      }}
+                      className="user-dropdown-logout"
+                      type="button"
+                    >
+                      <span className="text-lg">🚪</span>
+                      <span>{t('nav.logout')}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="flex items-center gap-3 justify-end flex-none font-en">
+              <div className="auth-buttons-group font-en">
                 <Link to="/login">
-                  <button className="auth-btn auth-btn-login">
-                    {t('nav.login')}
+                  <button className="auth-btn-modern auth-btn-login-modern">
+                    <span>{t('nav.login')}</span>
                   </button>
                 </Link>
                 <Link to="/signup">
-                  <button className="auth-btn auth-btn-signup">
-                    {t('nav.signup')}
+                  <button className="auth-btn-modern auth-btn-signup-modern">
+                    <span>{t('nav.signup')}</span>
+                    <div className="btn-shine"></div>
                   </button>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Mobile: Theme, Language & Profile Buttons */}
-          <div className="md:hidden flex items-center justify-center gap-1 col-start-2 justify-self-center">
+          {/* Mobile: Theme & Language Buttons */}
+          <div className="md:hidden flex items-center justify-center gap-2">
             <ThemeToggle />
             <LanguageSwitcher />
-            
-            {/* Mobile Profile Button */}
-            {!loading && user && (
-              <div className="relative" ref={userMenuRef}>
-                <button 
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold hover:shadow-lg transition-all duration-200 flex-shrink-0"
-                  style={{ fontSize: '16px', lineHeight: '16px', padding: 0 }}
-                  aria-label="User Profile"
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                    {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
-                  </span>
-                </button>
-
-                {/* Mobile User Menu Dropdown - Opens BELOW the button */}
-                {showUserMenu && (
-                  <div className="absolute top-[calc(100%+8px)] left-0 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 z-[60] animate-slideDown border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                        <span style={{ fontSize: '20px', lineHeight: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                          {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{user.name || 'User'}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Menu Items */}
-                    <div className="space-y-2">
-                      {isAdmin && (
-                        <Link
-                          to="/admin"
-                          onClick={() => setShowUserMenu(false)}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 text-sm font-medium"
-                        >
-                          <span className="text-lg">⚙️</span>
-                          <span>{t('nav.admin')}</span>
-                        </Link>
-                      )}
-                      
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setShowUserMenu(false);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 text-sm font-medium"
-                      >
-                        <span className="text-lg">🚪</span>
-                        <span>{t('nav.logout')}</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { account } from '../../../config/appwrite';
 import './WorkspaceHeader.css';
 
 /**
- * Workspace Header - Redesigned with inline editing
- * User info on the right, clean inline edit icons
+ * ✨ Workspace Header - Premium Edition
+ * 3D Avatar + Gradient Glow + Smooth Inline Editing
+ * Inspired by Landing Page & GPA Calculator
  */
 const WorkspaceHeader = ({ user, onLogout, onDeleteAccount, onUserUpdate }) => {
   const { t } = useTranslation();
-  const [editingField, setEditingField] = useState(null); // 'name' or null
+  const [editingField, setEditingField] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  
+  // 3D Avatar hover effect
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useTransform(mouseY, [-100, 100], [10, -10]);
+  const rotateY = useTransform(mouseX, [-100, 100], [-10, 10]);
 
   const handleEditClick = (field) => {
     setEditingField(field);
@@ -78,17 +86,67 @@ const WorkspaceHeader = ({ user, onLogout, onDeleteAccount, onUserUpdate }) => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
+  
+  const handleAvatarHover = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    mouseX.set(e.clientX - centerX);
+    mouseY.set(e.clientY - centerY);
+  };
+  
+  const handleAvatarLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   return (
     <>
-      <header className="workspace-header">
+      <motion.header 
+        className="workspace-header"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         <div className="header-content">
           <div className="user-profile-section">
-            {/* Left Side: Avatar + User Info */}
+            {/* Left Side: 3D Avatar + User Info */}
             <div className="user-info-left">
-              <div className="user-avatar">
-                {(user.name || user.email).charAt(0).toUpperCase()}
-              </div>
+              <motion.div 
+                className="avatar-container"
+                onMouseMove={handleAvatarHover}
+                onMouseLeave={handleAvatarLeave}
+                style={{ perspective: 1000 }}
+              >
+                <motion.div 
+                  className="user-avatar"
+                  style={{
+                    rotateX,
+                    rotateY,
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  {(user.name || user.email).charAt(0).toUpperCase()}
+                  
+                  {/* Orbiting Ring */}
+                  <motion.div 
+                    className="avatar-ring"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  />
+                  
+                  {/* Ambient Glow */}
+                  <motion.div 
+                    className="avatar-glow"
+                    animate={{ 
+                      scale: [1, 1.2, 1],
+                      opacity: [0.5, 0.8, 0.5] 
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                </motion.div>
+              </motion.div>
               
               <div className="user-details">
                 {/* Name Field with Inline Edit */}
@@ -178,13 +236,18 @@ const WorkspaceHeader = ({ user, onLogout, onDeleteAccount, onUserUpdate }) => {
             </div>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Message Toast */}
       {message && (
-        <div className={`message-toast ${message.includes('✅') ? 'success' : 'error'}`}>
+        <motion.div 
+          className={`message-toast ${message.includes('✅') ? 'success' : 'error'}`}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+        >
           {message}
-        </div>
+        </motion.div>
       )}
     </>
   );

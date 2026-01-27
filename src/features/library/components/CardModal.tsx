@@ -113,7 +113,6 @@ const CardModal: React.FC<CardModalProps> = ({
               {material && materialLabels ? (
                 <MaterialCard
                   material={material}
-                  onPreview={onMaterialPreview}
                   onBookmark={onBookmark}
                   isBookmarked={isBookmarked}
                   labels={materialLabels}

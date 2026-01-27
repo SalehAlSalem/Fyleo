@@ -62,7 +62,6 @@ export const GroupedContent: React.FC<GroupedContentProps> = ({
         <MaterialCard
           key={item.$id}
           material={item as Material}
-          onPreview={() => onMaterialClick(item as Material)}
           onBookmark={() => onBookmark(item.$id)}
           isBookmarked={bookmarkedIds.has(item.$id)}
           labels={materialLabels}

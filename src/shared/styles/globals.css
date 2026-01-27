@@ -46,8 +46,6 @@ body {
   overflow-x: hidden;
   cursor: default;
   color: var(--primary-color) !important;
-  direction: rtl;
-  text-align: right;
   
   /* iOS Safari Fix - Improve position fixed behavior */
   -webkit-overflow-scrolling: touch;
@@ -60,22 +58,23 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
-/* Force RTL for Arabic content */
-html[lang="ar"],
+/* Dynamic RTL/LTR based on HTML dir attribute */
 html[dir="rtl"],
-body[dir="rtl"] {
-  direction: rtl !important;
-  text-align: right !important;
-}
-
-/* Ensure all content follows RTL */
-* {
+html[dir="rtl"] body {
   direction: rtl;
+  text-align: right;
 }
 
-/* Fix for specific elements that should be LTR */
+html[dir="ltr"],
+html[dir="ltr"] body {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Ensure LTR for specific input types regardless of page direction */
 input[type="email"],
 input[type="password"],
+input[type="url"],
 code,
 pre {
   direction: ltr;

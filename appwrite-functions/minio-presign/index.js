@@ -90,9 +90,13 @@ module.exports = async ({ req, res, log, error }) => {
       const objectName = body.objectName;
       if (!objectName) return res.json({ error: 'objectName is required' }, 400);
       
+      // Extract filename from objectName or use default
+      const fileName = body.fileName || objectName.split('/').pop();
+      
       const getCommand = new GetObjectCommand({
         Bucket: bucket,
-        Key: objectName
+        Key: objectName,
+        ResponseContentDisposition: `attachment; filename="${fileName}"`
       });
       const downloadUrl = await getSignedUrl(minio, getCommand, { expiresIn: 3600 });
       return res.json({ downloadUrl }, 200);

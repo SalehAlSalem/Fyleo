@@ -1,72 +1,84 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './GPACalculatorPage.css';
 
 /**
- * GPA Calculator Page - Standalone
- * Supports GPA calculation for scales: 4.0, 5.0, and 100
+ * 🎯 Fyleo GPA Calculator - Ultra Creative Design
+ * Inspired by Fyleo's vibrant gradient: Orange → Purple → Blue
+ * Precision: 0.001 (1/1000)
  */
 const GPACalculatorPage = () => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === 'ar';
   const resultsRef = useRef(null);
 
-  // GPA Scale: 4, 5, or 100
+  // State Management
   const [gpaScale, setGpaScale] = useState(4);
-  
-  // Previous semester data
   const [previousGPA, setPreviousGPA] = useState('');
   const [previousHours, setPreviousHours] = useState('');
-  
-  // Current semester courses (7 default rows)
-  const [courses, setCourses] = useState(
-    Array(7).fill(null).map((_, i) => ({
-      id: i + 1,
-      grade: '',
-      hours: 3,
-      isRepeated: false,
-      previousGrade: ''
-    }))
-  );
-
-  // Results
-  const [semesterGPA, setSemesterGPA] = useState(null);
-  const [newCumulativeGPA, setNewCumulativeGPA] = useState(null);
-  const [newTotalHours, setNewTotalHours] = useState(null);
-  const [gpaStatus, setGpaStatus] = useState(null); // 'increased', 'decreased', 'stable'
-  const [showResults, setShowResults] = useState(false);
-
-  // First year mode
   const [isFirstYear, setIsFirstYear] = useState(false);
+  const [courses, setCourses] = useState([
+    { id: 1, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+    { id: 2, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+    { id: 3, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+    { id: 4, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+    { id: 5, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+  ]);
+  
+  const [results, setResults] = useState(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
-  const handleFirstYearClick = () => {
-    setIsFirstYear(true);
-    setPreviousGPA('0');
-    setPreviousHours('0');
-  };
+  // Scroll to results when available
+  useEffect(() => {
+    if (results && resultsRef.current) {
+      resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [results]);
 
+  // Handlers
   const handleScaleChange = (scale) => {
     setGpaScale(scale);
-    // Reset all inputs when scale changes
     setPreviousGPA('');
     setPreviousHours('');
-    setCourses(courses.map(c => ({ ...c, grade: '', previousGrade: '' })));
-    setShowResults(false);
+    setCourses(courses.map(c => ({ ...c, grade: '' })));
+    setResults(null);
+  };
+
+  const handleFirstYearToggle = () => {
+    const newValue = !isFirstYear;
+    setIsFirstYear(newValue);
+    if (newValue) {
+      setPreviousGPA('0');
+      setPreviousHours('0');
+    } else {
+      setPreviousGPA('');
+      setPreviousHours('');
+    }
   };
 
   const handleCourseChange = (index, field, value) => {
-    const newCourses = [...courses];
-    newCourses[index][field] = value;
-    setCourses(newCourses);
+    const updated = [...courses];
+    updated[index] = { ...updated[index], [field]: value };
+    setCourses(updated);
+  };
+
+  const handleRetakeToggle = (index) => {
+    const updated = [...courses];
+    updated[index] = { 
+      ...updated[index], 
+      isRetake: !updated[index].isRetake,
+      oldGrade: !updated[index].isRetake ? '' : updated[index].oldGrade
+    };
+    setCourses(updated);
   };
 
   const addCourse = () => {
-    setCourses([...courses, {
-      id: courses.length + 1,
-      grade: '',
+    setCourses([...courses, { 
+      id: courses.length + 1, 
+      grade: '', 
       hours: 3,
-      isRepeated: false,
-      previousGrade: ''
+      isRetake: false,
+      oldGrade: ''
     }]);
   };
 
@@ -76,402 +88,542 @@ const GPACalculatorPage = () => {
     }
   };
 
-  const validateInput = () => {
+  // Validation
+  const validate = () => {
     const prevGPA = parseFloat(previousGPA);
     const prevHrs = parseFloat(previousHours);
 
-    // Validate previous GPA
+    // Check previous GPA
     if (isNaN(prevGPA) || prevGPA < 0) {
-      alert(t('gpa.validGPARequired'));
+      alert(isArabic 
+        ? 'الرجاء إدخال المعدل السابق بشكل صحيح' 
+        : 'Please enter a valid previous GPA');
       return false;
     }
 
-    if (gpaScale === 4 && prevGPA > 4) {
-      alert(t('gpa.gpaMustBeBetween0And4'));
-      return false;
-    }
-    if (gpaScale === 5 && prevGPA > 5) {
-      alert(t('gpa.gpaMustBeBetween0And5'));
-      return false;
-    }
-    if (gpaScale === 100 && prevGPA > 100) {
-      alert(t('gpa.gpaMustBeBetween0And100'));
-      return false;
-    }
-
-    // Validate previous hours
+    // Check previous hours
     if (isNaN(prevHrs) || prevHrs < 0) {
-      alert(t('gpa.validHoursRequired'));
+      alert(isArabic 
+        ? 'الرجاء إدخال عدد الساعات السابقة بشكل صحيح' 
+        : 'Please enter valid previous hours');
       return false;
     }
 
-    // Validate current courses
+    // Check if previous GPA exceeds scale
+    if (prevGPA > gpaScale) {
+      alert(isArabic 
+        ? `المعدل السابق لا يمكن أن يتجاوز ${gpaScale}` 
+        : `GPA cannot exceed ${gpaScale}`);
+      return false;
+    }
+
+    // Check courses - only validate non-empty courses
+    const validCoursesCount = courses.filter(c => c.grade !== '').length;
+    
+    if (validCoursesCount === 0) {
+      alert(isArabic 
+        ? 'الرجاء إدخال درجة مادة واحدة على الأقل' 
+        : 'Please enter at least one course grade');
+      return false;
+    }
+
     for (let i = 0; i < courses.length; i++) {
-      const course = courses[i];
-      const grade = parseFloat(course.grade);
-      const hours = parseFloat(course.hours);
+      const grade = parseFloat(courses[i].grade);
+      const hours = parseFloat(courses[i].hours);
 
-      if (course.grade !== '' && !isNaN(grade)) {
-        if (gpaScale === 4 && (grade < 0 || grade > 4)) {
-          alert(t('gpa.courseGradeMustBeBetween', { number: i + 1, min: 0, max: 4 }));
-          return false;
-        }
-        if (gpaScale === 5 && (grade < 0 || grade > 5)) {
-          alert(t('gpa.courseGradeMustBeBetween', { number: i + 1, min: 0, max: 5 }));
-          return false;
-        }
-        if (gpaScale === 100 && (grade < 0 || grade > 100)) {
-          alert(t('gpa.courseGradeMustBeBetween', { number: i + 1, min: 0, max: 100 }));
-          return false;
-        }
+      // Skip empty courses
+      if (courses[i].grade === '' || courses[i].grade === null) continue;
 
-        if (isNaN(hours) || hours <= 0) {
-          alert(t('gpa.courseHoursMustBeGreater', { number: i + 1 }));
-          return false;
-        }
+      // Validate grade
+      if (isNaN(grade) || grade < 0 || grade > gpaScale) {
+        alert(isArabic 
+          ? `المادة ${i + 1}: الدرجة يجب أن تكون بين 0 و ${gpaScale}` 
+          : `Course ${i + 1}: Grade must be between 0 and ${gpaScale}`);
+        return false;
+      }
 
-        // If repeated, validate previous grade
-        if (course.isRepeated) {
-          const prevGrade = parseFloat(course.previousGrade);
-          if (isNaN(prevGrade) || prevGrade < 0) {
-            alert(t('gpa.coursePreviousGradeRequired', { number: i + 1 }));
-            return false;
-          }
-        }
+      // Validate hours
+      if (isNaN(hours) || hours <= 0 || hours > 10) {
+        alert(isArabic 
+          ? `المادة ${i + 1}: عدد الساعات يجب أن يكون بين 1 و 10` 
+          : `Course ${i + 1}: Credit hours must be between 1 and 10`);
+        return false;
       }
     }
 
     return true;
   };
 
-  const calculateGPA = () => {
-    if (!validateInput()) return;
+  // Calculate GPA with animation
+  const calculateGPA = async () => {
+    if (!validate()) return;
 
-    const prevGPA = parseFloat(previousGPA) || 0;
-    const prevHrs = parseFloat(previousHours) || 0;
+    setIsCalculating(true);
+    
+    // Simulate calculation delay for smooth UX
+    await new Promise(resolve => setTimeout(resolve, 600));
 
-    // Calculate points from previous semesters
-    let previousPoints = prevGPA * prevHrs;
-    let totalPreviousHours = prevHrs;
+    const prevGPA = parseFloat(previousGPA);
+    const prevHrs = parseFloat(previousHours);
 
-    // Calculate current semester
-    let currentPoints = 0;
-    let currentHours = 0;
-
-    courses.forEach(course => {
-      const grade = parseFloat(course.grade);
-      const hours = parseFloat(course.hours);
-
-      if (!isNaN(grade) && !isNaN(hours) && course.grade !== '') {
-        currentPoints += grade * hours;
-        currentHours += hours;
-
-        // Handle repeated courses
-        if (course.isRepeated) {
-          const prevGrade = parseFloat(course.previousGrade);
-          if (!isNaN(prevGrade)) {
-            // Subtract old attempt from previous points
-            previousPoints -= prevGrade * hours;
-            totalPreviousHours -= hours;
-          }
-        }
-      }
+    // Filter only courses with grades entered
+    const validCourses = courses.filter(c => {
+      return c.grade !== '' && c.grade !== null && !isNaN(parseFloat(c.grade));
     });
 
-    // Calculate semester GPA
-    const semGPA = currentHours > 0 ? currentPoints / currentHours : 0;
-
-    // Calculate new cumulative GPA
-    const totalPoints = previousPoints + currentPoints;
-    const totalHours = totalPreviousHours + currentHours;
-    const newCumGPA = totalHours > 0 ? totalPoints / totalHours : 0;
-
-    setSemesterGPA(semGPA.toFixed(2));
-    setNewCumulativeGPA(newCumGPA.toFixed(2));
-    setNewTotalHours(totalHours);
-    
-    // Determine GPA status
-    const prevGPANum = parseFloat(previousGPA) || 0;
-    const difference = Math.abs(newCumGPA - prevGPANum);
-    
-    // If difference is very small (less than 0.01), consider it stable
-    if (difference < 0.01) {
-      setGpaStatus('stable');
-    } else if (newCumGPA > prevGPANum) {
-      setGpaStatus('increased');
-    } else {
-      setGpaStatus('decreased');
+    if (validCourses.length === 0) {
+      alert(isArabic 
+        ? 'الرجاء إدخال درجة مادة واحدة على الأقل' 
+        : 'Please enter at least one course');
+      setIsCalculating(false);
+      return;
     }
+
+    let totalPoints = 0;
+    let totalHours = 0;
+
+    validCourses.forEach(course => {
+      const grade = parseFloat(course.grade);
+      const hours = parseFloat(course.hours);
+      totalPoints += grade * hours;
+      totalHours += hours;
+    });
+
+    const semesterGPA = totalPoints / totalHours;
     
-    setShowResults(true);
+    // Handle retaken courses - subtract old grade impact from previous GPA
+    let adjustedPreviousPoints = prevGPA * prevHrs;
+    let adjustedPreviousHours = prevHrs;
     
-    // Scroll to results after a short delay to ensure DOM update
-    setTimeout(() => {
-      if (resultsRef.current) {
-        resultsRef.current.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center'
-        });
+    validCourses.forEach(course => {
+      if (course.isRetake && course.oldGrade && parseFloat(course.oldGrade) >= 0) {
+        const oldGradeValue = parseFloat(course.oldGrade);
+        const hours = parseFloat(course.hours);
+        adjustedPreviousPoints -= (oldGradeValue * hours);
+        adjustedPreviousHours -= hours;
       }
-    }, 100);
+    });
+    
+    const newTotalPoints = adjustedPreviousPoints + totalPoints;
+    const newTotalHours = adjustedPreviousHours + totalHours;
+    const cumulativeGPA = newTotalPoints / newTotalHours;
+
+    let status = 'stable';
+    let difference = 0;
+    
+    if (prevGPA > 0) {
+      difference = cumulativeGPA - prevGPA;
+      if (difference > 0.001) status = 'increased';
+      else if (difference < -0.001) status = 'decreased';
+    }
+
+    setResults({
+      semesterGPA: semesterGPA.toFixed(3),
+      cumulativeGPA: cumulativeGPA.toFixed(3),
+      totalHours: newTotalHours,
+      status,
+      difference: Math.abs(difference).toFixed(3),
+      progress: Math.min((cumulativeGPA / gpaScale) * 100, 100).toFixed(1)
+    });
+
+    setIsCalculating(false);
   };
 
-  const resetCalculator = () => {
+  const reset = () => {
     setPreviousGPA('');
     setPreviousHours('');
-    setCourses(Array(7).fill(null).map((_, i) => ({
-      id: i + 1,
-      grade: '',
-      hours: 3,
-      isRepeated: false,
-      previousGrade: ''
-    })));
-    setSemesterGPA(null);
-    setNewCumulativeGPA(null);
-    setNewTotalHours(null);
-    setGpaStatus(null);
-    setShowResults(false);
     setIsFirstYear(false);
+    setCourses([
+      { id: 1, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+      { id: 2, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+      { id: 3, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+      { id: 4, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+      { id: 5, grade: '', hours: 3, isRetake: false, oldGrade: '' },
+    ]);
+    setResults(null);
   };
 
   return (
-    <div className="gpa-calculator-page">
-      <div className="gpa-calculator">
+    <div className="gpa-page">
+      {/* Animated Background */}
+      <div className="gpa-bg-animation">
+        <div className="gpa-orb gpa-orb-orange"></div>
+        <div className="gpa-orb gpa-orb-purple"></div>
+        <div className="gpa-orb gpa-orb-blue"></div>
+      </div>
+
+      <div className="gpa-container">
+        
+        {/* Animated Header with 3D Effect */}
         <div className="gpa-header">
-          <h2 className="gpa-title">
-            {t('gpa.title')}
-          </h2>
+          <div className="gpa-logo-wrapper">
+            <div className="gpa-logo-glow"></div>
+            <div className="gpa-logo">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+              </svg>
+            </div>
+          </div>
+          <h1 className="gpa-title gradient-text">
+            {isArabic ? 'برنامج حساب المعدل التراكمي' : 'Cumulative GPA Calculator'}
+          </h1>
           <p className="gpa-subtitle">
-            {t('gpa.subtitle')}
+            {isArabic 
+              ? 'يدعم البرنامج حساب المعدل التراكمي من 4 ويحسب المعدل من 5 وأيضاً حساب المعدل من 100 بشكل دقيق وسريع.' 
+              : 'This tool supports calculating GPA out of 4, out of 5, and out of 100 quickly and accurately.'}
           </p>
-        </div>
-
-        {/* First Year Button */}
-        <div className="first-year-section">
-          <button 
-            className="first-year-btn"
-            onClick={handleFirstYearClick}
-          >
-            {t('gpa.firstYearButton')}
-          </button>
-        </div>
-
-        {/* GPA Scale Selection */}
-        <div className="scale-selection">
-          <label className="scale-label">
-            {t('gpa.scaleLabel')}
-          </label>
-          <div className="scale-buttons">
-            <button 
-              className={`scale-btn ${gpaScale === 4 ? 'active' : ''}`}
-              onClick={() => handleScaleChange(4)}
-            >
-              {t('gpa.outOf4')}
-            </button>
-            <button 
-              className={`scale-btn ${gpaScale === 5 ? 'active' : ''}`}
-              onClick={() => handleScaleChange(5)}
-            >
-              {t('gpa.outOf5')}
-            </button>
-            <button 
-              className={`scale-btn ${gpaScale === 100 ? 'active' : ''}`}
-              onClick={() => handleScaleChange(100)}
-            >
-              {t('gpa.outOf100')}
-            </button>
+          <div className="gpa-precision-badge">
+            <span className="badge-icon">⚡</span>
+            <span>{isArabic ? 'دقة 1/1000' : 'Precision 1/1000'}</span>
           </div>
         </div>
 
-        {/* Previous Semester Data */}
-        <div className="previous-data-section">
-          <div className="input-group">
-            <label>
-              {t('gpa.previousGPA')}
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              max={gpaScale}
-              value={previousGPA}
-              onChange={(e) => setPreviousGPA(e.target.value)}
-              placeholder={`0 - ${gpaScale}`}
-              disabled={isFirstYear}
-            />
-          </div>
-
-          <div className="input-group">
-            <label>
-              {t('gpa.previousHours')}
-            </label>
-            <input
-              type="number"
-              step="1"
-              min="0"
-              value={previousHours}
-              onChange={(e) => setPreviousHours(e.target.value)}
-              placeholder="0"
-              disabled={isFirstYear}
-            />
-          </div>
-
-          <div className="important-notes">
-            <p className="note-text">
-              {t('gpa.note1')}
-            </p>
-            <p className="note-text">
-              {t('gpa.note2')}
-            </p>
-            <p className="note-text emphasis">
-              {t('gpa.note3')}
-            </p>
-          </div>
-        </div>
-
-        {/* Current Semester Courses Table */}
-        <div className="courses-section">
-          <h3 className="section-title">
-            {t('gpa.currentSemesterCourses')}
-          </h3>
+        {/* Glass Card Container */}
+        <div className="gpa-glass-card">
           
-          <div className="courses-table-wrapper">
-            <table className="courses-table">
-              <thead>
-                <tr>
-                  <th>{t('gpa.course')}</th>
-                  <th>{t('gpa.grade')}</th>
-                  <th>{t('gpa.creditHours')}</th>
-                  <th>{t('gpa.repeated')}</th>
-                  <th>{t('gpa.previousGrade')}</th>
-                  <th>{t('gpa.action')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {courses.map((course, index) => (
-                  <tr key={course.id}>
-                    <td className="course-label">
-                      {isArabic ? `المادة ${index + 1}` : `Course ${index + 1}`}
-                    </td>
-                    <td>
+          {/* GPA Scale Selection - Modern Pills */}
+          <div className="gpa-section">
+            <label className="gpa-label">
+              <span className="label-icon">⚙️</span>
+              {isArabic ? 'نظام المعدل:' : 'GPA Scale:'}
+            </label>
+            <div className="scale-pills">
+              <button 
+                className={`scale-pill ${gpaScale === 4 ? 'active' : ''}`}
+                onClick={() => handleScaleChange(4)}
+              >
+                <span className="pill-number">4.0</span>
+                <span className="pill-label">{isArabic ? 'من 4' : 'Out of 4'}</span>
+              </button>
+              <button 
+                className={`scale-pill ${gpaScale === 5 ? 'active' : ''}`}
+                onClick={() => handleScaleChange(5)}
+              >
+                <span className="pill-number">5.0</span>
+                <span className="pill-label">{isArabic ? 'من 5' : 'Out of 5'}</span>
+              </button>
+              <button 
+                className={`scale-pill ${gpaScale === 100 ? 'active' : ''}`}
+                onClick={() => handleScaleChange(100)}
+              >
+                <span className="pill-number">100</span>
+                <span className="pill-label">{isArabic ? 'من 100' : 'Out of 100'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Previous Semester - Neumorphic Inputs */}
+          <div className="gpa-section">
+            <div className="section-header">
+              <label className="gpa-label">
+                <span className="label-icon">📚</span>
+                {isArabic ? 'المعدل والساعات السابقة' : 'Previous GPA & Hours'}
+              </label>
+              <button 
+                className={`first-year-toggle ${isFirstYear ? 'active' : ''}`}
+                onClick={handleFirstYearToggle}
+              >
+                <span className="toggle-icon">🎓</span>
+                {isArabic ? 'سنة أولى' : 'First Year'}
+              </button>
+            </div>
+            
+            <div className="input-grid">
+              <div className="input-floating">
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  max={gpaScale}
+                  value={previousGPA}
+                  onChange={(e) => setPreviousGPA(e.target.value)}
+                  placeholder=" "
+                  disabled={isFirstYear}
+                  className="floating-input"
+                />
+                <label className="floating-label">
+                  {isArabic ? 'معدلك التراكمي قبل الفصل الحالي' : 'Your cumulative GPA before this semester'}
+                </label>
+                <span className="input-icon">📊</span>
+              </div>
+              
+              <div className="input-floating">
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={previousHours}
+                  onChange={(e) => setPreviousHours(e.target.value)}
+                  placeholder=" "
+                  disabled={isFirstYear}
+                  className="floating-input"
+                />
+                <label className="floating-label">
+                  {isArabic ? 'عدد الساعات التي قطعتها قبل الفصل الحالي' : 'Number of credit hours completed before this semester'}
+                </label>
+                <span className="input-icon">⏱️</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Courses Table - Modern Design */}
+          <div className="gpa-section">
+            <label className="gpa-label">
+              <span className="label-icon">📝</span>
+              {isArabic ? 'علامات مواد الفصل الحالي' : 'Current Semester Courses'}
+            </label>
+            
+            <div className="courses-modern">
+              {courses.map((course, index) => (
+                <div key={course.id} className="course-card">
+                  <div className="course-number-badge">
+                    <span>{index + 1}</span>
+                  </div>
+                  
+                  <div className="course-inputs">
+                    <div className="input-floating small">
                       <input
                         type="number"
-                        step="0.01"
+                        step="0.001"
                         min="0"
                         max={gpaScale}
                         value={course.grade}
                         onChange={(e) => handleCourseChange(index, 'grade', e.target.value)}
-                        placeholder={`0-${gpaScale}`}
-                        className="table-input"
+                        placeholder=" "
+                        className="floating-input"
                       />
-                    </td>
-                    <td>
+                      <label className="floating-label">
+                        {isArabic ? 'العلامة الجديدة' : 'New Grade'}
+                      </label>
+                    </div>
+                    
+                    <div className="input-floating small">
                       <select
                         value={course.hours}
                         onChange={(e) => handleCourseChange(index, 'hours', parseInt(e.target.value))}
-                        className="table-select"
+                        className="floating-input"
                       >
                         {[1, 2, 3, 4, 5, 6].map(h => (
                           <option key={h} value={h}>{h}</option>
                         ))}
                       </select>
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={course.isRepeated}
-                        onChange={(e) => handleCourseChange(index, 'isRepeated', e.target.checked)}
-                        className="table-checkbox"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max={gpaScale}
-                        value={course.previousGrade}
-                        onChange={(e) => handleCourseChange(index, 'previousGrade', e.target.value)}
-                        placeholder={course.isRepeated ? `0-${gpaScale}` : '-'}
-                        disabled={!course.isRepeated}
-                        className="table-input"
-                      />
-                    </td>
-                    <td>
-                      {courses.length > 1 && (
-                        <button
-                          onClick={() => removeCourse(index)}
-                          className="remove-btn"
-                          title={isArabic ? 'حذف' : 'Remove'}
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <label className="floating-label">
+                        {isArabic ? 'عدد الساعات' : 'Credit Hours'}
+                      </label>
+                    </div>
+                  </div>
+                  
+                  {/* Retake Toggle - Creative Design */}
+                  <div className="retake-toggle-wrapper">
+                    <button
+                      className={`retake-toggle ${course.isRetake ? 'active' : ''}`}
+                      onClick={() => handleRetakeToggle(index)}
+                      type="button"
+                    >
+                      <span className="toggle-icon">🔄</span>
+                      <span className="toggle-text">
+                        {isArabic ? 'مادة معادة' : 'Retake Course'}
+                      </span>
+                      <div className="toggle-switch">
+                        <div className="toggle-slider"></div>
+                      </div>
+                    </button>
+                  </div>
+                  
+                  {/* Old Grade Input - Slide Down Animation */}
+                  <div className={`old-grade-container ${course.isRetake ? 'expanded' : ''}`}>
+                    <div className="old-grade-content">
+                      <div className="old-grade-label">
+                        <span className="label-icon">📋</span>
+                        <span>{isArabic ? 'العلامة القديمة للمادة' : 'Previous Grade'}</span>
+                      </div>
+                      <div className="input-floating small">
+                        <input
+                          type="number"
+                          step="0.001"
+                          min="0"
+                          max={gpaScale}
+                          value={course.oldGrade}
+                          onChange={(e) => handleCourseChange(index, 'oldGrade', e.target.value)}
+                          placeholder=" "
+                          className="floating-input old-grade-input"
+                        />
+                        <label className="floating-label">
+                          {isArabic ? 'العلامة القديمة' : 'Old Grade'}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {courses.length > 1 && (
+                    <button
+                      className="course-remove-btn"
+                      onClick={() => removeCourse(index)}
+                      title="Remove"
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+              
+              <button className="add-course-modern" onClick={addCourse}>
+                <span className="add-icon">+</span>
+                <span>{isArabic ? 'إضافة مادة' : 'Add Course'}</span>
+              </button>
+            </div>
           </div>
 
-          <button onClick={addCourse} className="add-course-btn">
-            + {t('gpa.addCourse')}
-          </button>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="action-buttons">
-          <button onClick={calculateGPA} className="calculate-btn">
-            {t('gpa.calculate')}
-          </button>
-          <button onClick={resetCalculator} className="reset-btn">
-            {t('gpa.reset')}
-          </button>
-        </div>
-
-        {/* Results Section */}
-        {showResults && (
-          <div className="results-section" ref={resultsRef}>
-            <h3 className="results-title">
-              {t('gpa.results')}
-            </h3>
+          {/* Action Buttons - Gradient Magic */}
+          <div className="gpa-actions">
+            <button 
+              className={`btn-calculate ${isCalculating ? 'calculating' : ''}`} 
+              onClick={calculateGPA}
+              disabled={isCalculating}
+            >
+              {isCalculating ? (
+                <>
+                  <span className="spinner"></span>
+                  <span>{isArabic ? 'جاري الحساب...' : 'Calculating...'}</span>
+                </>
+              ) : (
+                <>
+                  <span className="btn-icon">🚀</span>
+                  <span>{isArabic ? 'احسب معدلك التراكمي' : 'Calculate Your GPA'}</span>
+                </>
+              )}
+            </button>
             
-            {/* GPA Status Message */}
-            <div className={`gpa-status-message gpa-status-${gpaStatus}`}>
-              <div className="status-title">
-                {gpaStatus === 'increased' && t('gpa.gpaIncreased')}
-                {gpaStatus === 'decreased' && t('gpa.gpaDecreased')}
-                {gpaStatus === 'stable' && t('gpa.gpaStable')}
+            <button className="btn-reset" onClick={reset}>
+              <span className="btn-icon">🔄</span>
+              <span>{isArabic ? 'إعادة تعيين' : 'Reset'}</span>
+            </button>
+          </div>
+
+        </div>
+
+        {/* Results Section - Ultra Creative */}
+        {results && (
+          <div className="gpa-results" ref={resultsRef}>
+            
+            {/* Results Header */}
+            <div className="results-hero">
+              <div className="results-icon-wrapper">
+                {results.status === 'increased' && (
+                  <div className="results-icon success">
+                    <span>🎉</span>
+                  </div>
+                )}
+                {results.status === 'decreased' && (
+                  <div className="results-icon warning">
+                    <span>💪</span>
+                  </div>
+                )}
+                {results.status === 'stable' && (
+                  <div className="results-icon neutral">
+                    <span>⚖️</span>
+                  </div>
+                )}
               </div>
+              
+              <h2 className="results-title">{isArabic ? 'النتائج' : 'Results'}</h2>
+              
               <div className="status-message">
-                {gpaStatus === 'increased' && t('gpa.gpaIncreasedMessage')}
-                {gpaStatus === 'decreased' && t('gpa.gpaDecreasedMessage')}
-                {gpaStatus === 'stable' && t('gpa.gpaStableMessage')}
+                {results.status === 'increased' && (
+                  <p className="status-text success">
+                    {isArabic 
+                      ? `ممتاز! معدلك ارتفع بمقدار ${results.difference}` 
+                      : `Excellent! Your GPA increased by ${results.difference}`}
+                  </p>
+                )}
+                {results.status === 'decreased' && (
+                  <p className="status-text warning">
+                    {isArabic 
+                      ? `انخفض بمقدار ${results.difference} - واصل الجهد!` 
+                      : `Decreased by ${results.difference} - Keep pushing!`}
+                  </p>
+                )}
+                {results.status === 'stable' && (
+                  <p className="status-text neutral">
+                    {isArabic ? 'معدلك مستقر - عمل رائع!' : 'Your GPA is stable - Great work!'}
+                  </p>
+                )}
               </div>
             </div>
-            
+
+            {/* Results Cards with 3D Effect */}
             <div className="results-grid">
-              <div className="result-card">
-                <span className="result-label">
-                  {t('gpa.semesterGPA')}
-                </span>
-                <span className="result-value">{semesterGPA}</span>
+              <div className="result-card-3d primary">
+                <div className="card-glow"></div>
+                <div className="card-content">
+                  <div className="card-icon">🎯</div>
+                  <div className="card-label">{isArabic ? 'معدل الفصل الحالي' : 'Current Semester GPA'}</div>
+                  <div className="card-value">{results.semesterGPA}</div>
+                  <div className="card-scale">/ {gpaScale}.000</div>
+                </div>
               </div>
-              <div className="result-card">
-                <span className="result-label">
-                  {t('gpa.newCumulativeGPA')}
-                </span>
-                <span className="result-value">{newCumulativeGPA}</span>
+
+              <div className="result-card-3d primary">
+                <div className="card-glow"></div>
+                <div className="card-content">
+                  <div className="card-icon">📊</div>
+                  <div className="card-label">{isArabic ? 'المعدل التراكمي' : 'Cumulative GPA'}</div>
+                  <div className="card-value">{results.cumulativeGPA}</div>
+                  <div className="card-scale">/ {gpaScale}.000</div>
+                </div>
               </div>
-              <div className="result-card">
-                <span className="result-label">
-                  {t('gpa.newTotalHours')}
+
+              <div className="result-card-3d">
+                <div className="card-content">
+                  <div className="card-icon">⏱️</div>
+                  <div className="card-label">{isArabic ? 'مجموع الساعات' : 'Total Hours'}</div>
+                  <div className="card-value">{results.totalHours}</div>
+                  <div className="card-unit">{isArabic ? 'ساعة' : 'Hours'}</div>
+                </div>
+              </div>
+
+              {parseFloat(previousGPA) > 0 && (
+                <div className={`result-card-3d ${results.status}`}>
+                  <div className="card-content">
+                    <div className="card-icon">
+                      {results.status === 'increased' && '📈'}
+                      {results.status === 'decreased' && '📉'}
+                      {results.status === 'stable' && '➡️'}
+                    </div>
+                    <div className="card-label">{isArabic ? 'التغيير' : 'Change'}</div>
+                    <div className="card-value">
+                      {results.status === 'increased' && '+'}
+                      {results.status === 'decreased' && '-'}
+                      {results.difference}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Animated Progress Bar */}
+            <div className="progress-section">
+              <div className="progress-header">
+                <span className="progress-label">
+                  {isArabic ? 'التقدم الإجمالي' : 'Overall Progress'}
                 </span>
-                <span className="result-value">{newTotalHours}</span>
+                <span className="progress-percent">{results.progress}%</span>
+              </div>
+              <div className="progress-bar-modern">
+                <div 
+                  className="progress-fill-modern" 
+                  style={{ width: `${results.progress}%` }}
+                >
+                  <div className="progress-shimmer"></div>
+                </div>
               </div>
             </div>
+
           </div>
         )}
+
       </div>
     </div>
   );

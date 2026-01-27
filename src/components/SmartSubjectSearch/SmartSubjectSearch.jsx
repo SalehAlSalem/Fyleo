@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { subjectsService } from '../../services/appwriteService';
 import { useTranslation } from 'react-i18next';
+import { searchSubjects } from '../../data/localCache';
 
 /**
- * Smart Subject Search Component
+ * Smart Subject Search Component - Enhanced with Fuzzy Search
  * Autocomplete searchable dropdown for selecting subjects
+ * Uses local fuzzy search for better results
  */
 const SmartSubjectSearch = ({ value, onChange, required = false, className = '' }) => {
   const { t, i18n } = useTranslation();
@@ -44,21 +46,16 @@ const SmartSubjectSearch = ({ value, onChange, required = false, className = '' 
     fetchSubjects();
   }, [value, i18n.language]);
 
-  // Filter subjects based on search term
+  // Enhanced Filter with Fuzzy Search
   useEffect(() => {
     if (!searchTerm.trim()) {
       setFilteredSubjects(subjects);
       return;
     }
 
-    const term = searchTerm.toLowerCase();
-    const filtered = subjects.filter(subject => {
-      const nameAr = subject.nameAr?.toLowerCase() || '';
-      const nameEn = subject.nameEn?.toLowerCase() || '';
-      return nameAr.includes(term) || nameEn.includes(term);
-    });
-    
-    setFilteredSubjects(filtered);
+    // Use fuzzy search from localCache
+    const results = searchSubjects(searchTerm, subjects);
+    setFilteredSubjects(results);
   }, [searchTerm, subjects]);
 
   // Handle click outside to close dropdown
