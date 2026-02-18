@@ -1,694 +1,417 @@
-<div align="center">
-  <img src="./public/fyleo-logo.svg" alt="Fyleo Logo" width="200" height="200">
-  
-  # Fyleo
-  
-  ### A modern educational platform for students to share and access course materials
-  
-  [![Ko-fi](https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/bawa3neh_97)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-  [![Made with ❤️ by Saleh AlSalem](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red)](https://github.com/SalehAlSalem)
-  
-</div>
+# 🚀 Fyleo Platform
+
+> منصة تعليمية حديثة مستوحاة من StudoCu وCourseHero، تركز على **نظام التقييمات** و**البلاغات** و**عرض الملفات داخل المتصفح**.
+
+## 🎯 المميزات الرئيسية
+
+✅ **نظام تقييمات متقدم** - قيّم المواد من 1 إلى 5 مع التعليقات  
+✅ **نظام بلاغات** - أبلغ عن محتوى غير مناسب  
+✅ **عرض ملفات مدمج** - شاهد PDFs والصور مباشرة في المتصفح  
+✅ **OAuth2 عام النطاق** - تسجيل دخول عبر جوجل/جيثب على أي جهاز  
+✅ **مكتبة قوية** - بحث وفلترة وترتيب المواد  
+✅ **تحميل سهل** - اسحب وأسقط الملفات أو اختر من جهازك  
 
 ---
 
-A comprehensive educational materials sharing platform featuring a hierarchical content organization system with intelligent search capabilities.
+## 📋 متطلبات التشغيل
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Technology Stack](#technology-stack)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Development](#development)
-- [Deployment](#deployment)
-- [Appwrite Functions](#appwrite-functions)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Overview
-
-Fyleo is a comprehensive educational materials sharing platform built with React and Appwrite. The platform provides a three-tiered hierarchical navigation system (Categories → Subjects → Materials) with advanced features including file preview, download tracking, bookmark management, and real-time search capabilities. The platform supports both Arabic (RTL) and English languages with full internationalization.
-
-### Key Objectives
-
-- Provide students with organized access to educational materials
-- Enable intelligent search and discovery of content
-- Track engagement through downloads and bookmarks
-- Support multiple file formats with in-browser preview
-- Maintain user privacy and data security
-- Deliver responsive experience across all devices including iOS Safari
-
-## Features
-
-### Authentication & Authorization
-- User registration with email verification
-- Secure login with session management
-- OAuth integration (Google, GitHub, Facebook)
-- Admin role-based access control
-- Account deletion with data cleanup
-
-### Library System
-- **Three-Level Navigation**: Categories → Subjects → Materials
-- **Smart Search**: Global spotlight-style search with real-time results
-- **Purpose-Based Filtering**: Dynamic tabs based on educational purposes (e.g., Lectures, Labs, Assignments)
-- **File Preview**: In-browser preview for PDF, DOCX, images, and videos
-- **Download Management**: Track downloads per material with authentication requirement
-- **Bookmark System**: Save materials for quick access with counter tracking
-
-### Content Management
-- Material upload with metadata (title, description, file type, educational purpose)
-- Post creation for announcements and discussions
-- Category and subject management (admin)
-- File type and purpose configuration (admin)
-
-### User Features
-- Personal workspace dashboard
-- GPA calculator with course management
-- Profile management
-- Download and bookmark history
-- Language switching (Arabic/English)
-
-### Technical Features
-- Server-side rendering optimization
-- Image lazy loading and code splitting
-- React Query caching with stale-while-revalidate
-- Hardware-accelerated UI for iOS Safari
-- Dark mode support
-- Responsive design (mobile-first approach)
-- PWA capabilities
-
-## Technology Stack
+### Backend
+- **PocketBase** (ملقى على: https://pocketbase97.mooo.com)
+  - SQL-based database سهل الاستخدام
+  - OAuth2 مدمج
+  - API تلقائي
 
 ### Frontend
-- **React 18.2.0**: UI library with hooks and concurrent features
-- **Vite 4.3.2**: Build tool and development server
-- **React Router DOM 6.11.2**: Client-side routing with nested routes
-- **TypeScript 5.0.0**: Type safety for critical components
-- **TailwindCSS 3.3.2**: Utility-first CSS framework
-- **Framer Motion 10.0.0**: Animation library for smooth transitions
+- **Node.js 18+**
+- **npm** أو **yarn**
 
-### State Management
-- **TanStack React Query 5.0.0**: Server state management with caching
-- **React Context API**: Global state for authentication and language
+---
 
-### Backend as a Service
-- **Appwrite 21.3.0**: Cloud-hosted BaaS for authentication, database, and storage
-- **Appwrite Functions**: Serverless functions for background tasks
+## 🛠️ التثبيت السريع
 
-### Internationalization
-- **i18next 23.0.0**: Internationalization framework
-- **react-i18next 13.0.0**: React bindings for i18next
-- **i18next-browser-languagedetector**: Automatic language detection
-
-### File Handling
-- **pdfjs-dist 3.8.162**: PDF rendering in browser
-- **docx-preview 0.3.7**: Microsoft Word document preview
-- **react-pdf**: PDF viewer component with pagination
-
-### External Storage
-- **MinIO**: Self-hosted S3-compatible object storage for large files
-- **Pre-signed URLs**: Secure temporary access to private files
-
-### Development Tools
-- **ESLint**: Code linting with React and hooks rules
-- **Prettier**: Code formatting with consistent style
-- **Husky**: Git hooks for pre-commit checks
-- **PostCSS**: CSS processing with Autoprefixer
-
-## Architecture
-
-### Design Pattern: Feature-Sliced Design (FSD)
-
-The project follows Feature-Sliced Design methodology for maintainability and scalability:
-
-```
-src/
-├── app/              # Application initialization layer
-│   ├── App.jsx       # Root component with providers
-│   └── main.jsx      # Entry point
-├── features/         # Feature layer (business logic)
-│   └── library/      # Library feature module
-│       ├── api/      # Appwrite API calls
-│       ├── hooks/    # React Query hooks
-│       ├── components/  # Feature-specific components
-│       └── pages/    # Feature pages
-├── shared/           # Shared layer (reusable code)
-│   ├── ui/           # UI components (buttons, modals, navbar)
-│   ├── lib/          # Utility functions
-│   ├── styles/       # Global styles
-│   └── i18n/         # Internationalization config
-├── pages/            # Legacy pages (being migrated to features)
-├── services/         # Shared services (auth, storage, hierarchy)
-├── config/           # Configuration files (Appwrite client)
-├── hooks/            # Shared hooks (useAuth, useScrollAnimation)
-├── contexts/         # React contexts (LanguageContext)
-└── types/            # TypeScript type definitions
+### 1. استنساخ المشروع
+```bash
+git clone <repo-url>
+cd Fyleo
 ```
 
-### Data Flow Architecture
+### 2. تثبيت المكتبات (Frontend)
+```bash
+cd frontend
+npm install
+# إضافة react-pdf
+npm install react-pdf pdfjs-dist
+```
 
-1. **API Layer**: Centralized Appwrite SDK calls in `api/` directories
-2. **Query Layer**: React Query hooks manage server state with caching
-3. **Component Layer**: Presentational components receive data via props
-4. **Page Layer**: Orchestrates data fetching and component composition
+### 3. متغيرات البيئة (Frontend)
+أنشئ ملف `.env.local` في مجلد `frontend/`:
 
-### Database Schema
+```env
+NEXT_PUBLIC_POCKETBASE_URL=https://pocketbase97.mooo.com
+```
 
-#### Collections
+### 4. بدء Server التطوير
+```bash
+npm run dev
+```
 
-**users**: User profiles and metadata
-- userId (string): Appwrite Auth user ID
-- username (string): Display name
-- email (string): User email
-- role (string): 'admin' or 'student'
-- createdAt (datetime): Account creation timestamp
+Frontend سيكون متاحاً على **http://localhost:3001**
 
-**categories**: Top-level content organization
-- name (string): Category name
-- nameAr (string): Arabic name
-- icon (string): Icon identifier
-- color (string): Hex color code
-- description (string): Category description
+---
 
-**subjects**: Second-level content organization
-- categoryId (string): Parent category reference
-- name (string): Subject name
-- nameAr (string): Arabic name
-- code (string): Subject code (e.g., CS101)
-- creditHours (integer): Course credit hours
-- level (string): Academic level
+## 🗂️ هيكل قاعدة البيانات
 
-**materials**: Educational content files
-- subjectId (string): Parent subject reference
-- title (string): Material title
-- description (string): Material description
-- fileUrl (string): MinIO file URL or Appwrite file ID
-- fileType (string): File extension
-- educationalPurpose (string): Purpose ID reference
-- uploadedBy (string): User ID reference
-- viewsCounter (integer): View count
-- downloadscounter (integer): Download count
-- bookmarkscounter (integer): Bookmark count
-- createdAt (datetime): Upload timestamp
+### Collections الأساسية
 
-**bookmarks**: User saved materials
-- userId (string): User reference
-- materialId (string): Material reference
-- createdAt (datetime): Bookmark timestamp
+#### 1. **categories** - التصنيفات
+```json
+{
+  "nameAr": "الرياضيات",
+  "nameEn": "Mathematics",
+  "icon": "📐",
+  "color": "#3b82f6",
+  "slug": "mathematics",
+  "order": 1
+}
+```
 
-**downloads**: Download tracking
-- userId (string): User reference
-- materialId (string): Material reference
-- downloadedAt (datetime): Download timestamp
+#### 2. **subjects** - المواد الدراسية
+```json
+{
+  "nameAr": "حساب التفاضل والتكامل",
+  "categoryId": "...",
+  "code": "MATH101",
+  "creditHours": 4,
+  "level": "1"
+}
+```
 
-**posts**: Announcements and discussions
-- subjectId (string): Subject reference
-- userId (string): Author reference
-- title (string): Post title
-- content (string): Post content (Markdown)
-- educationalPurpose (string): Purpose reference
-- createdAt (datetime): Post creation timestamp
+#### 3. **fileTypes** - أنواع الملفات
+```json
+{
+  "nameAr": "ملف PDF",
+  "extension": "pdf",
+  "mimeType": "application/pdf",
+  "allowedInBrowser": true
+}
+```
 
-**educationalPurposes**: Purpose categories
-- name (string): Purpose name
-- nameAr (string): Arabic name
-- icon (string): Icon identifier
-- order (integer): Display order
+#### 4. **materials** - المواد (الملفات المرفوعة)
+```json
+{
+  "title": "ملخص الفصل 5",
+  "description": "...",
+  "file": "...", // مرجع الملف
+  "uploaderId": "...",
+  "subjectId": "...",
+  "averageRating": 4.5,
+  "totalRatings": 12,
+  "downloads": 153
+}
+```
 
-**fileTypes**: File type definitions
-- extension (string): File extension (e.g., pdf, docx)
-- mimeType (string): MIME type
-- icon (string): Icon identifier
-- previewable (boolean): Can be previewed in browser
+#### 5. **material_ratings** - التقييمات ⭐
+```json
+{
+  "materialId": "...",
+  "userId": "...",
+  "rating": 5,
+  "comment": "ملخص رائع وشامل!",
+  "helpful": 0
+}
+```
 
-### iOS Safari Compatibility
+#### 6. **material_reports** - البلاغات 🚩
+```json
+{
+  "materialId": "...",
+  "userId": "...",
+  "reason": "inappropriate", // inappropriate, spam, copyright, malware, other
+  "details": "المحتوى يحتوي على كلمات نابية",
+  "status": "open" // open, reviewing, resolved, rejected
+}
+```
 
-The application implements hardware acceleration techniques to fix position:fixed scrolling issues on iOS Safari:
+---
 
-- CSS transforms with `translateZ(0)` for GPU rendering
-- `-webkit-backface-visibility: hidden` for rendering optimization
-- `will-change: transform` for performance hints
-- `-webkit-overflow-scrolling: touch` for momentum scrolling
-- JavaScript-enforced inline styles for critical elements
+## 📱 صفحات التطبيق
 
-## Installation
+### أساسية
+- **`/`** - الصفحة الرئيسية (هيرو + إحصائيات)
+- **`/library`** - مكتبة المواد (بحث + فلترة + ترتيب)
+- **`/material/[id]`** - تفاصيل المادة + عرض + تقييمات + بلاغات
+- **`/upload`** - رفع مادة جديدة
+- **`/login`** - تسجيل الدخول (OAuth + email/password)
+- **`/register`** - إنشاء حساب
+- **`/auth/callback`** - معالج OAuth callback
 
-### Prerequisites
+---
 
-- Node.js 16.x or higher
-- npm 8.x or higher
-- Appwrite Cloud account (or self-hosted Appwrite instance)
-- MinIO server (for external storage)
+## 🔐 التوثيق (OAuth)
 
-### Setup Steps
+### Google OAuth Setup
+1. اذهب إلى [Google Cloud Console](https://console.cloud.google.com)
+2. أنشئ OAuth 2.0 Client ID (Web application)
+3. أضف Authorized redirect URIs:
+   - `http://localhost:3001/auth/callback` (تطوير)
+   - `https://fyleo.example.com/auth/callback` (إنتاج)
+4. ضع Client ID في PocketBase OAuth settings
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/fyleo.git
-   cd fyleo
-   ```
+---
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure environment variables**
-
-   Create a `.env` file in the root directory:
-   ```env
-   # Appwrite Configuration
-   VITE_APPWRITE_URL=https://cloud.appwrite.io/v1
-   VITE_APPWRITE_PROJECT_ID=your_project_id
-   VITE_APPWRITE_DATABASE_ID=your_database_id
-   
-   # Collection IDs
-   VITE_APPWRITE_USERS_COLLECTION_ID=users
-   VITE_APPWRITE_MATERIALS_COLLECTION_ID=materials
-   VITE_APPWRITE_BOOKMARKS_COLLECTION_ID=bookmarks
-   VITE_APPWRITE_DOWNLOADS_COLLECTION_ID=downloads
-   VITE_APPWRITE_CATEGORIES_COLLECTION_ID=categories
-   VITE_APPWRITE_SUBJECTS_COLLECTION_ID=subjects
-   VITE_APPWRITE_FILE_TYPES_COLLECTION_ID=fileTypes
-   VITE_APPWRITE_POSTS_COLLECTION_ID=posts
-   VITE_APPWRITE_EDUCATIONAL_PURPOSES_COLLECTION_ID=educationalPurposes
-   
-   # Storage Configuration
-   VITE_APPWRITE_STORAGE_BUCKET_ID=files
-   
-   # MinIO Configuration
-   VITE_MINIO_ENDPOINT=your_minio_domain
-   VITE_MINIO_PORT=poort
-   VITE_MINIO_USE_SSL=true
-   VITE_MINIO_ACCESS_KEY=your_minio_access_key
-   VITE_MINIO_SECRET_KEY=your_minio_secret_key
-   VITE_MINIO_BUCKET_NAME=fyleo-files
-   
-   # Function IDs
-   VITE_VALIDATE_LINK_FUNCTION_ID=validate-link
-   VITE_MINIO_PRESIGN_FUNCTION_ID=minio-presign
-   
-   # OAuth Configuration
-   VITE_APPWRITE_SUCCESS_URL=https://yourdomain.com/oauth/callback
-   VITE_APPWRITE_FAILURE_URL=https://yourdomain.com/login
-   
-   # API Keys (for external services)
-   VITE_LINKPREVIEW_API_KEY=your_linkpreview_api_key
-   ```
-
-4. **Set up Appwrite project**
-
-   - Create a new project in Appwrite Console
-   - Create database with collections matching your schema
-   - Configure storage bucket with appropriate permissions
-   - Set up OAuth providers (Google, GitHub, Facebook)
-   - Deploy Appwrite Functions (see [Appwrite Functions](#appwrite-functions))
-
-5. **Set up MinIO storage**
-
-   - Install and configure MinIO server
-   - Create bucket: `fyleo-files`
-   - Configure CORS policy for browser uploads
-   - Set appropriate access policies
-
-6. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-   The application will be available at `http://localhost:5173`
-
-## Configuration
-
-### Vite Configuration
-
-The `vite.config.js` includes:
-- Path aliases for clean imports (`@`, `@app`, `@shared`, `@features`)
-- Code splitting for vendor, router, appwrite, and query libraries
-- Source maps enabled for debugging
-- Port 5173 with host mode enabled
-
-### TailwindCSS Configuration
-
-Custom configuration in `tailwind.config.js`:
-- Extended color palette with brand colors
-- Custom animations (fade-in, slide-up, scale-in)
-- RTL plugin for Arabic support
-- Typography plugin for rich text
-
-### ESLint Configuration
-
-Linting rules in `.eslintrc.cjs`:
-- React hooks rules enforced
-- Prettier integration for formatting
-- React refresh plugin for HMR
-- Consistent code style across team
-
-## Development
-
-### Available Scripts
+## 🚀 البدء السريع
 
 ```bash
-# Start development server with hot reload
+# 1. جهز البيانات الأولية
+# افتح PocketBase console وشغل docs/SEED_DATA.js
+
+# 2. ابدأ Frontend
+cd frontend
 npm run dev
 
-# Build for production
-npm run build
-
-# Preview production build locally
-npm run preview
-
-# Deploy to Appwrite (if configured)
-npm run deploy
-
-# Lint code
-npm run lint
-
-# Format code with Prettier
-npm run format
+# 3. افتح http://localhost:3001
+# اختبر: المكتبة → اختر مادة → اقرأ التقييمات
 ```
 
-### Development Workflow
+---
 
-1. **Create feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+## 🔄 عملية Upload
 
-2. **Make changes following FSD structure**
-   - Add API calls in `api/` directory
-   - Create React Query hooks in `hooks/`
-   - Build UI components in `components/`
-   - Compose pages in `pages/`
-
-3. **Test changes locally**
-   ```bash
-   npm run dev
-   ```
-
-4. **Build production bundle**
-   ```bash
-   npm run build
-   ```
-
-5. **Commit with descriptive message**
-   ```bash
-   git add .
-   git commit -m "feat: add new feature description"
-   ```
-
-### Adding New Features
-
-Follow Feature-Sliced Design methodology:
-
-1. Create feature directory in `src/features/feature-name/`
-2. Add API layer: `api/featureApi.ts`
-3. Add hooks layer: `hooks/useFeatureData.ts`
-4. Add components: `components/FeatureComponent.tsx`
-5. Add pages: `pages/FeaturePage.tsx`
-6. Export public API: `index.ts`
-
-### Code Style Guidelines
-
-- Use functional components with hooks
-- Prefer TypeScript for new components
-- Follow React Query patterns for server state
-- Use TailwindCSS for styling
-- Add JSDoc comments for complex functions
-- Keep components under 300 lines
-- Extract reusable logic to custom hooks
-
-## Deployment
-
-### Production Build
-
-```bash
-npm run build
+```
+المستخدم → يختار ملف + معلومات
+   ↓
+مصادقة (تسجيل دخول)
+   ↓
+رفع إلى PocketBase (File storage)
+   ↓
+حفظ البيانات في collection materials
+   ↓
+ظهور المادة في المكتبة
+   ↓
+يقيمها ويبلغ عنها المستخدمون
 ```
 
-This creates optimized production files in `dist/` directory with:
-- Minified JavaScript bundles
-- Code splitting for faster loading
-- Optimized CSS with unused styles removed
-- Source maps for debugging
+---
 
-### Deployment Platforms
+## 📊 نموذج البيانات
 
-#### Vercel (Recommended)
+```
+Users
+├── Created materials
+├── Created ratings
+├── Created reports
+└── Profile data
 
-1. Connect GitHub repository to Vercel
-2. Configure environment variables in Vercel dashboard
-3. Set build command: `npm run build`
-4. Set output directory: `dist`
-5. Deploy automatically on push to main branch
+Materials
+├── Subject
+├── File Type
+├── Ratings (1 to many)
+├── Reports (1 to many)
+└── Uploader (User)
 
-#### Netlify
-
-1. Connect GitHub repository to Netlify
-2. Configure build settings:
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-3. Add environment variables in Netlify dashboard
-4. Configure `_redirects` file for SPA routing:
-   ```
-   /*    /index.html   200
-   ```
-
-#### Static Hosting (Apache/Nginx)
-
-1. Build production bundle: `npm run build`
-2. Upload `dist/` contents to web server
-3. Configure server for SPA routing:
-
-   **Nginx:**
-   ```nginx
-   location / {
-     try_files $uri $uri/ /index.html;
-   }
-   ```
-
-   **Apache (.htaccess):**
-   ```apache
-   RewriteEngine On
-   RewriteBase /
-   RewriteRule ^index\.html$ - [L]
-   RewriteCond %{REQUEST_FILENAME} !-f
-   RewriteCond %{REQUEST_FILENAME} !-d
-   RewriteRule . /index.html [L]
-   ```
-
-### Post-Deployment Checklist
-
-- [ ] Verify all environment variables are set correctly
-- [ ] Test authentication flow (login, signup, OAuth)
-- [ ] Check file upload and download functionality
-- [ ] Validate search functionality
-- [ ] Test on multiple devices and browsers (especially iOS Safari)
-- [ ] Verify RTL layout for Arabic language
-- [ ] Check all Appwrite Functions are deployed and active
-- [ ] Monitor error logs and performance metrics
-- [ ] Set up analytics and error tracking
-- [ ] Configure CDN for static assets (optional)
-
-## Appwrite Functions
-
-The platform uses serverless Appwrite Functions for background tasks and event-driven operations.
-
-### Function: onDownloadCreate
-
-**Purpose**: Automatically increment `downloadscounter` when a download is created.
-
-**Trigger**: `databases.downloads.documents.*.create`
-
-**Environment Variables**:
-- `APPWRITE_API_KEY`: Server API key with database write permissions
-- `DATABASE_ID`: Database identifier
-- `MATERIALS_COLLECTION_ID`: Materials collection identifier
-
-**Deployment**:
-```bash
-cd appwrite-functions/onDownloadCreate
-npm install
-zip -r function.zip .
-# Upload via Appwrite Console or CLI
+Categories
+└── Subjects (1 to many)
 ```
 
-### Function: onBookmarkToggle
+---
 
-**Purpose**: Increment/decrement `bookmarkscounter` when bookmarks are created or deleted.
+## 🧪 اختبار الميزات
 
-**Triggers**: 
-- `databases.bookmarks.documents.*.create`
-- `databases.bookmarks.documents.*.delete`
+### 1. تقييم مادة
+```
+1. سجل دخول
+2. اذهب للمكتبة
+3. فتح أي مادة
+4. اختر عدد النجوم + اكتب تعليق
+5. اضغط "حفظ التقييم"
+```
 
-**Environment Variables**:
-- `APPWRITE_API_KEY`: Server API key
-- `DATABASE_ID`: Database identifier
-- `MATERIALS_COLLECTION_ID`: Materials collection identifier
-- `USERS_COLLECTION_ID`: Users collection identifier
+### 2. بلاغ مادة
+```
+1. فتح أي مادة
+2. اضغط زر "بلاغ"
+3. اختر السبب + اكتب تفاصيل
+4. اضغط "إرسال البلاغ"
+```
 
-### Function: validate-link
+### 3. عرض PDF
+```
+1. رفع ملف PDF
+2. افتح تفاصيل المادة
+3. سترى معاين PDF مع:
+   - أزرار التنقل (صفحة سابقة/تالية)
+   - تكبير/تصغير
+   - زر تحميل
+```
 
-**Purpose**: Validate and extract metadata from URLs for link preview.
+---
 
-**Trigger**: Manual invocation from frontend
+## 📁 هيكل المشروع
 
-**Environment Variables**:
-- `LINKPREVIEW_API_KEY`: API key for link preview service
+```
+Fyleo/
+├── frontend/
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── layout.tsx (مع Navbar)
+│   │   │   ├── page.tsx (الرئيسية)
+│   │   │   ├── library/
+│   │   │   │   └── page.tsx (المكتبة)
+│   │   │   ├── material/
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx (تفاصيل + تقييمات + بلاغات)
+│   │   │   ├── upload/
+│   │   │   │   └── page.tsx (نموذج الرفع)
+│   │   │   ├── auth/
+│   │   │   │   └── callback/page.tsx (OAuth handler)
+│   │   │   └── login/register/
+│   │   ├── components/
+│   │   │   ├── Navbar.tsx (تنقل عام)
+│   │   │   ├── PDFViewer.tsx (عارض PDF)
+│   │   │   └── ui/ (shadcn components)
+│   │   ├── lib/
+│   │   │   ├── pocketbase.ts (عميل PocketBase)
+│   │   │   ├── auth-store.ts (Zustand store)
+│   │   │   └── utils.ts
+│   │   └── styles/
+│   ├── next.config.js
+│   ├── tailwind.config.js
+│   ├── tsconfig.json
+│   └── package.json
+├── backend/
+│   ├── pb_migrations/ (نقل DB)
+│   │   ├── 1738598400_users_extend.js
+│   │   ├── ...
+│   │   └── core_schema.sql (جديد!)
+│   └── ...
+├── docs/
+│   ├── DATABASE.md
+│   ├── SETUP.md
+│   └── SEED_DATA.js (بيانات اختبار)
+└── README.md (هذا الملف)
+```
 
-### Function: delete-user
+---
 
-**Purpose**: Delete user account and all associated data (bookmarks, downloads, materials).
+## 🐛 استكشاف الأخطاء
 
-**Trigger**: Manual invocation from user settings
+### "OAuth callback failed"
+- ✓ تأكد من إضافة callback URL إلى Google Console
+- ✓ تأكد من صحة POCKETBASE_URL في .env.local
 
-**Environment Variables**:
-- `APPWRITE_API_KEY`: Server API key
-- `DATABASE_ID`: Database identifier
-- `USERS_COLLECTION_ID`: Users collection identifier
-- `BOOKMARKS_COLLECTION_ID`: Bookmarks collection identifier
-- `DOWNLOADS_COLLECTION_ID`: Downloads collection identifier
-- `MATERIALS_COLLECTION_ID`: Materials collection identifier
+### "لا توجد مواد"
+- ✓ شغل SEED_DATA.js في PocketBase console
+- ✓ أنشئ subjects قبل محاولة الرفع
 
-### Function: minio-presign
+### "PDF لم يظهر"
+- ✓ تأكد من رفع ملف PDF فعلي (ليس صورة للـ PDF)
+- ✓ جرّب متصفح آخر
 
-**Purpose**: Generate pre-signed URLs for secure MinIO file access.
+---
 
-**Trigger**: Manual invocation from frontend
+## 📈 الخطوات التالية (Phase 2)
 
-**Environment Variables**:
-- `MINIO_ENDPOINT`: MinIO server endpoint
-- `MINIO_PORT`: MinIO server port
-- `MINIO_ACCESS_KEY`: MinIO access key
-- `MINIO_SECRET_KEY`: MinIO secret key
-- `MINIO_USE_SSL`: Use SSL for MinIO connections
-- `MINIO_BUCKET_NAME`: MinIO bucket name
+- [ ] لوحة تحكم الإدارة
+- [ ] إحصائيات متقدمة
+- [ ] تصنيفات مستخدم
+- [ ] قوائم المحفوظات
+- [ ] الإخطارات الفورية
+- [ ] تطبيق الهاتف
 
-### Deploying Functions
+---
 
-Detailed deployment guide available in `appwrite-functions/DEPLOYMENT_GUIDE.md`
+## 📞 الدعم
 
-1. Create API key in Appwrite Console with required permissions
-2. Configure environment variables for each function
-3. Deploy via Appwrite Console or CLI
-4. Test function execution with sample events
-5. Monitor logs for errors
+للمساعدة أو الإبلاغ عن مشاكل، أنشئ issue عبر GitHub.
 
-## Project Structure
+---
+
+**بُني مع ❤️ بـ Next.js + PocketBase + Tailwind CSS**
+
+
+## 📚 نظرة عامة
+
+منصة تعليمية متكاملة مبنية على PocketBase، تجمع أفضل ميزات:
+- **StudoCu** - مشاركة الملاحظات والمواد الدراسية
+- **CourseHero** - المحتوى التعليمي والحلول
+- **Open edX** - إدارة الكورسات والتعليم الإلكتروني
+- **Moodle** - نظام إدارة التعلم
+- **Canvas** - منصة التعليم الحديثة
+
+## 🏗️ البنية التقنية
+
+### Backend
+- **PocketBase** - قاعدة بيانات و API و Authentication
+- **Node.js** - خدمات إضافية
+- **SQLite** - قاعدة البيانات
+
+### Frontend
+- **Next.js 14** - React Framework
+- **TypeScript** - Type Safety
+- **Tailwind CSS** - Styling
+- **Shadcn/ui** - UI Components
+
+## 🚀 الميزات الرئيسية
+
+### 1. إدارة المستخدمين
+- تسجيل دخول آمن
+- أدوار متعددة (طالب، معلم، مشرف)
+- ملفات شخصية
+
+### 2. إدارة الكورسات
+- إنشاء وتنظيم الكورسات
+- وحدات ودروس
+- تتبع التقدم
+
+### 3. المحتوى التعليمي
+- رفع ومشاركة الملفات
+- مكتبة المواد الدراسية
+- محتوى تفاعلي
+
+### 4. التفاعل
+- منتديات النقاش
+- الأسئلة والأجوبة
+- التقييمات والمراجعات
+
+### 5. التقييم
+- اختبارات تفاعلية
+- واجبات منزلية
+- نتائج وشهادات
+
+## 📁 هيكل المشروع
 
 ```
 fyleo/
-├── public/                  # Static assets
-│   └── locales/            # Translation files
-│       ├── ar/             # Arabic translations
-│       └── en/             # English translations
-├── src/
-│   ├── app/                # Application layer
-│   │   ├── App.jsx         # Root component
-│   │   └── main.jsx        # Entry point
-│   ├── features/           # Feature modules (FSD)
-│   │   └── library/        # Library feature
-│   │       ├── api/        # API calls
-│   │       ├── hooks/      # React Query hooks
-│   │       ├── components/ # Components
-│   │       └── pages/      # Pages
-│   ├── shared/             # Shared resources
-│   │   ├── ui/             # UI components
-│   │   │   ├── modern/     # Modern components
-│   │   │   └── cards/      # Card components
-│   │   ├── lib/            # Utilities
-│   │   ├── styles/         # Global styles
-│   │   └── i18n/           # i18n config
-│   ├── pages/              # Legacy pages
-│   │   ├── AdminPage/      # Admin dashboard
-│   │   ├── GPACalculatorPage/ # GPA calculator
-│   │   ├── LandingPage/    # Homepage
-│   │   ├── login/          # Login page
-│   │   ├── signup/         # Signup page
-│   │   └── PersonalWorkspace/ # User dashboard
-│   ├── services/           # Business logic services
-│   │   ├── appwriteService.js # Appwrite wrapper
-│   │   ├── authService.js  # Authentication
-│   │   ├── fileTypeService.js # File handling
-│   │   └── hierarchyService.js # Hierarchy logic
-│   ├── config/             # Configuration
-│   │   ├── appwrite.js     # Appwrite client
-│   │   └── constants.js    # App constants
-│   ├── hooks/              # Shared hooks
-│   │   ├── useAuth.jsx     # Authentication hook
-│   │   └── useScrollAnimation.jsx # Scroll effects
-│   ├── contexts/           # React contexts
-│   │   └── LanguageContext.jsx # Language state
-│   └── types/              # TypeScript definitions
-│       └── database.ts     # Database types
-├── appwrite-functions/     # Serverless functions
-│   ├── onDownloadCreate/   # Download counter
-│   ├── onBookmarkToggle/   # Bookmark counter
-│   ├── validate-link/      # Link validation
-│   ├── delete-user/        # User deletion
-│   └── minio-presign/      # MinIO URL signing
-├── scripts/                # Utility scripts
-│   └── cleanupOrphanedBookmarks.js
-├── .env                    # Environment variables
-├── .env.example            # Example environment file
-├── package.json            # Dependencies
-├── vite.config.js          # Vite configuration
-├── tailwind.config.js      # TailwindCSS config
-├── tsconfig.json           # TypeScript config
-└── README.md               # This file
+├── backend/                    # PocketBase Backend
+│   ├── pb_migrations/         # Database migrations
+│   ├── pb_hooks/              # PocketBase hooks
+│   └── pocketbase             # PocketBase executable
+├── frontend/                   # Next.js Frontend
+│   ├── src/
+│   │   ├── app/               # App Router
+│   │   ├── components/        # React Components
+│   │   ├── lib/               # Utilities
+│   │   └── types/             # TypeScript Types
+│   └── public/                # Static files
+├── docs/                       # Documentation
+└── docker-compose.yml         # Docker setup
 ```
 
-## Contributing
+## 🛠️ التثبيت
 
-We welcome contributions from the community. Please follow these guidelines:
+```bash
+# Clone the repository
+git clone https://github.com/SalehAlSalem/Fyleo.git
+cd Fyleo
 
-### Reporting Issues
+# Install dependencies
+cd frontend
+npm install
 
-- Search existing issues before creating a new one
-- Provide detailed description with steps to reproduce
-- Include browser/OS information
-- Add screenshots for UI issues
+# Start development
+npm run dev
+```
 
-### Pull Requests
+## 📝 الترخيص
 
-1. Fork the repository
-2. Create feature branch from `main`
-3. Follow code style guidelines
-4. Add tests for new functionality
-5. Update documentation as needed
-6. Submit PR with clear description
-
-### Development Guidelines
-
-- Write clean, readable code with comments
-- Follow FSD architecture patterns
-- Use TypeScript for new components
-- Add PropTypes for JavaScript components
-- Test on multiple browsers including iOS Safari
-- Ensure RTL layout works correctly
-- Update translations for both languages
-
-## Support the Project
-
-If you find this project helpful, consider supporting the developer:
-
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Me-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/bawa3neh_97)
-
-Your support helps maintain and improve this project!
-
-## License
-
-This project is licensed under the MIT License. All rights reserved.
-
-For questions or support, please contact the development team.
-
----
-
-Made with ❤️ by [Saleh Al-Salem](https://github.com/SalehAlSalem)
-
-Built with React and Appwrite.
+MIT License

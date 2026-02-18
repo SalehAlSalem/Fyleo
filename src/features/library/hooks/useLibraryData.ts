@@ -19,12 +19,8 @@ import {
   educationalPurposesApi
 } from '../api';
 import type { Category, Subject, Material, Post, EducationalPurpose } from '../../../types/database';
-import * as appwriteConfig from '../../../config/appwrite';
+import { pb } from '../../../config/pocketbase';
 import { cacheManager } from '../utils/indexedDB';
-
-// @ts-ignore - appwrite.js is not typed
-const client = appwriteConfig.client;
-const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 
 /**
  * Query Keys

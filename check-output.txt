@@ -1,0 +1,58 @@
+≡ƒöÉ ╪¼╪º╪▒┘è ╪¬╪│╪¼┘è┘ä ╪º┘ä╪»╪«┘ê┘ä...
+Γ£à ╪¬┘à ╪¬╪│╪¼┘è┘ä ╪º┘ä╪»╪«┘ê┘ä ╪¿┘å╪¼╪º╪¡
+
+≡ƒôÜ === ┘ü╪¡╪╡ Collections ===
+
+╪º┘ä┘Ç Collections ╪º┘ä┘à┘ê╪¼┘ê╪»╪⌐:
+  Γ£ô categories (8 ╪│╪¼┘ä)
+  Γ£ô subjects (132 ╪│╪¼┘ä)
+  Γ£ô subjectCategories (276 ╪│╪¼┘ä)
+  Γ£ô users (41 ╪│╪¼┘ä)
+  Γ£ô fileTypes (6 ╪│╪¼┘ä)
+  Γ£ô materials (396 ╪│╪¼┘ä)
+  Γ£ô posts (13 ╪│╪¼┘ä)
+  Γ£ô material_ratings (0 ╪│╪¼┘ä)
+
+≡ƒôï === ┘ü╪¡╪╡ Materials Collection ===
+Fields ╪º┘ä┘à┘ê╪¼┘ê╪»╪⌐:
+  Γ£ô title (text)
+  Γ£ô description (text)
+  Γ£ô file (file)
+  Γ£ô uploader (relation)
+  Γ£ô subject (relation)
+  Γ£ô fileType (relation)
+  Γ£ô tags (text)
+  Γ£ô averageRating (number)
+  Γ£ô totalRatings (number)
+  Γ£ô downloads (number)
+  Γ£ô views (number)
+
+≡ƒôè === ╪╣┘è┘å╪⌐ ┘à┘å ╪º┘ä╪¿┘è╪º┘å╪º╪¬ ===
+
+≡ƒæÑ Users (41 ╪Ñ╪¼┘à╪º┘ä┘è):
+  1. salehbawaneh@gmail.com
+  2. johnbarber91692@gmail.com
+  3. obadanasser2004@gmail.com
+  4. tonydacruel@gmail.com
+  5. awonomar2004@gmail.com
+
+≡ƒôÜ Materials (396 ╪Ñ╪¼┘à╪º┘ä┘è):
+  1. Reference_Database-System-Concepts-6e
+     - averageRating: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+     - downloads: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+  2. OS_Book_9th
+     - averageRating: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+     - downloads: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+  3. ┘à┘è╪» -  ╪»┘ü╪¬╪▒  ╪┤╪▒╪¡
+     - averageRating: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+     - downloads: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+  4. ╪»┘ü╪¬╪▒ magnetic circuit 
+     - averageRating: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+     - downloads: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+  5. Lecture  1
+     - averageRating: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+     - downloads: ╪║┘è╪▒ ┘à┘ê╪¼┘ê╪»
+
+≡ƒôê === ╪º┘ä╪Ñ╪¡╪╡╪º╪ª┘è╪º╪¬ ===
+Γ¥î ╪«╪╖╪ú: 404: {"code":404,"message":"The requested resource wasn't found.","data":{}}
+

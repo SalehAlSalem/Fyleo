@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  pocketbase:
+    image: ghcr.io/pocketbase/pocketbase:latest
+    container_name: fyleo_pocketbase
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./backend/pb_data:/pb_data
+    environment:
+      - POCKETBASE_DATA_DIR=/pb_data
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fyleo_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_POCKETBASE_URL=http://pocketbase:8090
+    depends_on:
+      - pocketbase
+    command: npm run dev
+
+volumes:
+  pb_data:

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { materialsService, postsService, bookmarksService, fileTypesService, educationalPurposesService } from '../../../services/appwriteService';
+import { pb } from '../../../config/pocketbase';
 import SmartSubjectSearch from '../../../components/SmartSubjectSearch/SmartSubjectSearch';
 import './ContentTabs.css';
 import CardModal from '../../../features/library/components/CardModal';
@@ -38,11 +38,16 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const fileTypesData = await fileTypesService.getAll();
+        const fileTypesData = await pb.collection('fileTypes').getFullList({
+          sort: 'name',
+        });
         console.log('📦 File Types loaded in ContentTabs:', fileTypesData);
         setFileTypes(fileTypesData || []);
         
-        const purposesData = await educationalPurposesService.getLinkAllowed();
+        const purposesData = await pb.collection('educationalPurposes').getFullList({
+          filter: 'linkAllowed = true',
+          sort: 'name',
+        });
         console.log('🎯 Educational Purposes loaded in ContentTabs:', purposesData);
         setEducationalPurposes(purposesData || []);
       } catch (error) {
@@ -65,14 +70,13 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
       if (subjectIds.size === 0) return;
       
       try {
-        const { subjectsService } = await import('../../../services/appwriteService');
         const names = {};
         const objects = {};
         
         // Fetch each subject name and store the object
         for (const id of subjectIds) {
           try {
-            const subject = await subjectsService.getById(id);
+            const subject = await pb.collection('subjects').getOne(id);
             names[id] = i18n.language === 'ar' ? subject.nameAr : subject.nameEn;
             objects[id] = subject;
           } catch (error) {
@@ -97,21 +101,23 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
     const loadDownloadCounts = async () => {
       const fileIds = new Set();
       if (files && files.length > 0) {
-        for (const f of files) fileIds.add(f.$id);
+        for (const f of files) fileIds.add(f.id);
       }
       if (bookmarks && bookmarks.length > 0) {
         for (const b of bookmarks) {
-          if (b.contentType === 'file' && b.$id) fileIds.add(b.$id);
+          if (b.contentType === 'file' && b.id) fileIds.add(b.id);
         }
       }
       if (fileIds.size === 0) return;
 
       try {
-        const { downloadsService } = await import('../../../services/appwriteService');
         const counts = {};
         for (const id of fileIds) {
-          const count = await downloadsService.getCountByFile(id);
-          counts[id] = count;
+          // Count downloads for this file
+          const downloads = await pb.collection('downloads').getFullList({
+            filter: `fileId = "${id}"`,
+          });
+          counts[id] = downloads.length;
         }
         setDownloadCounts(counts);
       } catch (error) {
@@ -136,7 +142,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
   };
 
   const validateFileType = (fileTypeId, fileName) => {
-    const fileType = fileTypes.find(ft => ft.$id === fileTypeId);
+    const fileType = fileTypes.find(ft => ft.id === fileTypeId);
     if (!fileType || !fileType.allowedFormats) return { valid: true };
 
     const extension = fileName.split('.').pop()?.toLowerCase();
@@ -167,7 +173,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
           }
         }
 
-        await materialsService.update(editingItem.$id, {
+        await pb.collection('materials').update(editingItem.id, {
           subjectId: editData.subjectId,
           title: editData.title,
           description: editData.description,
@@ -180,7 +186,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
           return;
         }
         
-        await postsService.update(editingItem.$id, {
+        await pb.collection('posts').update(editingItem.id, {
           subjectId: editData.subjectId,
           contentText: editData.description,
           linkURL: editData.linkURL,
@@ -201,9 +207,9 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
 
     try {
       if (type === 'file') {
-        await materialsService.delete(item.$id);
+        await pb.collection('materials').delete(item.id);
       } else {
-        await postsService.delete(item.$id);
+        await pb.collection('posts').delete(item.id);
       }
       onRefresh();
     } catch (error) {
@@ -214,7 +220,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
 
   const handleRemoveBookmark = async (bookmarkId) => {
     try {
-      await bookmarksService.delete(bookmarkId);
+      await pb.collection('bookmarks').delete(bookmarkId);
       onRefresh();
     } catch (error) {
       console.error('Error removing bookmark:', error);
@@ -233,7 +239,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
   };
 
   const handleSelectAll = (items) => {
-    const allIds = items.map(item => item.$id || item.bookmarkId);
+    const allIds = items.map(item => item.id || item.bookmarkId);
     setSelectedItems(allIds);
     setShowContextBar(true);
   };
@@ -255,7 +261,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
   // Fetch and enrich full material for modal (uploaderName, viewURL)
   const openMaterialCard = async (file) => {
     try {
-      let material = await materialsService.getById(file.$id);
+      let material = await pb.collection('materials').getOne(file.id);
       
       // ✅ Preserve fileType from API or fallback to file list
       if (!material.fileType && file.fileType) {
@@ -284,16 +290,14 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
 
       if (material.uploaderId && !material.uploaderName) {
         try {
-          const { usersService } = await import('../../../services/appwriteService');
-          const user = await usersService.getById(material.uploaderId);
+          const user = await pb.collection('users').getOne(material.uploaderId);
           const name = user?.name || user?.username || user?.email || 'Unknown User';
           material = { ...material, uploaderName: name, uploader: { name } };
         } catch (_) {}
         // Fallback: if this is the owner's workspace, use account name
         if ((!material.uploaderName || material.uploaderName === 'Unknown User') && material.uploaderId && userId && material.uploaderId === userId) {
           try {
-            const { account } = await import('../../../config/appwrite');
-            const authUser = await account.get();
+            const authUser = pb.authStore.model;
             const name = authUser?.name || authUser?.email || 'Unknown User';
             material = { ...material, uploaderName: name, uploader: { name } };
           } catch (_) {}
@@ -313,10 +317,10 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
     } else {
       setModalMaterial(null);
       setModalPost({
-        $id: item.$id,
+        id: item.id,
         contentText: item.contentText,
         linkURL: item.linkURL,
-        $createdAt: item.$createdAt,
+        created: item.created,
         $updatedAt: item.$updatedAt,
         uploaderId: item.uploaderId,
         subjectId: item.subjectId,
@@ -354,7 +358,19 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
   const handleModalBookmark = async () => {
     try {
       if (modalMaterial) {
-        await bookmarksService.toggle(modalMaterial.$id);
+        // Toggle bookmark: check if exists, then create or delete
+        const existing = await pb.collection('bookmarks').getFullList({
+          filter: `userId = "${userId}" && fileId = "${modalMaterial.id}"`,
+        });
+        
+        if (existing.length > 0) {
+          await pb.collection('bookmarks').delete(existing[0].id);
+        } else {
+          await pb.collection('bookmarks').create({
+            userId: userId,
+            fileId: modalMaterial.id,
+          });
+        }
         onRefresh && onRefresh();
       }
     } catch (err) {
@@ -375,12 +391,12 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
     try {
       const deletePromises = selectedItems.map(id => {
         if (activeTab === 'files') {
-          return materialsService.delete(id);
+          return pb.collection('materials').delete(id);
         } else if (activeTab === 'links') {
-          return postsService.delete(id);
+          return pb.collection('posts').delete(id);
         } else {
           const bookmark = bookmarks.find(b => b.bookmarkId === id);
-          return bookmark ? bookmarksService.delete(bookmark.bookmarkId) : Promise.resolve();
+          return bookmark ? pb.collection('bookmarks').delete(bookmark.bookmarkId) : Promise.resolve();
         }
       });
 
@@ -395,7 +411,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
 
   const handleBatchDownload = async () => {
     for (const id of selectedItems) {
-      const file = files.find(f => f.$id === id);
+      const file = files.find(f => f.id === id);
       if (!file) continue;
 
       try {
@@ -414,8 +430,10 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
 
         // Record download
         try {
-          const { downloadsService } = await import('../../../services/appwriteService');
-          await downloadsService.create(file.$id);
+          await pb.collection('downloads').create({
+            userId: userId,
+            fileId: file.id,
+          });
           console.log('✅ Download recorded:', file.title);
         } catch (err) {
           console.warn('⚠️ Could not record download:', err);
@@ -578,7 +596,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                     className="form-select"
                   >
                     {fileTypes.map((type) => (
-                      <option key={type.$id} value={type.$id}>
+                      <option key={type.id} value={type.id}>
                         {i18n.language === 'ar' ? (type.nameAr || type.nameEn || type.name) : (type.nameEn || type.nameAr || type.name)}
                       </option>
                     ))}
@@ -611,7 +629,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                   >
                     <option value="">{t('workspace.selectPurpose')}</option>
                     {educationalPurposes.map((purpose) => (
-                      <option key={purpose.$id} value={purpose.$id}>
+                      <option key={purpose.id} value={purpose.id}>
                         {purpose.icon} {i18n.language === 'ar' ? purpose.nameAr : purpose.nameEn}
                       </option>
                     ))}
@@ -666,7 +684,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
               <>
                 <button
                   onClick={() => {
-                    const item = files.find(f => f.$id === selectedItems[0]);
+                    const item = files.find(f => f.id === selectedItems[0]);
                     handleEdit(item, 'file');
                     handleClearSelection();
                   }}
@@ -682,7 +700,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
             {selectedItems.length === 1 && activeTab === 'links' && (
               <button
                 onClick={() => {
-                  const item = links.find(l => l.$id === selectedItems[0]);
+                  const item = links.find(l => l.id === selectedItems[0]);
                   handleEdit(item, 'link');
                   handleClearSelection();
                 }}
@@ -807,8 +825,8 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
               }}>
                 {filteredFiles.map((file) => (
                   <div 
-                    key={file.$id} 
-                    className={`link-card ${selectedItems.includes(file.$id) ? 'selected' : ''}`}
+                    key={file.id} 
+                    className={`link-card ${selectedItems.includes(file.id) ? 'selected' : ''}`}
                     style={{
                       background: 'var(--card-bg, #1a2332)',
                       border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
@@ -817,14 +835,14 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                       transition: 'all 0.2s ease',
                       cursor: 'pointer'
                     }}
-                    onClick={() => handleSelectItem(file.$id)}
+                    onClick={() => handleSelectItem(file.id)}
                   >
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'start' }}>
                       {/* Checkbox */}
                       <input
                         type="checkbox"
-                        checked={selectedItems.includes(file.$id)}
-                        onChange={() => handleSelectItem(file.$id)}
+                        checked={selectedItems.includes(file.id)}
+                        onChange={() => handleSelectItem(file.id)}
                         onClick={(e) => e.stopPropagation()}
                         className="select-checkbox"
                         style={{ marginTop: '0.25rem' }}
@@ -874,8 +892,8 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                         {/* Meta Info Chips */}
                         <div className="meta-chips">
                           <span>📦 {formatFileSize(file.fileSize)}</span>
-                          <span>📥 {downloadCounts[file.$id] || 0}</span>
-                          <span>📅 {formatDate(file.$createdAt)}</span>
+                          <span>📥 {downloadCounts[file.id] || 0}</span>
+                          <span>📅 {formatDate(file.created)}</span>
                         </div>
                       </div>
                       {/* View Button */
@@ -929,8 +947,8 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
               }}>
                 {filteredLinks.map((link) => (
                   <div 
-                    key={link.$id} 
-                    className={`link-card ${selectedItems.includes(link.$id) ? 'selected' : ''}`}
+                    key={link.id} 
+                    className={`link-card ${selectedItems.includes(link.id) ? 'selected' : ''}`}
                     style={{
                       background: 'var(--card-bg, #1a2332)',
                       border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
@@ -939,14 +957,14 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                       transition: 'all 0.2s ease',
                       cursor: 'pointer'
                     }}
-                    onClick={() => handleSelectItem(link.$id)}
+                    onClick={() => handleSelectItem(link.id)}
                   >
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'start' }}>
                       {/* Checkbox */}
                       <input
                         type="checkbox"
-                        checked={selectedItems.includes(link.$id)}
-                        onChange={() => handleSelectItem(link.$id)}
+                        checked={selectedItems.includes(link.id)}
+                        onChange={() => handleSelectItem(link.id)}
                         onClick={(e) => e.stopPropagation()}
                         className="select-checkbox"
                         style={{ marginTop: '0.25rem' }}
@@ -1042,7 +1060,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                         
                         {/* Meta Info */}
                         <div className="meta-chips">
-                          <span>📅 {formatDate(link.$createdAt)}</span>
+                          <span>📅 {formatDate(link.created)}</span>
                         </div>
                       </div>
                     </div>
@@ -1158,8 +1176,8 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                             
                             <div className="meta-chips">
                               <span>📦 {formatFileSize(item.fileSize)}</span>
-                              <span>📥 {downloadCounts[item.$id] || 0}</span>
-                              <span>📅 {formatDate(item.$createdAt)}</span>
+                              <span>📥 {downloadCounts[item.id] || 0}</span>
+                              <span>📅 {formatDate(item.created)}</span>
                             </div>
                           </>
                         ) : (
@@ -1232,7 +1250,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
                             )}
                             
                             <div className="meta-chips">
-                              <span>📅 {formatDate(item.$createdAt)}</span>
+                              <span>📅 {formatDate(item.created)}</span>
                             </div>
                           </>
                         )}
@@ -1266,7 +1284,7 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
         post={modalPost}
         onMaterialPreview={handleModalPreview}
         onBookmark={handleModalBookmark}
-        isBookmarked={modalMaterial ? (bookmarks || []).some(b => b.contentType === 'file' && b.$id === modalMaterial.$id) : false}
+        isBookmarked={modalMaterial ? (bookmarks || []).some(b => b.contentType === 'file' && b.id === modalMaterial.id) : false}
         materialLabels={materialLabels}
         postLabels={postLabels}
       />
@@ -1293,8 +1311,8 @@ const ContentTabs = ({ files, links, bookmarks, onRefresh, userId }) => {
           }
           try {
             const { downloadsService } = await import('../../../services/appwriteService');
-            await downloadsService.create(previewMaterial.$id);
-            console.log('✅ Download recorded:', previewMaterial.$id);
+            await downloadsService.create(previewMaterial.id);
+            console.log('✅ Download recorded:', previewMaterial.id);
           } catch (error) {
             console.error('❌ Error recording download:', error);
           }
